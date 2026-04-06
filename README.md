@@ -1,6 +1,6 @@
 # COM-rest-ms
 
-Aplicacao Spring Boot pronta para execucao em container Docker.
+Aplicacao Spring Boot com PostgreSQL gerenciado por container Docker.
 
 ## Estrutura arquitetural (MVC em camadas)
 
@@ -17,8 +17,30 @@ Endpoint inicial:
 
 ## Requisitos
 
+- Java 25
 - Docker 24+
 - Docker Compose (plugin `docker compose`)
+
+## Banco de dados PostgreSQL
+
+O banco e criado em container com dados persistidos em volume Docker (`postgres_data`).
+
+Na primeira subida do banco, os scripts em `docker/postgres/init` sao executados automaticamente:
+
+- `01-schema.sql`: cria extensao, tabelas e indices.
+
+No momento, a inicializacao automatica esta configurada para subir somente a estrutura (sem carga de dados).
+
+> Importante: scripts em `/docker-entrypoint-initdb.d` rodam apenas quando o volume do Postgres esta vazio.
+
+## Configuracao local com `.env`
+
+As variaveis locais ficam em `.env` (arquivo nao versionado). Copie o template e ajuste `POSTGRES_*` e
+`SPRING_DATASOURCE_*`:
+
+```bash
+cp .env.example .env
+```
 
 ## Rodando com Docker Compose
 
@@ -27,6 +49,8 @@ docker compose up --build
 ```
 
 A API fica disponivel em `http://localhost:8080`.
+
+Banco PostgreSQL de DESENVOLVIMENTO: `localhost:5432`
 
 Para rodar em background:
 
@@ -38,6 +62,12 @@ Para parar:
 
 ```bash
 docker compose down
+```
+
+Para remover containers e limpar o volume do banco (forcar nova carga de schema/dados):
+
+```bash
+docker compose down -v
 ```
 
 ## Rodando com Docker (sem Compose)
