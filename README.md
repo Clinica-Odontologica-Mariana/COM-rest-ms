@@ -1,19 +1,36 @@
 # COM-rest-ms
 
-Aplicacao Spring Boot com PostgreSQL gerenciado por container Docker.
+Aplicacao Spring Boot com PostgreSQL (Supabase ou local).
 
 ## Estrutura arquitetural (MVC em camadas)
 
 ```text
 src/main/java/com/clinica/mariana/restms
-├── controller
-│   └── HelloController.java
+├── config
+│   └── .gitkeep
+├── patient
+│   ├── model
+│   │   └── PatientModel.java
+│   ├── view
+│   │   └── PatientView.java
+│   └── controller
+│       └── PatientController.java
 └── RestMsApplication.java
+
+src/test/java/com/clinica/mariana/restms
+└── patient
+	└── test
+		└── PatientControllerTest.java
 ```
 
 Endpoint inicial:
 
-- `GET /api/v1/hello` -> `Hello World`
+- `POST /api/v1/patients` -> cria paciente
+- `GET /api/v1/patients` -> lista pacientes ativos
+- `GET /api/v1/patients/{id}` -> busca paciente por id
+- `PUT /api/v1/patients/{id}` -> atualiza paciente
+- `DELETE /api/v1/patients/{id}` -> inativa paciente (soft delete)
+- `GET /api/v1/patients/example` -> paciente de exemplo em JSON
 
 ## Requisitos
 
@@ -21,25 +38,41 @@ Endpoint inicial:
 - Docker 24+
 - Docker Compose (plugin `docker compose`)
 
-## Banco de dados PostgreSQL
+## Banco de dados PostgreSQL (duas configuracoes)
 
-O banco e criado em container com dados persistidos em volume Docker (`postgres_data`).
+A API pode ser executada com duas configuracoes de banco:
 
-Na primeira subida do banco, os scripts em `docker/postgres/init` sao executados automaticamente:
+1. Supabase (remoto)
+2. PostgreSQL local (container ou instancia local)
 
-- `01-schema.sql`: cria extensao, tabelas e indices.
-
-No momento, a inicializacao automatica esta configurada para subir somente a estrutura (sem carga de dados).
-
-> Importante: scripts em `/docker-entrypoint-initdb.d` rodam apenas quando o volume do Postgres esta vazio.
+> Importante: mantenha credenciais reais somente no arquivo `.env` local (nao versionado).
 
 ## Configuracao local com `.env`
 
-As variaveis locais ficam em `.env` (arquivo nao versionado). Copie o template e ajuste `POSTGRES_*` e
-`SPRING_DATASOURCE_*`:
+As variaveis locais ficam em `.env` (arquivo nao versionado). Copie o template:
 
 ```bash
 cp .env.example .env
+```
+
+Depois, escolha uma das opcoes abaixo.
+
+### Opcao A: Supabase (remoto)
+
+```dotenv
+SPRING_DATASOURCE_URL=jdbc:postgresql://db.<project-ref>.supabase.co:5432/postgres?user=postgres&password=<db-password>
+SPRING_DATASOURCE_USERNAME=
+SPRING_DATASOURCE_PASSWORD=
+```
+
+### Opcao B: PostgreSQL local
+
+Exemplo para aplicacao rodando localmente (sem container da API):
+
+```dotenv
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/clinica-mariana
+SPRING_DATASOURCE_USERNAME=rest_user
+SPRING_DATASOURCE_PASSWORD=rest_password
 ```
 
 ## Rodando com Docker Compose
@@ -50,7 +83,7 @@ docker compose up --build
 
 A API fica disponivel em `http://localhost:8080`.
 
-Banco PostgreSQL de DESENVOLVIMENTO: `localhost:5432`
+Banco de dados: definido por `SPRING_DATASOURCE_URL` (Supabase ou PostgreSQL local).
 
 Para rodar em background:
 
@@ -77,10 +110,24 @@ docker build -t rest-ms:local .
 docker run --rm -p 8080:8080 --name rest-ms rest-ms:local
 ```
 
-## Testando o Hello World
+## Testando endpoint de exemplo do patient
 
 Com a aplicacao rodando na porta 8080:
 
 ```bash
-curl -s http://localhost:8080/api/v1/hello
+curl -s http://localhost:8080/api/v1/patients/example
+```
+
+## Criando paciente
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/patients \
+  -H "Content-Type: application/json" \
+  -d '{
+	"fullName": "Maria Silva",
+	"cpf": "12345678901",
+	"phone": "11999999999",
+	"email": "maria.silva@clinic.com",
+	"birthDate": "1990-01-10"
+  }'
 ```

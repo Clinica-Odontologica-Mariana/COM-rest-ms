@@ -23,9 +23,6 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: rest-ms
-    depends_on:
-      postgres:
-        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
@@ -34,6 +31,5 @@ services:
     ports:
       - "8080:8080"
     restart: unless-stopped
-
 volumes:
   postgres_data:
