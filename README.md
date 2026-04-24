@@ -57,7 +57,7 @@ cp .env.example .env
 
 Depois, escolha uma das opcoes abaixo.
 
-### Opcao A: Supabase (remoto)
+### Opcao A: Supabase (remoto) - [link](https://supabase.com/dashboard/project/jqllvpeqwwliztchfhwd)
 
 ```dotenv
 SPRING_DATASOURCE_URL=jdbc:postgresql://db.<project-ref>.supabase.co:5432/postgres?user=postgres&password=<db-password>
