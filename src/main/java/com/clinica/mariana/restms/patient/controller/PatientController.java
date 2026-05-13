@@ -45,11 +45,6 @@ public class PatientController {
 		return patientService.findById(id);
 	}
 
-	@GetMapping("/{cpf}")
-	public PatientDto findByCPF(@PathVariable String cpf) {
-		return patientService.findByCpf(cpf);
-	}
-
 	@PutMapping("/{id}")
 	public PatientDto update(@PathVariable UUID id, @Valid @RequestBody PatientUpdateDto request) {
 		return patientService.update(id, request);

@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,11 +32,15 @@ public class PatientService {
 		}
 
 		PatientEntity entity = new PatientEntity();
+		entity.setAddressId(request.addressId());
 		entity.setFullName(request.fullName());
 		entity.setCpf(request.cpf());
 		entity.setPhone(request.phone());
 		entity.setEmail(request.email());
 		entity.setBirthDate(request.birthDate());
+		entity.setEmergencyContactName(request.emergencyContactName());
+		entity.setEmergencyContactPhone(request.emergencyContactPhone());
+		entity.setNotes(request.notes());
 		entity.setActive(true);
 		entity.setInactivatedAt(null);
 
@@ -60,14 +64,6 @@ public class PatientService {
 		return toDto(toModel(entity));
 	}
 
-	@Transactional(readOnly = true)
-	public PatientDto findByCpf(String cpf) {
-		PatientEntity entity = patientRepository.findByCpf(cpf)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
-
-		return toDto(toModel(entity));
-	}
-
 	@Transactional
 	public PatientDto update(UUID id, PatientUpdateDto request) {
 		PatientEntity entity = patientRepository.findById(id)
@@ -77,11 +73,15 @@ public class PatientService {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Patient cpf already exists");
 		}
 
+		entity.setAddressId(request.addressId());
 		entity.setFullName(request.fullName());
 		entity.setCpf(request.cpf());
 		entity.setPhone(request.phone());
 		entity.setEmail(request.email());
 		entity.setBirthDate(request.birthDate());
+		entity.setEmergencyContactName(request.emergencyContactName());
+		entity.setEmergencyContactPhone(request.emergencyContactPhone());
+		entity.setNotes(request.notes());
 
 		return toDto(toModel(patientRepository.save(entity)));
 	}
@@ -96,7 +96,7 @@ public class PatientService {
 		}
 
 		entity.setActive(false);
-		entity.setInactivatedAt(LocalDateTime.now());
+		entity.setInactivatedAt(OffsetDateTime.now());
 		patientRepository.save(entity);
 	}
 
@@ -104,11 +104,16 @@ public class PatientService {
 	public PatientDto example() {
 		PatientModel model = new PatientModel(
 				UUID.fromString("11111111-1111-1111-1111-111111111111"),
+				null,
+				null,
 				"Paciente Exemplo",
 				"12345678901",
 				"11999999999",
 				"paciente.exemplo@clinic.com",
 				LocalDate.of(1995, 5, 15),
+				null,
+				null,
+				null,
 				true
 		);
 
@@ -118,11 +123,16 @@ public class PatientService {
 	private PatientModel toModel(PatientEntity entity) {
 		return new PatientModel(
 				entity.getId(),
+				entity.getAddressId(),
+				entity.getCreatedByUserId(),
 				entity.getFullName(),
 				entity.getCpf(),
 				entity.getPhone(),
 				entity.getEmail(),
 				entity.getBirthDate(),
+				entity.getEmergencyContactName(),
+				entity.getEmergencyContactPhone(),
+				entity.getNotes(),
 				entity.isActive()
 		);
 	}
@@ -130,11 +140,16 @@ public class PatientService {
 	private PatientDto toDto(PatientModel model) {
 		return new PatientDto(
 				model.id(),
+				model.addressId(),
+				model.createdByUserId(),
 				model.fullName(),
 				model.cpf(),
 				model.phone(),
 				model.email(),
 				model.birthDate(),
+				model.emergencyContactName(),
+				model.emergencyContactPhone(),
+				model.notes(),
 				model.active()
 		);
 	}

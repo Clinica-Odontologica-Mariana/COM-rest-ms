@@ -1,9 +1,6 @@
-CREATE
-EXTENSION IF NOT EXISTS "pgcrypto";
-CREATE
-EXTENSION IF NOT EXISTS "btree_gist";
-CREATE
-EXTENSION IF NOT EXISTS "citext";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "btree_gist";
+CREATE EXTENSION IF NOT EXISTS "citext";
 
 -- ============================================================
 -- CLINICA ODONTOLOGICA MARIANA - FINAL DATABASE SCHEMA
@@ -37,7 +34,6 @@ EXTENSION IF NOT EXISTS "citext";
 
 DROP TABLE IF EXISTS audit_log CASCADE;
 DROP TABLE IF EXISTS social_link CASCADE;
-DROP TABLE IF EXISTS blog_post CASCADE;
 DROP TABLE IF EXISTS payment CASCADE;
 DROP TABLE IF EXISTS invoice_item CASCADE;
 DROP TABLE IF EXISTS invoice CASCADE;
@@ -69,10 +65,10 @@ DROP TABLE IF EXISTS address CASCADE;
 DROP TABLE IF EXISTS user_role CASCADE;
 DROP TABLE IF EXISTS app_user CASCADE;
 
-DROP TABLE IF EXISTS invoice_status CASCADE;
 DROP TABLE IF EXISTS payment_method CASCADE;
-DROP TABLE IF EXISTS payment_status CASCADE;
+DROP TABLE IF EXISTS invoice_status CASCADE;
 DROP TABLE IF EXISTS consent_type CASCADE;
+DROP TABLE IF EXISTS payment_status CASCADE;
 DROP TABLE IF EXISTS calendar_sync_status CASCADE;
 DROP TABLE IF EXISTS calendar_provider CASCADE;
 DROP TABLE IF EXISTS tooth_surface CASCADE;
@@ -80,7 +76,6 @@ DROP TABLE IF EXISTS tooth_condition CASCADE;
 DROP TABLE IF EXISTS treatment_plan_status CASCADE;
 DROP TABLE IF EXISTS clinical_visit_status CASCADE;
 DROP TABLE IF EXISTS appointment_status CASCADE;
-DROP TABLE IF EXISTS blog_post_status CASCADE;
 DROP TABLE IF EXISTS service_category CASCADE;
 DROP TABLE IF EXISTS service_cost_type CASCADE;
 DROP TABLE IF EXISTS social_platform CASCADE;
@@ -90,10 +85,47 @@ DROP TABLE IF EXISTS role CASCADE;
 DROP FUNCTION IF EXISTS fn_set_updated_at() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_appointment() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_clinical_visit() CASCADE;
-DROP FUNCTION IF EXISTS fn_validate_treatment_plan() CASCADE;
+DROP FUNCTION IF EXISTS fn_validate_treatment_plan_item() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_invoice() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_payment() CASCADE;
 DROP FUNCTION IF EXISTS fn_audit_row() CASCADE;
+
+-- ============================================================
+-- DOMAIN TABLES
+-- ============================================================
+
+CREATE
+EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE
+EXTENSION IF NOT EXISTS "btree_gist";
+CREATE
+EXTENSION IF NOT EXISTS "citext";
+
+-- ============================================================
+-- CLINICA ODONTOLOGICA MARIANA - FINAL DATABASE SCHEMA
+-- PostgreSQL
+--
+-- Arquitetura considerada:
+-- - SSO/autenticacao pelo Keycloak
+-- - Armazenamento de arquivos/imagens no MinIO
+--
+-- Caracteristicas:
+-- - Sem senha local no banco da aplicacao
+-- - app_user referencia o subject/ID do usuario no Keycloak
+-- - Arquivos modelados como objetos MinIO/S3
+-- - Agenda com protecao contra conflitos via EXCLUDE USING gist
+-- - TIMESTAMPTZ para eventos temporais
+-- - Enderecos estruturados
+-- - Prontuario, evolucao clinica, odontograma e plano de tratamento
+-- - Financeiro com cobranca e pagamentos separados
+-- - Convenios
+-- - Consentimentos LGPD
+-- - Auditoria basica com ator vindo de app.current_user_id
+--
+-- Observacao:
+-- Este script e apropriado para bootstrap/dev. Para producao, converta
+-- em migrations versionadas e remova o bloco DROP.
+-- ============================================================
 
 -- ============================================================
 -- DOMAIN TABLES
@@ -599,7 +631,7 @@ ALTER TABLE working_hours
     ADD CONSTRAINT ex_working_hours_overlap EXCLUDE USING gist (
         clinic_id WITH =,
         day_of_week WITH =,
-        timerange(start_time, end_time, '[)') WITH &&
+        tsrange('2000-01-01'::DATE + start_time, '2000-01-01'::DATE + end_time, '[)') WITH &&
     );
 
 CREATE TABLE schedule_block
