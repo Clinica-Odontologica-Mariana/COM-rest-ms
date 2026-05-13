@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco'
     id 'org.springframework.boot' version '4.0.5'
     id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -42,6 +43,10 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
+jacoco {
+    toolVersion = '0.8.14'
+}
+
 tasks.named('test') {
     useJUnitPlatform()
     systemProperty 'spring.datasource.url', 'jdbc:h2:mem:rest_ms_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE'
@@ -49,4 +54,69 @@ tasks.named('test') {
     systemProperty 'spring.datasource.password', ''
     systemProperty 'spring.datasource.driver-class-name', 'org.h2.Driver'
     systemProperty 'spring.flyway.enabled', 'false'
+    finalizedBy tasks.named('jacocoTestReport')
+}
+
+def coverageExclusions = [
+        '**/RestMsApplication.class',
+        '**/config/**',
+        '**/dto/**',
+        '**/entity/**',
+        '**/model/**'
+]
+
+tasks.named('jacocoTestReport') {
+    dependsOn tasks.named('test')
+
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: coverageExclusions)
+    }))
+}
+
+tasks.named('jacocoTestCoverageVerification') {
+    dependsOn tasks.named('test')
+
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: coverageExclusions)
+    }))
+
+    violationRules {
+        rule {
+            limit {
+                counter = 'INSTRUCTION'
+                value = 'COVEREDRATIO'
+                minimum = 1.00
+            }
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 1.00
+            }
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 1.00
+            }
+            limit {
+                counter = 'METHOD'
+                value = 'COVEREDRATIO'
+                minimum = 1.00
+            }
+            limit {
+                counter = 'CLASS'
+                value = 'COVEREDRATIO'
+                minimum = 1.00
+            }
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('jacocoTestCoverageVerification')
 }
