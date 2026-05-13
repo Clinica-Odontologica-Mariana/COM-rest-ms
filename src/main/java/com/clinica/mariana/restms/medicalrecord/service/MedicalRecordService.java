@@ -1,0 +1,139 @@
+package com.clinica.mariana.restms.medicalrecord.service;
+
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordAttachmentCreateDto;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordAttachmentDto;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordDto;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteCreateDto;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteDto;
+import com.clinica.mariana.restms.medicalrecord.entity.MedicalRecordAttachmentEntity;
+import com.clinica.mariana.restms.medicalrecord.entity.MedicalRecordEntity;
+import com.clinica.mariana.restms.medicalrecord.entity.MedicalRecordNoteEntity;
+import com.clinica.mariana.restms.medicalrecord.model.MedicalRecordModel;
+import com.clinica.mariana.restms.medicalrecord.repository.MedicalRecordAttachmentRepository;
+import com.clinica.mariana.restms.medicalrecord.repository.MedicalRecordNoteRepository;
+import com.clinica.mariana.restms.medicalrecord.repository.MedicalRecordRepository;
+import com.clinica.mariana.restms.patient.repository.PatientRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.UUID;
+
+@Service
+public class MedicalRecordService {
+
+	private final MedicalRecordRepository medicalRecordRepository;
+	private final MedicalRecordNoteRepository noteRepository;
+	private final MedicalRecordAttachmentRepository attachmentRepository;
+	private final PatientRepository patientRepository;
+
+	public MedicalRecordService(
+			MedicalRecordRepository medicalRecordRepository,
+			MedicalRecordNoteRepository noteRepository,
+			MedicalRecordAttachmentRepository attachmentRepository,
+			PatientRepository patientRepository
+	) {
+		this.medicalRecordRepository = medicalRecordRepository;
+		this.noteRepository = noteRepository;
+		this.attachmentRepository = attachmentRepository;
+		this.patientRepository = patientRepository;
+	}
+
+	@Transactional
+	public MedicalRecordDto createForPatientIfMissing(UUID patientId, UUID createdByUserId) {
+		return medicalRecordRepository.findByPatientId(patientId)
+				.map(this::toModel)
+				.map(this::toDto)
+				.orElseGet(() -> {
+					MedicalRecordEntity entity = new MedicalRecordEntity();
+					entity.setPatientId(patientId);
+					entity.setCreatedByUserId(createdByUserId);
+					return toDto(toModel(medicalRecordRepository.save(entity)));
+				});
+	}
+
+	@Transactional(readOnly = true)
+	public MedicalRecordDto findByPatientId(UUID patientId) {
+		MedicalRecordEntity entity = medicalRecordRepository.findByPatientId(patientId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record not found"));
+
+		return toDto(toModel(entity));
+	}
+
+	@Transactional
+	public MedicalRecordNoteDto addNote(UUID patientId, MedicalRecordNoteCreateDto request) {
+		MedicalRecordEntity record = findEntityByPatientId(patientId);
+
+		MedicalRecordNoteEntity note = new MedicalRecordNoteEntity();
+		note.setMedicalRecordId(record.getId());
+		note.setNote(request.note());
+
+		return toDto(noteRepository.save(note));
+	}
+
+	@Transactional
+	public MedicalRecordAttachmentDto addAttachment(UUID patientId, MedicalRecordAttachmentCreateDto request) {
+		MedicalRecordEntity record = findEntityByPatientId(patientId);
+
+		MedicalRecordAttachmentEntity attachment = new MedicalRecordAttachmentEntity();
+		attachment.setMedicalRecordId(record.getId());
+		attachment.setStoredFileId(request.storedFileId());
+		attachment.setDescription(request.description());
+
+		return toDto(attachmentRepository.save(attachment));
+	}
+
+	private MedicalRecordEntity findEntityByPatientId(UUID patientId) {
+		if (!patientRepository.existsById(patientId)) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found");
+		}
+
+		return medicalRecordRepository.findByPatientId(patientId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record not found"));
+	}
+
+	private MedicalRecordModel toModel(MedicalRecordEntity entity) {
+		return new MedicalRecordModel(
+				entity.getId(),
+				entity.getPatientId(),
+				entity.getCreatedByUserId(),
+				entity.getAllergies(),
+				entity.getChronicConditions(),
+				entity.getContinuousMedications(),
+				entity.getGeneralObservations()
+		);
+	}
+
+	private MedicalRecordDto toDto(MedicalRecordModel model) {
+		return new MedicalRecordDto(
+				model.id(),
+				model.patientId(),
+				model.createdByUserId(),
+				model.allergies(),
+				model.chronicConditions(),
+				model.continuousMedications(),
+				model.generalObservations()
+		);
+	}
+
+	private MedicalRecordNoteDto toDto(MedicalRecordNoteEntity entity) {
+		return new MedicalRecordNoteDto(
+				entity.getId(),
+				entity.getMedicalRecordId(),
+				entity.getCreatedByUserId(),
+				entity.getNote(),
+				entity.getCreatedAt()
+		);
+	}
+
+	private MedicalRecordAttachmentDto toDto(MedicalRecordAttachmentEntity entity) {
+		return new MedicalRecordAttachmentDto(
+				entity.getId(),
+				entity.getMedicalRecordId(),
+				entity.getStoredFileId(),
+				entity.getDescription(),
+				entity.getCreatedAt()
+		);
+	}
+}

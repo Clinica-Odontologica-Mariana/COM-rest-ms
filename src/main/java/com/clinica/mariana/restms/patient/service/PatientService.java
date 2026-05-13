@@ -1,5 +1,6 @@
 package com.clinica.mariana.restms.patient.service;
 
+import com.clinica.mariana.restms.medicalrecord.service.MedicalRecordService;
 import com.clinica.mariana.restms.patient.dto.PatientCreateDto;
 import com.clinica.mariana.restms.patient.dto.PatientDto;
 import com.clinica.mariana.restms.patient.dto.PatientUpdateDto;
@@ -20,9 +21,11 @@ import java.util.UUID;
 public class PatientService {
 
 	private final PatientRepository patientRepository;
+	private final MedicalRecordService medicalRecordService;
 
-	public PatientService(PatientRepository patientRepository) {
+	public PatientService(PatientRepository patientRepository, MedicalRecordService medicalRecordService) {
 		this.patientRepository = patientRepository;
+		this.medicalRecordService = medicalRecordService;
 	}
 
 	@Transactional
@@ -44,7 +47,10 @@ public class PatientService {
 		entity.setActive(true);
 		entity.setInactivatedAt(null);
 
-		return toDto(toModel(patientRepository.save(entity)));
+		PatientEntity saved = patientRepository.save(entity);
+		medicalRecordService.createForPatientIfMissing(saved.getId(), saved.getCreatedByUserId());
+
+		return toDto(toModel(saved));
 	}
 
 	@Transactional(readOnly = true)
@@ -59,6 +65,14 @@ public class PatientService {
 	@Transactional(readOnly = true)
 	public PatientDto findById(UUID id) {
 		PatientEntity entity = patientRepository.findById(id)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
+
+		return toDto(toModel(entity));
+	}
+
+	@Transactional(readOnly = true)
+	public PatientDto findByCpf(String cpf) {
+		PatientEntity entity = patientRepository.findByCpf(cpf)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
 
 		return toDto(toModel(entity));
