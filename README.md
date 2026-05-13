@@ -1,6 +1,6 @@
 # COM-rest-ms
 
-Aplicacao Spring Boot com PostgreSQL (Supabase ou local).
+Aplicacao Spring Boot com PostgreSQL (Supabase ou local) e Flyway para migrations de banco.
 
 ## Estrutura arquitetural (MVC em camadas)
 
@@ -85,6 +85,9 @@ A API fica disponivel em `http://localhost:8080`.
 
 Banco de dados: definido por `SPRING_DATASOURCE_URL` (Supabase ou PostgreSQL local).
 
+O schema inicial e aplicado pelo Flyway a partir de `src/main/resources/db/migration`.
+Para bancos ja inicializados antes do Flyway, `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` permite registrar uma baseline sem recriar as tabelas existentes.
+
 Para rodar em background:
 
 ```bash
@@ -97,7 +100,7 @@ Para parar:
 docker compose down
 ```
 
-Para remover containers e limpar o volume do banco (forcar nova carga de schema/dados):
+Para remover containers e limpar o volume do banco (forcar nova execucao das migrations):
 
 ```bash
 docker compose down -v

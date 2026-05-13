@@ -24,10 +24,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.flywaydb:flyway-core'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
@@ -42,4 +44,9 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    systemProperty 'spring.datasource.url', 'jdbc:h2:mem:rest_ms_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE'
+    systemProperty 'spring.datasource.username', 'sa'
+    systemProperty 'spring.datasource.password', ''
+    systemProperty 'spring.datasource.driver-class-name', 'org.h2.Driver'
+    systemProperty 'spring.flyway.enabled', 'false'
 }

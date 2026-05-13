@@ -60,9 +60,4 @@ public class PatientController {
 	public void delete(@PathVariable UUID id) {
 		patientService.delete(id);
 	}
-
-	@GetMapping("/example")
-	public PatientDto example() {
-		return patientService.example();
-	}
 }
