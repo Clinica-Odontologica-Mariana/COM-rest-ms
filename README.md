@@ -1,5 +1,8 @@
 # COM-rest-ms
 
+Aplicacao Spring Boot com PostgreSQL e Keycloak (RBAC com JWT).
+
+## Stack e padroes implementados
 Aplicacao Spring Boot com PostgreSQL (Supabase ou local) e Flyway para migrations de banco.
 
 ## Estrutura arquitetural (MVC em camadas)
@@ -23,114 +26,154 @@ src/test/java/com/clinica/mariana/restms
 		└── PatientControllerTest.java
 ```
 
-Endpoint inicial:
+- Spring Security como guard global (`SecurityFilterChain`)
+- RBAC com `@RolesAllowed`
+- Usuario autenticado via `@AuthenticationPrincipal Jwt`
+- Interceptor HTTP para logging de request (`RequestLoggingInterceptor`)
+- Envelope global de resposta:
+  - sucesso: `{ "success": true, "data": ... }`
+  - erro: `{ "success": false, "error": ... }`
+- Keycloak como fonte unica de autenticacao/usuarios
 
-- `POST /api/v1/patients` -> cria paciente
-- `GET /api/v1/patients` -> lista pacientes ativos
-- `GET /api/v1/patients/{id}` -> busca paciente por id
-- `PUT /api/v1/patients/{id}` -> atualiza paciente
-- `DELETE /api/v1/patients/{id}` -> inativa paciente (soft delete)
-- `GET /api/v1/patients/example` -> paciente de exemplo em JSON
+## Estrutura simplificada
 
-## Requisitos
+- `auth`: login e usuario autenticado (`/auth/login`, `/auth/me`)
+- `users`: criacao de usuarios no Keycloak (`/users`)
+- `patient`: dominio da clinica (CRUD de pacientes)
+- `security`: configuracao de autenticacao/autorizacao
+- `common`: padrao de resposta e tratamento global de erros
 
-- Java 25
-- Docker 24+
-- Docker Compose (plugin `docker compose`)
+## Endpoints
 
-## Banco de dados PostgreSQL (duas configuracoes)
+### Auth
 
-A API pode ser executada com duas configuracoes de banco:
+- `POST /api/v1/auth/login` (publico)
+- `GET /api/v1/auth/me` (autenticado, retorna claims principais do token)
+- `POST /api/v1/users` (somente `ADMIN`) -> cria usuario no Keycloak e atribui role existente
 
-1. Supabase (remoto)
-2. PostgreSQL local (container ou instancia local)
+### Patients
 
-> Importante: mantenha credenciais reais somente no arquivo `.env` local (nao versionado).
+- `POST /api/v1/patients` (`ADMIN`, `RECEPTIONIST`)
+- `GET /api/v1/patients` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
+- `GET /api/v1/patients/{id}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
+- `GET /api/v1/patients/by-cpf/{cpf}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
+- `PUT /api/v1/patients/{id}` (`ADMIN`, `RECEPTIONIST`)
+- `DELETE /api/v1/patients/{id}` (`ADMIN`)
 
-## Configuracao local com `.env`
+As respostas REST sao envelopadas em `{ "success": true, "data": ... }` para sucesso e
+`{ "success": false, "error": ... }` para erro.
 
-As variaveis locais ficam em `.env` (arquivo nao versionado). Copie o template:
+## Variaveis de ambiente
+
+Copie o template:
 
 ```bash
 cp .env.example .env
 ```
 
-Depois, escolha uma das opcoes abaixo.
+Variaveis obrigatorias (validadas no startup com `@ConfigurationProperties` + `@Validated`):
 
-### Opcao A: Supabase (remoto) - [link](https://supabase.com/dashboard/project/jqllvpeqwwliztchfhwd)
+- `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI`
+- `KEYCLOAK_BASE_URL`
+- `KEYCLOAK_REALM`
+- `KEYCLOAK_CLIENT_ID`
+- `KEYCLOAK_CLIENT_SECRET`
+- `KEYCLOAK_ADMIN_USERNAME`
+- `KEYCLOAK_ADMIN_PASSWORD`
 
-```dotenv
-SPRING_DATASOURCE_URL=jdbc:postgresql://db.<project-ref>.supabase.co:5432/postgres?user=postgres&password=<db-password>
-SPRING_DATASOURCE_USERNAME=
-SPRING_DATASOURCE_PASSWORD=
-```
+Se alguma estiver ausente/invalida, a aplicacao falha na inicializacao com erro claro no terminal.
 
-### Opcao B: PostgreSQL local
-
-Exemplo para aplicacao rodando localmente (sem container da API):
-
-```dotenv
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/clinica-mariana
-SPRING_DATASOURCE_USERNAME=rest_user
-SPRING_DATASOURCE_PASSWORD=rest_password
-```
+`SPRING_DATASOURCE_URL` aceita tanto o formato JDBC (`jdbc:postgresql://...`) quanto
+o formato `postgresql://usuario:senha@host:porta/banco` comum em provedores como Supabase.
 
 ## Rodando com Docker Compose
+
+O Compose possui defaults de desenvolvimento equivalentes ao `.env.example`, entao pode
+subir sem `.env`. Para customizar credenciais, copie o template:
+
+```bash
+cp .env.example .env
+```
 
 ```bash
 docker compose up --build
 ```
 
-A API fica disponivel em `http://localhost:8080`.
+Servicos:
 
-Banco de dados: definido por `SPRING_DATASOURCE_URL` (Supabase ou PostgreSQL local).
+- API: `http://localhost:8080`
+- Swagger UI: `http://localhost:8080/api/v1/swagger-ui/index.html`
+- Keycloak: `http://localhost:8081`
+- PostgreSQL: `localhost:5432`
 
 O schema inicial e aplicado pelo Flyway a partir de `src/main/resources/db/migration`.
 Para bancos ja inicializados antes do Flyway, `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` permite registrar uma baseline sem recriar as tabelas existentes.
 
 Para rodar em background:
 
+- `docker/keycloak/rest-ms-realm.json`
+
+Persistencia local do Keycloak:
+
+- dados ficam no volume Docker `keycloak_data`
+- `docker compose up/down` preserva usuarios e roles
+- `docker compose down -v` remove volumes e apaga os dados (incluindo Keycloak e PostgreSQL)
+
+Roles preconfiguradas no realm:
+
+- `ADMIN`
+- `RECEPTIONIST`
+- `DOCTOR`
+
+Usuario admin de API (local):
+
+- username: `api-admin`
+- password: `api-admin123`
+
+Essas credenciais e o `KEYCLOAK_CLIENT_SECRET` do realm versionado sao fixtures locais
+para desenvolvimento. Nao reutilize esses valores em homologacao ou producao.
+
+## Mudancas de contrato
+
+- Endpoints protegidos exigem `Authorization: Bearer <jwt>`.
+- Respostas passam a usar envelope global `success/data/error`.
+- A busca por CPF usa `GET /api/v1/patients/by-cpf/{cpf}`.
+- `DELETE /api/v1/patients/{id}` retorna envelope de sucesso.
+
+## Producao (importante)
+
+- Nao use `start-dev` em producao.
+- Use Keycloak com banco persistente dedicado (PostgreSQL/MySQL) e backup.
+- Nao use `docker compose down -v` em ambiente produtivo.
+- Gere secrets e usuarios administrativos proprios para cada ambiente.
+
+## Exemplos cURL
+
+### Login
+
 ```bash
-docker compose up --build -d
-```
-
-Para parar:
-
-```bash
-docker compose down
-```
-
-Para remover containers e limpar o volume do banco (forcar nova execucao das migrations):
-
-```bash
-docker compose down -v
-```
-
-## Rodando com Docker (sem Compose)
-
-```bash
-docker build -t rest-ms:local .
-docker run --rm -p 8080:8080 --name rest-ms rest-ms:local
-```
-
-## Testando endpoint de exemplo do patient
-
-Com a aplicacao rodando na porta 8080:
-
-```bash
-curl -s http://localhost:8080/api/v1/patients/example
-```
-
-## Criando paciente
-
-```bash
-curl -s -X POST http://localhost:8080/api/v1/patients \
+curl -s -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-	"fullName": "Maria Silva",
-	"cpf": "12345678901",
-	"phone": "11999999999",
-	"email": "maria.silva@clinic.com",
-	"birthDate": "1990-01-10"
+    "username": "api-admin",
+    "password": "api-admin123"
+  }'
+```
+
+### Criar usuario (ADMIN)
+
+```bash
+TOKEN="<access_token>"
+
+curl -s -X POST http://localhost:8080/api/v1/users \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "joao",
+    "email": "joao@clinic.local",
+    "firstName": "Joao",
+    "lastName": "Silva",
+    "password": "SenhaForte123",
+    "role": "DOCTOR"
   }'
 ```
