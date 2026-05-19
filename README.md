@@ -82,6 +82,12 @@ Se alguma estiver ausente/invalida, a aplicacao falha na inicializacao com erro 
 
 ## Rodando com Docker Compose
 
+Esse é o jeito recomendado para subir a aplicação localmente com banco PostgreSQL em container.
+
+O compose sobe dois serviços:
+- `postgres` com os dados da clínica, inicializado com `docker/postgres/init/01-schema.sql`
+- `rest-ms` com a API Spring Boot apontando para o serviço `postgres`
+
 ```bash
 docker compose up --build
 ```
@@ -94,6 +100,10 @@ Servicos:
 
 O schema inicial e aplicado pelo Flyway a partir de `src/main/resources/db/migration`.
 Para bancos ja inicializados antes do Flyway, `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` permite registrar uma baseline sem recriar as tabelas existentes.
+
+Arquivos de apoio:
+- `.env.example` para copiar e ajustar as variaveis locais
+- `.env` para desenvolvimento local com Docker Compose
 
 Para rodar em background:
 
