@@ -3,6 +3,28 @@
 Aplicacao Spring Boot com PostgreSQL e Keycloak (RBAC com JWT).
 
 ## Stack e padroes implementados
+Aplicacao Spring Boot com PostgreSQL (Supabase ou local) e Flyway para migrations de banco.
+
+## Estrutura arquitetural (MVC em camadas)
+
+```text
+src/main/java/com/clinica/mariana/restms
+├── config
+│   └── .gitkeep
+├── patient
+│   ├── model
+│   │   └── PatientModel.java
+│   ├── view
+│   │   └── PatientView.java
+│   └── controller
+│       └── PatientController.java
+└── RestMsApplication.java
+
+src/test/java/com/clinica/mariana/restms
+└── patient
+	└── test
+		└── PatientControllerTest.java
+```
 
 - Spring Security como guard global (`SecurityFilterChain`)
 - RBAC com `@RolesAllowed`
@@ -70,7 +92,10 @@ Servicos:
 - Keycloak: `http://localhost:8081`
 - PostgreSQL: `localhost:5432`
 
-O Keycloak importa automaticamente o realm `rest-ms` via:
+O schema inicial e aplicado pelo Flyway a partir de `src/main/resources/db/migration`.
+Para bancos ja inicializados antes do Flyway, `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` permite registrar uma baseline sem recriar as tabelas existentes.
+
+Para rodar em background:
 
 - `docker/keycloak/rest-ms-realm.json`
 
