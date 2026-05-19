@@ -599,7 +599,11 @@ ALTER TABLE working_hours
     ADD CONSTRAINT ex_working_hours_overlap EXCLUDE USING gist (
         clinic_id WITH =,
         day_of_week WITH =,
-        timerange(start_time, end_time, '[)') WITH &&
+        tsrange(
+            '2000-01-01'::DATE + start_time,
+            '2000-01-01'::DATE + end_time,
+            '[)'
+        ) WITH &&
     );
 
 CREATE TABLE schedule_block

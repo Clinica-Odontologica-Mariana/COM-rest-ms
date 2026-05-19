@@ -51,7 +51,7 @@ public class PatientController {
 		return patientService.findById(id);
 	}
 
-	@GetMapping("/cpf/{cpf}")
+	@GetMapping("/by-cpf/{cpf}")
 	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
 	public PatientDto findByCPF(@PathVariable String cpf) {
 		return patientService.findByCpf(cpf);

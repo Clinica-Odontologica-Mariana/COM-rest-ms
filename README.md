@@ -56,9 +56,12 @@ src/test/java/com/clinica/mariana/restms
 - `POST /api/v1/patients` (`ADMIN`, `RECEPTIONIST`)
 - `GET /api/v1/patients` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
 - `GET /api/v1/patients/{id}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `GET /api/v1/patients/cpf/{cpf}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
+- `GET /api/v1/patients/by-cpf/{cpf}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
 - `PUT /api/v1/patients/{id}` (`ADMIN`, `RECEPTIONIST`)
 - `DELETE /api/v1/patients/{id}` (`ADMIN`)
+
+As respostas REST sao envelopadas em `{ "success": true, "data": ... }` para sucesso e
+`{ "success": false, "error": ... }` para erro.
 
 ## Variaveis de ambiente
 
@@ -80,7 +83,17 @@ Variaveis obrigatorias (validadas no startup com `@ConfigurationProperties` + `@
 
 Se alguma estiver ausente/invalida, a aplicacao falha na inicializacao com erro claro no terminal.
 
+`SPRING_DATASOURCE_URL` aceita tanto o formato JDBC (`jdbc:postgresql://...`) quanto
+o formato `postgresql://usuario:senha@host:porta/banco` comum em provedores como Supabase.
+
 ## Rodando com Docker Compose
+
+O Compose possui defaults de desenvolvimento equivalentes ao `.env.example`, entao pode
+subir sem `.env`. Para customizar credenciais, copie o template:
+
+```bash
+cp .env.example .env
+```
 
 ```bash
 docker compose up --build
@@ -89,6 +102,7 @@ docker compose up --build
 Servicos:
 
 - API: `http://localhost:8080`
+- Swagger UI: `http://localhost:8080/api/v1/swagger-ui/index.html`
 - Keycloak: `http://localhost:8081`
 - PostgreSQL: `localhost:5432`
 
@@ -116,11 +130,22 @@ Usuario admin de API (local):
 - username: `api-admin`
 - password: `api-admin123`
 
+Essas credenciais e o `KEYCLOAK_CLIENT_SECRET` do realm versionado sao fixtures locais
+para desenvolvimento. Nao reutilize esses valores em homologacao ou producao.
+
+## Mudancas de contrato
+
+- Endpoints protegidos exigem `Authorization: Bearer <jwt>`.
+- Respostas passam a usar envelope global `success/data/error`.
+- A busca por CPF usa `GET /api/v1/patients/by-cpf/{cpf}`.
+- `DELETE /api/v1/patients/{id}` retorna envelope de sucesso.
+
 ## Producao (importante)
 
 - Nao use `start-dev` em producao.
 - Use Keycloak com banco persistente dedicado (PostgreSQL/MySQL) e backup.
 - Nao use `docker compose down -v` em ambiente produtivo.
+- Gere secrets e usuarios administrativos proprios para cada ambiente.
 
 ## Exemplos cURL
 

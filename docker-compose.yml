@@ -3,15 +3,15 @@ services:
     image: postgres:17-alpine
     container_name: rest-ms-postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres-db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres-usuarios}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres-senha}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -20,17 +20,17 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.6.1
     container_name: rest-ms-keycloak
-    command: [ "start-dev", "--import-realm" ]
+    command: ["start-dev", "--import-realm"]
     environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_BOOTSTRAP_ADMIN_USERNAME}
-      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_BOOTSTRAP_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD:-admin}
     ports:
       - "8081:8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
       - ./docker/keycloak/rest-ms-realm.json:/opt/keycloak/data/import/rest-ms-realm.json:ro
     healthcheck:
-      test: [ "CMD-SHELL", "bash -c '</dev/tcp/localhost/8080'" ]
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8080'"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -42,18 +42,17 @@ services:
       dockerfile: Dockerfile
     container_name: rest-ms
     environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM}
-      KEYCLOAK_BASE_URL: ${KEYCLOAK_BASE_URL}
-      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
-      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
-      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
-      KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/postgres-db}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-postgres-usuarios}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-postgres-senha}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-none}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM:-rest-ms}
+      KEYCLOAK_BASE_URL: ${KEYCLOAK_BASE_URL:-http://keycloak:8080}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-rest-ms}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-rest-ms-api}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-rest-ms-api-secret}
+      KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-api-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-api-admin123}
       SPRING_FLYWAY_ENABLED: true
       SPRING_FLYWAY_BASELINE_ON_MIGRATE: true
     ports:
