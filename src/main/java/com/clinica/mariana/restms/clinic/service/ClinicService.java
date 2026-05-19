@@ -123,8 +123,6 @@ public class ClinicService {
         clinicRepository.deleteById(id);
     }
 
-    // ── mapping helpers ──────────────────────────────────────────────────────
-
     private ClinicEntity toEntity(ClinicModel model) {
         ClinicEntity entity = new ClinicEntity();
         apply(entity, model);

@@ -1,4 +1,117 @@
 package com.clinica.mariana.restms.clinic.service;
 
+import com.clinica.mariana.restms.clinic.dto.SocialLinkCreateDto;
+import com.clinica.mariana.restms.clinic.dto.SocialLinkDto;
+import com.clinica.mariana.restms.clinic.dto.SocialLinkUpdateDto;
+import com.clinica.mariana.restms.clinic.entity.SocialLinkEntity;
+import com.clinica.mariana.restms.clinic.model.SocialLinkModel;
+import com.clinica.mariana.restms.clinic.repository.SocialLinkRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.UUID;
+
+@Service
 public class SocialLinkService {
+
+    private final SocialLinkRepository socialLinkRepository;
+
+    public SocialLinkService(SocialLinkRepository socialLinkRepository) {
+        this.socialLinkRepository = socialLinkRepository;
+    }
+
+    @Transactional
+    public SocialLinkDto create(SocialLinkCreateDto request) {
+        if (socialLinkRepository.existsByClinicIdAndPlatformId(request.clinicId(), request.platformId())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "A social link for this clinic and platform already exists");
+        }
+
+        SocialLinkModel model = SocialLinkModel.create(
+                request.clinicId(),
+                request.platformId(),
+                request.url()
+        );
+
+        return toDto(toModel(socialLinkRepository.save(toEntity(model))));
+    }
+
+    @Transactional(readOnly = true)
+    public List<SocialLinkDto> findByClinicId(UUID clinicId) {
+        return socialLinkRepository.findAllByClinicIdOrderByCreatedAtAsc(clinicId)
+                .stream()
+                .map(this::toModel)
+                .map(this::toDto)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public SocialLinkDto findById(UUID id) {
+        SocialLinkEntity entity = socialLinkRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Social link not found"));
+        return toDto(toModel(entity));
+    }
+
+    @Transactional
+    public SocialLinkDto update(UUID id, SocialLinkUpdateDto request) {
+        SocialLinkEntity entity = socialLinkRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Social link not found"));
+
+        if (socialLinkRepository.existsByClinicIdAndPlatformIdAndIdNot(
+                entity.getClinicId(), request.platformId(), id)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "A social link for this clinic and platform already exists");
+        }
+
+        SocialLinkModel model = new SocialLinkModel(
+                id,
+                entity.getClinicId(),
+                request.platformId(),
+                request.url()
+        );
+
+        apply(entity, model);
+        return toDto(toModel(socialLinkRepository.save(entity)));
+    }
+
+    @Transactional
+    public void delete(UUID id) {
+        if (!socialLinkRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Social link not found");
+        }
+        socialLinkRepository.deleteById(id);
+    }
+
+    private SocialLinkEntity toEntity(SocialLinkModel model) {
+        SocialLinkEntity entity = new SocialLinkEntity();
+        apply(entity, model);
+        return entity;
+    }
+
+    private void apply(SocialLinkEntity entity, SocialLinkModel model) {
+        entity.setClinicId(model.clinicId());
+        entity.setPlatformId(model.platformId());
+        entity.setUrl(model.url());
+    }
+
+    private SocialLinkModel toModel(SocialLinkEntity entity) {
+        return new SocialLinkModel(
+                entity.getId(),
+                entity.getClinicId(),
+                entity.getPlatformId(),
+                entity.getUrl()
+        );
+    }
+
+    private SocialLinkDto toDto(SocialLinkModel model) {
+        return new SocialLinkDto(
+                model.id(),
+                model.clinicId(),
+                model.platformId(),
+                model.url()
+        );
+    }
 }

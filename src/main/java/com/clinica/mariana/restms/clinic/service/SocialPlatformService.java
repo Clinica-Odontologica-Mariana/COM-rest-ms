@@ -35,6 +35,12 @@ public class SocialPlatformService {
         return toDto(entity);
     }
 
+    @Transactional(readOnly = true)
+    public SocialPlatformDto findByCode(String code) {
+        SocialPlatformEntity entity = socialPlatformRepository.findByCode(code)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Social platform not found"));
+        return toDto(entity);
+    }
 
     private SocialPlatformDto toDto(SocialPlatformEntity entity) {
         return new SocialPlatformDto(entity.getId(), entity.getCode(), entity.getName());
