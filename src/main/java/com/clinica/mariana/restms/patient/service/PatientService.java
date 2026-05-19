@@ -12,8 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -110,28 +109,8 @@ public class PatientService {
 		}
 
 		entity.setActive(false);
-		entity.setInactivatedAt(OffsetDateTime.now());
+		entity.setInactivatedAt(LocalDateTime.now());
 		patientRepository.save(entity);
-	}
-
-	@Transactional(readOnly = true)
-	public PatientDto example() {
-		PatientModel model = new PatientModel(
-				UUID.fromString("11111111-1111-1111-1111-111111111111"),
-				null,
-				null,
-				"Paciente Exemplo",
-				"12345678901",
-				"11999999999",
-				"paciente.exemplo@clinic.com",
-				LocalDate.of(1995, 5, 15),
-				null,
-				null,
-				null,
-				true
-		);
-
-		return toDto(model);
 	}
 
 	private PatientModel toModel(PatientEntity entity) {
