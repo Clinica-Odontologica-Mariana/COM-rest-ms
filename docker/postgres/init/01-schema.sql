@@ -62,7 +62,6 @@ DROP TABLE IF EXISTS professional CASCADE;
 DROP TABLE IF EXISTS workplace CASCADE;
 DROP TABLE IF EXISTS clinic CASCADE;
 DROP TABLE IF EXISTS address CASCADE;
-DROP TABLE IF EXISTS user_role CASCADE;
 DROP TABLE IF EXISTS app_user CASCADE;
 
 DROP TABLE IF EXISTS payment_method CASCADE;
@@ -80,7 +79,6 @@ DROP TABLE IF EXISTS service_category CASCADE;
 DROP TABLE IF EXISTS service_cost_type CASCADE;
 DROP TABLE IF EXISTS social_platform CASCADE;
 DROP TABLE IF EXISTS specialty CASCADE;
-DROP TABLE IF EXISTS role CASCADE;
 
 DROP FUNCTION IF EXISTS fn_set_updated_at() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_appointment() CASCADE;
@@ -93,13 +91,6 @@ DROP FUNCTION IF EXISTS fn_audit_row() CASCADE;
 -- ============================================================
 -- DOMAIN TABLES
 -- ============================================================
-
-CREATE TABLE role
-(
-    id   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    code VARCHAR(30) NOT NULL UNIQUE,
-    name VARCHAR(50) NOT NULL UNIQUE
-);
 
 CREATE TABLE appointment_status
 (
@@ -233,19 +224,6 @@ CREATE TABLE app_user
             (active = TRUE AND inactivated_at IS NULL) OR
             (active = FALSE AND inactivated_at IS NOT NULL)
         )
-);
-
-CREATE TABLE user_role
-(
-    user_id UUID NOT NULL,
-    role_id UUID NOT NULL,
-    PRIMARY KEY (user_id, role_id),
-    CONSTRAINT fk_user_role_user
-        FOREIGN KEY (user_id) REFERENCES app_user (id)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_user_role_role
-        FOREIGN KEY (role_id) REFERENCES role (id)
-        ON DELETE RESTRICT
 );
 
 -- ============================================================
@@ -1555,13 +1533,6 @@ CREATE INDEX idx_audit_actor ON audit_log (actor_user_id);
 -- ============================================================
 -- SEED DATA
 -- ============================================================
-
-INSERT INTO role (code, name) VALUES
-    ('ADMIN', 'Administrador'),
-    ('PROFESSIONAL', 'Profissional'),
-    ('RECEPTIONIST', 'Recepcionista'),
-    ('FINANCIAL', 'Financeiro')
-ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO appointment_status (code, name, blocks_schedule, final_status) VALUES
     ('SCHEDULED', 'Agendado', TRUE, FALSE),

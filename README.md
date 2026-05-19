@@ -1,79 +1,62 @@
 # COM-rest-ms
 
-Aplicacao Spring Boot com PostgreSQL (Supabase ou local).
+Aplicacao Spring Boot com PostgreSQL e Keycloak (RBAC com JWT).
 
-## Estrutura arquitetural (MVC em camadas)
+## Stack e padroes implementados
 
-```text
-src/main/java/com/clinica/mariana/restms
-├── config
-│   └── .gitkeep
-├── patient
-│   ├── model
-│   │   └── PatientModel.java
-│   ├── view
-│   │   └── PatientView.java
-│   └── controller
-│       └── PatientController.java
-└── RestMsApplication.java
+- Spring Security como guard global (`SecurityFilterChain`)
+- RBAC com `@RolesAllowed`
+- Usuario autenticado via `@AuthenticationPrincipal Jwt`
+- Interceptor HTTP para logging de request (`RequestLoggingInterceptor`)
+- Envelope global de resposta:
+  - sucesso: `{ "success": true, "data": ... }`
+  - erro: `{ "success": false, "error": ... }`
+- Keycloak como fonte unica de autenticacao/usuarios
 
-src/test/java/com/clinica/mariana/restms
-└── patient
-	└── test
-		└── PatientControllerTest.java
-```
+## Estrutura simplificada
 
-Endpoint inicial:
+- `auth`: login e usuario autenticado (`/auth/login`, `/auth/me`)
+- `users`: criacao de usuarios no Keycloak (`/users`)
+- `patient`: dominio da clinica (CRUD de pacientes)
+- `security`: configuracao de autenticacao/autorizacao
+- `common`: padrao de resposta e tratamento global de erros
 
-- `POST /api/v1/patients` -> cria paciente
-- `GET /api/v1/patients` -> lista pacientes ativos
-- `GET /api/v1/patients/{id}` -> busca paciente por id
-- `PUT /api/v1/patients/{id}` -> atualiza paciente
-- `DELETE /api/v1/patients/{id}` -> inativa paciente (soft delete)
-- `GET /api/v1/patients/example` -> paciente de exemplo em JSON
+## Endpoints
 
-## Requisitos
+### Auth
 
-- Java 25
-- Docker 24+
-- Docker Compose (plugin `docker compose`)
+- `POST /api/v1/auth/login` (publico)
+- `GET /api/v1/auth/me` (autenticado, retorna claims principais do token)
+- `POST /api/v1/users` (somente `ADMIN`) -> cria usuario no Keycloak e atribui role existente
 
-## Banco de dados PostgreSQL (duas configuracoes)
+### Patients
 
-A API pode ser executada com duas configuracoes de banco:
+- `POST /api/v1/patients` (`ADMIN`, `RECEPTIONIST`)
+- `GET /api/v1/patients` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
+- `GET /api/v1/patients/{id}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
+- `GET /api/v1/patients/cpf/{cpf}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
+- `PUT /api/v1/patients/{id}` (`ADMIN`, `RECEPTIONIST`)
+- `DELETE /api/v1/patients/{id}` (`ADMIN`)
 
-1. Supabase (remoto)
-2. PostgreSQL local (container ou instancia local)
+## Variaveis de ambiente
 
-> Importante: mantenha credenciais reais somente no arquivo `.env` local (nao versionado).
-
-## Configuracao local com `.env`
-
-As variaveis locais ficam em `.env` (arquivo nao versionado). Copie o template:
+Copie o template:
 
 ```bash
 cp .env.example .env
 ```
 
-Depois, escolha uma das opcoes abaixo.
+Variaveis obrigatorias (validadas no startup com `@ConfigurationProperties` + `@Validated`):
 
-### Opcao A: Supabase (remoto) - [link](https://supabase.com/dashboard/project/jqllvpeqwwliztchfhwd)
+- `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI`
+- `KEYCLOAK_BASE_URL`
+- `KEYCLOAK_REALM`
+- `KEYCLOAK_CLIENT_ID`
+- `KEYCLOAK_CLIENT_SECRET`
+- `KEYCLOAK_ADMIN_USERNAME`
+- `KEYCLOAK_ADMIN_PASSWORD`
 
-```dotenv
-SPRING_DATASOURCE_URL=jdbc:postgresql://db.<project-ref>.supabase.co:5432/postgres?user=postgres&password=<db-password>
-SPRING_DATASOURCE_USERNAME=
-SPRING_DATASOURCE_PASSWORD=
-```
-
-### Opcao B: PostgreSQL local
-
-Exemplo para aplicacao rodando localmente (sem container da API):
-
-```dotenv
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/clinica-mariana
-SPRING_DATASOURCE_USERNAME=rest_user
-SPRING_DATASOURCE_PASSWORD=rest_password
-```
+Se alguma estiver ausente/invalida, a aplicacao falha na inicializacao com erro claro no terminal.
 
 ## Rodando com Docker Compose
 
@@ -81,53 +64,66 @@ SPRING_DATASOURCE_PASSWORD=rest_password
 docker compose up --build
 ```
 
-A API fica disponivel em `http://localhost:8080`.
+Servicos:
 
-Banco de dados: definido por `SPRING_DATASOURCE_URL` (Supabase ou PostgreSQL local).
+- API: `http://localhost:8080`
+- Keycloak: `http://localhost:8081`
+- PostgreSQL: `localhost:5432`
 
-Para rodar em background:
+O Keycloak importa automaticamente o realm `rest-ms` via:
 
-```bash
-docker compose up --build -d
-```
+- `docker/keycloak/rest-ms-realm.json`
 
-Para parar:
+Persistencia local do Keycloak:
 
-```bash
-docker compose down
-```
+- dados ficam no volume Docker `keycloak_data`
+- `docker compose up/down` preserva usuarios e roles
+- `docker compose down -v` remove volumes e apaga os dados (incluindo Keycloak e PostgreSQL)
 
-Para remover containers e limpar o volume do banco (forcar nova carga de schema/dados):
+Roles preconfiguradas no realm:
 
-```bash
-docker compose down -v
-```
+- `ADMIN`
+- `RECEPTIONIST`
+- `DOCTOR`
 
-## Rodando com Docker (sem Compose)
+Usuario admin de API (local):
 
-```bash
-docker build -t rest-ms:local .
-docker run --rm -p 8080:8080 --name rest-ms rest-ms:local
-```
+- username: `api-admin`
+- password: `api-admin123`
 
-## Testando endpoint de exemplo do patient
+## Producao (importante)
 
-Com a aplicacao rodando na porta 8080:
+- Nao use `start-dev` em producao.
+- Use Keycloak com banco persistente dedicado (PostgreSQL/MySQL) e backup.
+- Nao use `docker compose down -v` em ambiente produtivo.
 
-```bash
-curl -s http://localhost:8080/api/v1/patients/example
-```
+## Exemplos cURL
 
-## Criando paciente
+### Login
 
 ```bash
-curl -s -X POST http://localhost:8080/api/v1/patients \
+curl -s -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-	"fullName": "Maria Silva",
-	"cpf": "12345678901",
-	"phone": "11999999999",
-	"email": "maria.silva@clinic.com",
-	"birthDate": "1990-01-10"
+    "username": "api-admin",
+    "password": "api-admin123"
+  }'
+```
+
+### Criar usuario (ADMIN)
+
+```bash
+TOKEN="<access_token>"
+
+curl -s -X POST http://localhost:8080/api/v1/users \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "joao",
+    "email": "joao@clinic.local",
+    "firstName": "Joao",
+    "lastName": "Silva",
+    "password": "SenhaForte123",
+    "role": "DOCTOR"
   }'
 ```
