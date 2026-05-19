@@ -1,4 +1,13 @@
 package com.clinica.mariana.restms.clinic.dto;
 
-public record WorkingHoursDto() {
+import java.time.LocalTime;
+import java.util.UUID;
+
+public record WorkingHoursDto(
+        UUID id,
+        UUID clinicId,
+        int dayOfWeek,
+        LocalTime startTime,
+        LocalTime endTime
+) {
 }
