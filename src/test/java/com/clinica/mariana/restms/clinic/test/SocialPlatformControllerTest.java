@@ -2,6 +2,7 @@ package com.clinica.mariana.restms.clinic.test;
 
 import com.clinica.mariana.restms.clinic.entity.SocialPlatformEntity;
 import com.clinica.mariana.restms.clinic.repository.SocialPlatformRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -45,7 +46,6 @@ class SocialPlatformControllerTest {
     void setupDatabase() {
         socialPlatformRepository.deleteAll();
 
-        // Como não há endpoint POST, criamos o dado diretamente via Repository para podermos testar os GETs
         SocialPlatformEntity entity = new SocialPlatformEntity();
         entity.setCode("INSTAGRAM");
         entity.setName("Instagram");

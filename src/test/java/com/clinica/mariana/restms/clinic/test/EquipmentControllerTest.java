@@ -2,6 +2,7 @@ package com.clinica.mariana.restms.clinic.test;
 
 import com.clinica.mariana.restms.clinic.dto.EquipmentDto;
 import com.clinica.mariana.restms.clinic.repository.EquipmentRepository;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -115,7 +116,6 @@ class EquipmentControllerTest {
                             .with(jwtWithRole("ADMIN")))
                     .andExpect(status().isOk());
 
-            // Testa se a listagem padrão (activeOnly = true) não traz o equipamento inativado
             mockMvc.perform(get("/api/v1/equipment")
                             .param("clinicId", clinicId.toString())
                             .contextPath(CONTEXT_PATH)

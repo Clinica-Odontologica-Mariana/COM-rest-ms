@@ -194,7 +194,6 @@ class WorkingHoursControllerTest {
                     }
                     """.formatted(clinicId.toString()));
 
-            // Tenta criar outro horário para a MESMA clínica e no MESMO dia da semana (3)
             mockMvc.perform(post("/api/v1/working-hours")
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("ADMIN"))

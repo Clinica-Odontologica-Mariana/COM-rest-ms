@@ -2,6 +2,7 @@ package com.clinica.mariana.restms.clinic.test;
 
 import com.clinica.mariana.restms.clinic.dto.ClinicDto;
 import com.clinica.mariana.restms.clinic.repository.ClinicRepository;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,7 +64,7 @@ class ClinicControllerTest {
     class ValidClinic {
 
         @Test
-        @DisplayName("When created, found by id and document, updated, inactivated, listed and deleted, then the lifecycle is persisted")
+        @DisplayName("When created, found by id and document(CNPJ), updated, inactivated, listed and deleted, then the lifecycle is persisted")
         void shouldRunClinicLifecycle() throws Exception {
             ClinicDto created = createClinic("""
                     {
@@ -183,7 +184,7 @@ class ClinicControllerTest {
     class ExistingClinic {
 
         @Test
-        @DisplayName("When another clinic uses the same document, then the command is rejected")
+        @DisplayName("When another clinic uses the same document(CNPJ), then the command is rejected")
         void shouldRejectDuplicateDocument() throws Exception {
             createClinic("""
                     {

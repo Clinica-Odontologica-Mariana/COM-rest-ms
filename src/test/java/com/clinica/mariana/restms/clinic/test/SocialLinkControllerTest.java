@@ -2,6 +2,7 @@ package com.clinica.mariana.restms.clinic.test;
 
 import com.clinica.mariana.restms.clinic.dto.SocialLinkDto;
 import com.clinica.mariana.restms.clinic.repository.SocialLinkRepository;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -158,7 +159,7 @@ class SocialLinkControllerTest {
                               "platformId": "%s",
                               "url": "www.instagram.com/clinicamariana"
                             }
-                            """.formatted(randomId, randomId)) // Faltou o http:// ou https://
+                            """.formatted(randomId, randomId))
             );
         }
     }
@@ -181,7 +182,6 @@ class SocialLinkControllerTest {
                     }
                     """.formatted(clinicId.toString(), platformId.toString()));
 
-            // Tenta criar outro link para a MESMA clínica e MESMA plataforma
             mockMvc.perform(post("/api/v1/social-links")
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("ADMIN"))
