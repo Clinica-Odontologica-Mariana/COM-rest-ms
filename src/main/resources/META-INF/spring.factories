@@ -1,0 +1,2 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+com.clinica.mariana.restms.config.DatasourceUrlEnvironmentPostProcessor
