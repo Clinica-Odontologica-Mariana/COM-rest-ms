@@ -30,7 +30,7 @@ public class ClinicEntity {
     @Column(name = "phone", nullable = false, length = 20)
     private String phone;
 
-    @Column(name = "email", columnDefinition = "citext")
+    @Column(name = "email")
     private String email;
 
     @Column(name = "timezone", nullable = false, length = 80)
