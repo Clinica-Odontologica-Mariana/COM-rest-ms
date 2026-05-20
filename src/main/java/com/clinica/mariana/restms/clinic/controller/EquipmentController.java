@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/equipment")
+@RequestMapping("/equipment")
 public class EquipmentController {
 
     private final EquipmentService equipmentService;

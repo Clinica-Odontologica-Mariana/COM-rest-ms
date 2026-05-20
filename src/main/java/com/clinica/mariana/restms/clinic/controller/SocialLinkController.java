@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/social-links")
+@RequestMapping("/social-links")
 public class SocialLinkController {
 
     private final SocialLinkService socialLinkService;

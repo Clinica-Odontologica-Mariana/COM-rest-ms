@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/social-platforms")
+@RequestMapping("/social-platforms")
 public class SocialPlatformController {
 
     private final SocialPlatformService socialPlatformService;
