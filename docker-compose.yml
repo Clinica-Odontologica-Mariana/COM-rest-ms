@@ -45,11 +45,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      keycloak:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM}
       KEYCLOAK_BASE_URL: ${KEYCLOAK_BASE_URL}
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
@@ -57,16 +59,10 @@ services:
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
       KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: none
       SPRING_FLYWAY_ENABLED: true
       SPRING_FLYWAY_BASELINE_ON_MIGRATE: true
     ports:
       - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      keycloak:
-        condition: service_healthy
     restart: unless-stopped
 volumes:
   postgres_data:
