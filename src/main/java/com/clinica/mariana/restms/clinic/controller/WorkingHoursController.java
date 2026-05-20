@@ -4,6 +4,8 @@ import com.clinica.mariana.restms.clinic.dto.WorkingHoursCreateDto;
 import com.clinica.mariana.restms.clinic.dto.WorkingHoursDto;
 import com.clinica.mariana.restms.clinic.dto.WorkingHoursUpdateDto;
 import com.clinica.mariana.restms.clinic.service.WorkingHoursService;
+import com.clinica.mariana.restms.common.api.ApiResponse;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,34 +33,39 @@ public class WorkingHoursController {
     }
 
     @PostMapping
-    public ResponseEntity<WorkingHoursDto> create(@Valid @RequestBody WorkingHoursCreateDto request) {
+    @RolesAllowed({"ADMIN", "RECEPTIONIST"})
+    public ResponseEntity<ApiResponse<WorkingHoursDto>> create(@Valid @RequestBody WorkingHoursCreateDto request) {
         WorkingHoursDto created = workingHoursService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(created));
     }
 
     @GetMapping
-    public ResponseEntity<List<WorkingHoursDto>> findByClinicId(@RequestParam UUID clinicId) {
-        List<WorkingHoursDto> workingHours = workingHoursService.findByClinicId(clinicId);
-        return ResponseEntity.ok(workingHours);
+    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+    public ResponseEntity<ApiResponse<List<WorkingHoursDto>>> findByClinicId(@RequestParam UUID clinicId) {
+        List<WorkingHoursDto> hours = workingHoursService.findByClinicId(clinicId);
+        return ResponseEntity.ok(ApiResponse.success(hours));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<WorkingHoursDto> findById(@PathVariable UUID id) {
-        WorkingHoursDto workingHours = workingHoursService.findById(id);
-        return ResponseEntity.ok(workingHours);
+    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+    public ResponseEntity<ApiResponse<WorkingHoursDto>> findById(@PathVariable UUID id) {
+        WorkingHoursDto hours = workingHoursService.findById(id);
+        return ResponseEntity.ok(ApiResponse.success(hours));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<WorkingHoursDto> update(
+    @RolesAllowed({"ADMIN", "RECEPTIONIST"})
+    public ResponseEntity<ApiResponse<WorkingHoursDto>> update(
             @PathVariable UUID id,
             @Valid @RequestBody WorkingHoursUpdateDto request) {
         WorkingHoursDto updated = workingHoursService.update(id, request);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(ApiResponse.success(updated));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    @RolesAllowed("ADMIN")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         workingHoursService.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

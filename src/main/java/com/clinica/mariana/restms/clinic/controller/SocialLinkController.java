@@ -4,6 +4,8 @@ import com.clinica.mariana.restms.clinic.dto.SocialLinkCreateDto;
 import com.clinica.mariana.restms.clinic.dto.SocialLinkDto;
 import com.clinica.mariana.restms.clinic.dto.SocialLinkUpdateDto;
 import com.clinica.mariana.restms.clinic.service.SocialLinkService;
+import com.clinica.mariana.restms.common.api.ApiResponse;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,34 +33,39 @@ public class SocialLinkController {
     }
 
     @PostMapping
-    public ResponseEntity<SocialLinkDto> create(@Valid @RequestBody SocialLinkCreateDto request) {
+    @RolesAllowed({"ADMIN", "RECEPTIONIST"})
+    public ResponseEntity<ApiResponse<SocialLinkDto>> create(@Valid @RequestBody SocialLinkCreateDto request) {
         SocialLinkDto created = socialLinkService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(created));
     }
 
     @GetMapping
-    public ResponseEntity<List<SocialLinkDto>> findByClinicId(@RequestParam UUID clinicId) {
+    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+    public ResponseEntity<ApiResponse<List<SocialLinkDto>>> findByClinicId(@RequestParam UUID clinicId) {
         List<SocialLinkDto> links = socialLinkService.findByClinicId(clinicId);
-        return ResponseEntity.ok(links);
+        return ResponseEntity.ok(ApiResponse.success(links));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SocialLinkDto> findById(@PathVariable UUID id) {
+    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+    public ResponseEntity<ApiResponse<SocialLinkDto>> findById(@PathVariable UUID id) {
         SocialLinkDto link = socialLinkService.findById(id);
-        return ResponseEntity.ok(link);
+        return ResponseEntity.ok(ApiResponse.success(link));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SocialLinkDto> update(
+    @RolesAllowed({"ADMIN", "RECEPTIONIST"})
+    public ResponseEntity<ApiResponse<SocialLinkDto>> update(
             @PathVariable UUID id,
             @Valid @RequestBody SocialLinkUpdateDto request) {
         SocialLinkDto updated = socialLinkService.update(id, request);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(ApiResponse.success(updated));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    @RolesAllowed("ADMIN")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         socialLinkService.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

@@ -2,6 +2,8 @@ package com.clinica.mariana.restms.clinic.controller;
 
 import com.clinica.mariana.restms.clinic.dto.SocialPlatformDto;
 import com.clinica.mariana.restms.clinic.service.SocialPlatformService;
+import com.clinica.mariana.restms.common.api.ApiResponse;
+import jakarta.annotation.security.RolesAllowed;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,20 +24,23 @@ public class SocialPlatformController {
     }
 
     @GetMapping
-    public ResponseEntity<List<SocialPlatformDto>> findAll() {
+    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+    public ResponseEntity<ApiResponse<List<SocialPlatformDto>>> findAll() {
         List<SocialPlatformDto> platforms = socialPlatformService.findAll();
-        return ResponseEntity.ok(platforms); // 200
+        return ResponseEntity.ok(ApiResponse.success(platforms));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SocialPlatformDto> findById(@PathVariable UUID id) {
+    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+    public ResponseEntity<ApiResponse<SocialPlatformDto>> findById(@PathVariable UUID id) {
         SocialPlatformDto platform = socialPlatformService.findById(id);
-        return ResponseEntity.ok(platform); // 200
+        return ResponseEntity.ok(ApiResponse.success(platform));
     }
 
     @GetMapping("/code/{code}")
-    public ResponseEntity<SocialPlatformDto> findByCode(@PathVariable String code) {
+    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+    public ResponseEntity<ApiResponse<SocialPlatformDto>> findByCode(@PathVariable String code) {
         SocialPlatformDto platform = socialPlatformService.findByCode(code);
-        return ResponseEntity.ok(platform); // 200
+        return ResponseEntity.ok(ApiResponse.success(platform));
     }
 }

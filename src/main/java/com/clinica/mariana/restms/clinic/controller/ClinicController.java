@@ -4,6 +4,8 @@ import com.clinica.mariana.restms.clinic.dto.ClinicCreateDto;
 import com.clinica.mariana.restms.clinic.dto.ClinicDto;
 import com.clinica.mariana.restms.clinic.dto.ClinicUpdateDto;
 import com.clinica.mariana.restms.clinic.service.ClinicService;
+import com.clinica.mariana.restms.common.api.ApiResponse;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,53 +36,61 @@ public class ClinicController {
     }
 
     @PostMapping
-    public ResponseEntity<ClinicDto> create(@Valid @RequestBody ClinicCreateDto request) {
+    @RolesAllowed({"ADMIN", "RECEPTIONIST"})
+    public ResponseEntity<ApiResponse<ClinicDto>> create(@Valid @RequestBody ClinicCreateDto request) {
         ClinicDto created = clinicService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(created));
     }
 
     @GetMapping
-    public ResponseEntity<List<ClinicDto>> findAll() {
+    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+    public ResponseEntity<ApiResponse<List<ClinicDto>>> findAll() {
         List<ClinicDto> clinics = clinicService.findAll();
-        return ResponseEntity.ok(clinics);
+        return ResponseEntity.ok(ApiResponse.success(clinics));
     }
 
     @GetMapping("/paged")
-    public ResponseEntity<Page<ClinicDto>> findAllPaged(
+    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+    public ResponseEntity<ApiResponse<Page<ClinicDto>>> findAllPaged(
             @PageableDefault(size = 20, sort = "name") Pageable pageable) {
         Page<ClinicDto> page = clinicService.findAllPaged(pageable);
-        return ResponseEntity.ok(page);
+        return ResponseEntity.ok(ApiResponse.success(page));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClinicDto> findById(@PathVariable UUID id) {
+    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+    public ResponseEntity<ApiResponse<ClinicDto>> findById(@PathVariable UUID id) {
         ClinicDto clinic = clinicService.findById(id);
-        return ResponseEntity.ok(clinic);
+        return ResponseEntity.ok(ApiResponse.success(clinic));
     }
 
     @GetMapping("/document/{document}")
-    public ResponseEntity<ClinicDto> findByDocument(@PathVariable String document) {
+    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+    public ResponseEntity<ApiResponse<ClinicDto>> findByDocument(@PathVariable String document) {
         ClinicDto clinic = clinicService.findByDocument(document);
-        return ResponseEntity.ok(clinic);
+        return ResponseEntity.ok(ApiResponse.success(clinic));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ClinicDto> update(
+    @RolesAllowed({"ADMIN", "RECEPTIONIST"})
+    public ResponseEntity<ApiResponse<ClinicDto>> update(
             @PathVariable UUID id,
             @Valid @RequestBody ClinicUpdateDto request) {
         ClinicDto updated = clinicService.update(id, request);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(ApiResponse.success(updated));
     }
 
     @PatchMapping("/{id}/inactivate")
-    public ResponseEntity<Void> inactivate(@PathVariable UUID id) {
+    @RolesAllowed("ADMIN")
+    public ResponseEntity<ApiResponse<Void>> inactivate(@PathVariable UUID id) {
         clinicService.inactivate(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    @RolesAllowed("ADMIN")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         clinicService.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

@@ -4,6 +4,8 @@ import com.clinica.mariana.restms.clinic.dto.EquipmentCreateDto;
 import com.clinica.mariana.restms.clinic.dto.EquipmentDto;
 import com.clinica.mariana.restms.clinic.dto.EquipmentUpdateDto;
 import com.clinica.mariana.restms.clinic.service.EquipmentService;
+import com.clinica.mariana.restms.common.api.ApiResponse;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,42 +34,48 @@ public class EquipmentController {
     }
 
     @PostMapping
-    public ResponseEntity<EquipmentDto> create(@Valid @RequestBody EquipmentCreateDto request) {
+    @RolesAllowed({"ADMIN", "RECEPTIONIST"})
+    public ResponseEntity<ApiResponse<EquipmentDto>> create(@Valid @RequestBody EquipmentCreateDto request) {
         EquipmentDto created = equipmentService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(created));
     }
 
     @GetMapping
-    public ResponseEntity<List<EquipmentDto>> findByClinicId(
+    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+    public ResponseEntity<ApiResponse<List<EquipmentDto>>> findByClinicId(
             @RequestParam UUID clinicId,
             @RequestParam(defaultValue = "true") boolean activeOnly) {
         List<EquipmentDto> equipment = equipmentService.findByClinicId(clinicId, activeOnly);
-        return ResponseEntity.ok(equipment);
+        return ResponseEntity.ok(ApiResponse.success(equipment));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EquipmentDto> findById(@PathVariable UUID id) {
+    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+    public ResponseEntity<ApiResponse<EquipmentDto>> findById(@PathVariable UUID id) {
         EquipmentDto equipment = equipmentService.findById(id);
-        return ResponseEntity.ok(equipment);
+        return ResponseEntity.ok(ApiResponse.success(equipment));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EquipmentDto> update(
+    @RolesAllowed({"ADMIN", "RECEPTIONIST"})
+    public ResponseEntity<ApiResponse<EquipmentDto>> update(
             @PathVariable UUID id,
             @Valid @RequestBody EquipmentUpdateDto request) {
         EquipmentDto updated = equipmentService.update(id, request);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(ApiResponse.success(updated));
     }
 
     @PatchMapping("/{id}/inactivate")
-    public ResponseEntity<Void> inactivate(@PathVariable UUID id) {
+    @RolesAllowed("ADMIN")
+    public ResponseEntity<ApiResponse<Void>> inactivate(@PathVariable UUID id) {
         equipmentService.inactivate(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    @RolesAllowed("ADMIN")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         equipmentService.delete(id);
-        return ResponseEntity.noContent().build(); 
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
