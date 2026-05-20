@@ -6,6 +6,7 @@ import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteCreateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteDto;
 import com.clinica.mariana.restms.medicalrecord.service.MedicalRecordService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/medical-records")
+@RequestMapping("/medical-records")
 public class MedicalRecordController {
 
 	private final MedicalRecordService medicalRecordService;
@@ -29,12 +30,14 @@ public class MedicalRecordController {
 	}
 
 	@GetMapping("/by-patient/{patientId}")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public MedicalRecordDto findByPatient(@PathVariable UUID patientId) {
 		return medicalRecordService.findByPatientId(patientId);
 	}
 
 	@PostMapping("/by-patient/{patientId}/notes")
 	@ResponseStatus(HttpStatus.CREATED)
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public MedicalRecordNoteDto addNote(
 			@PathVariable UUID patientId,
 			@Valid @RequestBody MedicalRecordNoteCreateDto request
@@ -44,6 +47,7 @@ public class MedicalRecordController {
 
 	@PostMapping("/by-patient/{patientId}/attachments")
 	@ResponseStatus(HttpStatus.CREATED)
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public MedicalRecordAttachmentDto addAttachment(
 			@PathVariable UUID patientId,
 			@Valid @RequestBody MedicalRecordAttachmentCreateDto request

@@ -42,9 +42,9 @@ services:
       dockerfile: Dockerfile
     container_name: rest-ms
     environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/postgres-db}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-postgres-usuarios}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-postgres-senha}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_DOCKER_URL:-jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres-db}}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_DOCKER_USERNAME:-${POSTGRES_USER:-postgres-usuarios}}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_DOCKER_PASSWORD:-${POSTGRES_PASSWORD:-postgres-senha}}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-none}
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM:-rest-ms}
       KEYCLOAK_BASE_URL: ${KEYCLOAK_BASE_URL:-http://keycloak:8080}

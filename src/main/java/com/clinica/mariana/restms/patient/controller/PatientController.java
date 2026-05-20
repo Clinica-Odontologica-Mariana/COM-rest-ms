@@ -1,6 +1,5 @@
 package com.clinica.mariana.restms.patient.controller;
 
-import com.clinica.mariana.restms.common.api.ApiResponse;
 import com.clinica.mariana.restms.patient.dto.PatientCreateDto;
 import com.clinica.mariana.restms.patient.dto.PatientDto;
 import com.clinica.mariana.restms.patient.dto.PatientUpdateDto;
@@ -8,7 +7,6 @@ import com.clinica.mariana.restms.patient.service.PatientService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,9 +56,9 @@ public class PatientController {
 	}
 
 	@DeleteMapping("/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@RolesAllowed("ADMIN")
-	public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+	public void delete(@PathVariable UUID id) {
 		patientService.delete(id);
-		return ResponseEntity.ok(ApiResponse.success(null));
 	}
 }

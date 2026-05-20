@@ -1682,12 +1682,6 @@ CREATE INDEX idx_audit_actor ON audit_log (actor_user_id);
 -- SEED DATA
 -- ============================================================
 
-INSERT INTO role (code, name)
-VALUES ('ADMIN', 'Administrador'),
-       ('PROFESSIONAL', 'Profissional'),
-       ('RECEPTIONIST', 'Recepcionista'),
-       ('FINANCIAL', 'Financeiro') ON CONFLICT (code) DO NOTHING;
-
 INSERT INTO appointment_status (code, name, blocks_schedule, final_status)
 VALUES ('SCHEDULED', 'Agendado', TRUE, FALSE),
        ('CONFIRMED', 'Confirmado', TRUE, FALSE),

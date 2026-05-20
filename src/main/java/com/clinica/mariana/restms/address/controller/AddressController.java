@@ -4,6 +4,7 @@ import com.clinica.mariana.restms.address.dto.AddressCreateDto;
 import com.clinica.mariana.restms.address.dto.AddressDto;
 import com.clinica.mariana.restms.address.dto.AddressUpdateDto;
 import com.clinica.mariana.restms.address.service.AddressService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/addresses")
+@RequestMapping("/addresses")
 public class AddressController {
 
 	private final AddressService addressService;
@@ -31,27 +32,32 @@ public class AddressController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
+	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
 	public AddressDto create(@Valid @RequestBody AddressCreateDto request) {
 		return addressService.create(request);
 	}
 
 	@GetMapping
+	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
 	public List<AddressDto> findAll() {
 		return addressService.findAll();
 	}
 
 	@GetMapping("/{id}")
+	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
 	public AddressDto findById(@PathVariable UUID id) {
 		return addressService.findById(id);
 	}
 
 	@PutMapping("/{id}")
+	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
 	public AddressDto update(@PathVariable UUID id, @Valid @RequestBody AddressUpdateDto request) {
 		return addressService.update(id, request);
 	}
 
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@RolesAllowed("ADMIN")
 	public void delete(@PathVariable UUID id) {
 		addressService.delete(id);
 	}

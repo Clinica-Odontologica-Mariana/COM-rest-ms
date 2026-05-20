@@ -2,6 +2,7 @@ package com.clinica.mariana.restms.patient.test;
 
 import com.clinica.mariana.restms.patient.dto.PatientDto;
 import com.clinica.mariana.restms.patient.repository.PatientRepository;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,7 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.time.LocalDate;
 import java.util.stream.Stream;
@@ -22,6 +25,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -33,6 +37,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @DisplayName("Patient integration")
 class PatientControllerTest {
+
+	private static final String CONTEXT_PATH = "/api/v1";
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -52,7 +58,7 @@ class PatientControllerTest {
 	class ValidPatient {
 
 		@Test
-		@DisplayName("When created, found by id, updated, listed and deleted, then the lifecycle is persisted")
+		@DisplayName("When created, found by id and cpf, updated, listed and deleted, then the lifecycle is persisted")
 		void shouldRunPatientLifecycle() throws Exception {
 			PatientDto created = createPatient("""
 					{
@@ -71,12 +77,16 @@ class PatientControllerTest {
 			assertThat(created.active()).isTrue();
 			assertThat(created.emergencyContactName()).isEqualTo("Contato Maria");
 
-			mockMvc.perform(get("/api/v1/patients/{id}", created.id()))
+			mockMvc.perform(get("/api/v1/patients/{id}", created.id())
+							.contextPath(CONTEXT_PATH)
+							.with(jwtWithRole("DOCTOR")))
 					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.id", is(created.id().toString())))
-					.andExpect(jsonPath("$.cpf", is("12345678901")));
+					.andExpect(jsonPath("$.data.id", is(created.id().toString())))
+					.andExpect(jsonPath("$.data.cpf", is("12345678901")));
 
 			mockMvc.perform(put("/api/v1/patients/{id}", created.id())
+							.contextPath(CONTEXT_PATH)
+							.with(jwtWithRole("ADMIN"))
 							.contentType(MediaType.APPLICATION_JSON)
 							.content("""
 									{
@@ -91,23 +101,31 @@ class PatientControllerTest {
 									}
 									"""))
 					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.fullName", is("Maria Silva Atualizada")))
-					.andExpect(jsonPath("$.notes", is("Observacao atualizada")));
+					.andExpect(jsonPath("$.data.fullName", is("Maria Silva Atualizada")))
+					.andExpect(jsonPath("$.data.notes", is("Observacao atualizada")));
 
-			mockMvc.perform(get("/api/v1/patients"))
+			mockMvc.perform(get("/api/v1/patients")
+							.contextPath(CONTEXT_PATH)
+							.with(jwtWithRole("DOCTOR")))
 					.andExpect(status().isOk())
-					.andExpect(jsonPath("$", hasSize(1)));
+					.andExpect(jsonPath("$.data", hasSize(1)));
 
-			mockMvc.perform(delete("/api/v1/patients/{id}", created.id()))
+			mockMvc.perform(delete("/api/v1/patients/{id}", created.id())
+							.contextPath(CONTEXT_PATH)
+							.with(jwtWithRole("ADMIN")))
 					.andExpect(status().isNoContent());
 
-			mockMvc.perform(get("/api/v1/patients/{id}", created.id()))
+			mockMvc.perform(get("/api/v1/patients/{id}", created.id())
+							.contextPath(CONTEXT_PATH)
+							.with(jwtWithRole("DOCTOR")))
 					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.active", is(false)));
+					.andExpect(jsonPath("$.data.active", is(false)));
 
-			mockMvc.perform(get("/api/v1/patients"))
+			mockMvc.perform(get("/api/v1/patients")
+							.contextPath(CONTEXT_PATH)
+							.with(jwtWithRole("DOCTOR")))
 					.andExpect(status().isOk())
-					.andExpect(jsonPath("$", hasSize(0)));
+					.andExpect(jsonPath("$.data", hasSize(0)));
 		}
 	}
 
@@ -120,6 +138,8 @@ class PatientControllerTest {
 		@DisplayName("When creating, then validation rejects the command")
 		void shouldRejectInvalidCreatePayloads(String scenario, String payload) throws Exception {
 			mockMvc.perform(post("/api/v1/patients")
+							.contextPath(CONTEXT_PATH)
+							.with(jwtWithRole("ADMIN"))
 							.contentType(MediaType.APPLICATION_JSON)
 							.content(payload))
 					.andExpect(status().isBadRequest());
@@ -184,6 +204,8 @@ class PatientControllerTest {
 					""");
 
 			mockMvc.perform(post("/api/v1/patients")
+							.contextPath(CONTEXT_PATH)
+							.with(jwtWithRole("ADMIN"))
 							.contentType(MediaType.APPLICATION_JSON)
 							.content("""
 									{
@@ -200,6 +222,8 @@ class PatientControllerTest {
 
 	private PatientDto createPatient(String payload) throws Exception {
 		String response = mockMvc.perform(post("/api/v1/patients")
+						.contextPath(CONTEXT_PATH)
+						.with(jwtWithRole("ADMIN"))
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(payload))
 				.andExpect(status().isCreated())
@@ -207,6 +231,11 @@ class PatientControllerTest {
 				.getResponse()
 				.getContentAsString();
 
-		return objectMapper.readValue(response, PatientDto.class);
+		JsonNode data = objectMapper.readTree(response).get("data");
+		return objectMapper.treeToValue(data, PatientDto.class);
+	}
+
+	private RequestPostProcessor jwtWithRole(String role) {
+		return jwt().authorities(new SimpleGrantedAuthority("ROLE_" + role));
 	}
 }

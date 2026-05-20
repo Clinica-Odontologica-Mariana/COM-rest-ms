@@ -6,6 +6,7 @@ import com.clinica.mariana.restms.address.dto.AddressUpdateDto;
 import com.clinica.mariana.restms.address.entity.AddressEntity;
 import com.clinica.mariana.restms.address.model.AddressModel;
 import com.clinica.mariana.restms.address.repository.AddressRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,7 +82,12 @@ public class AddressService {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Address not found");
 		}
 
-		addressRepository.deleteById(id);
+		try {
+			addressRepository.deleteById(id);
+			addressRepository.flush();
+		} catch (DataIntegrityViolationException ex) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Address is in use", ex);
+		}
 	}
 
 	private AddressEntity toEntity(AddressModel model) {

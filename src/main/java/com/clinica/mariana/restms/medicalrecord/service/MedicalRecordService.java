@@ -13,6 +13,7 @@ import com.clinica.mariana.restms.medicalrecord.repository.MedicalRecordAttachme
 import com.clinica.mariana.restms.medicalrecord.repository.MedicalRecordNoteRepository;
 import com.clinica.mariana.restms.medicalrecord.repository.MedicalRecordRepository;
 import com.clinica.mariana.restms.patient.repository.PatientRepository;
+import com.clinica.mariana.restms.storedfile.repository.StoredFileRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,17 +28,20 @@ public class MedicalRecordService {
 	private final MedicalRecordNoteRepository noteRepository;
 	private final MedicalRecordAttachmentRepository attachmentRepository;
 	private final PatientRepository patientRepository;
+	private final StoredFileRepository storedFileRepository;
 
 	public MedicalRecordService(
 			MedicalRecordRepository medicalRecordRepository,
 			MedicalRecordNoteRepository noteRepository,
 			MedicalRecordAttachmentRepository attachmentRepository,
-			PatientRepository patientRepository
+			PatientRepository patientRepository,
+			StoredFileRepository storedFileRepository
 	) {
 		this.medicalRecordRepository = medicalRecordRepository;
 		this.noteRepository = noteRepository;
 		this.attachmentRepository = attachmentRepository;
 		this.patientRepository = patientRepository;
+		this.storedFileRepository = storedFileRepository;
 	}
 
 	@Transactional
@@ -75,6 +79,9 @@ public class MedicalRecordService {
 	@Transactional
 	public MedicalRecordAttachmentDto addAttachment(UUID patientId, MedicalRecordAttachmentCreateDto request) {
 		MedicalRecordEntity record = findEntityByPatientId(patientId);
+		if (!storedFileRepository.existsById(request.storedFileId())) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Stored file not found");
+		}
 
 		MedicalRecordAttachmentEntity attachment = new MedicalRecordAttachmentEntity();
 		attachment.setMedicalRecordId(record.getId());
