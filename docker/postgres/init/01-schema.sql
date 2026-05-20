@@ -1,9 +1,6 @@
-CREATE
-EXTENSION IF NOT EXISTS "pgcrypto";
-CREATE
-EXTENSION IF NOT EXISTS "btree_gist";
-CREATE
-EXTENSION IF NOT EXISTS "citext";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "btree_gist";
+CREATE EXTENSION IF NOT EXISTS "citext";
 
 -- ============================================================
 -- CLINICA ODONTOLOGICA MARIANA - FINAL DATABASE SCHEMA
@@ -37,7 +34,6 @@ EXTENSION IF NOT EXISTS "citext";
 
 DROP TABLE IF EXISTS audit_log CASCADE;
 DROP TABLE IF EXISTS social_link CASCADE;
-DROP TABLE IF EXISTS blog_post CASCADE;
 DROP TABLE IF EXISTS payment CASCADE;
 DROP TABLE IF EXISTS invoice_item CASCADE;
 DROP TABLE IF EXISTS invoice CASCADE;
@@ -68,10 +64,10 @@ DROP TABLE IF EXISTS clinic CASCADE;
 DROP TABLE IF EXISTS address CASCADE;
 DROP TABLE IF EXISTS app_user CASCADE;
 
-DROP TABLE IF EXISTS invoice_status CASCADE;
 DROP TABLE IF EXISTS payment_method CASCADE;
-DROP TABLE IF EXISTS payment_status CASCADE;
+DROP TABLE IF EXISTS invoice_status CASCADE;
 DROP TABLE IF EXISTS consent_type CASCADE;
+DROP TABLE IF EXISTS payment_status CASCADE;
 DROP TABLE IF EXISTS calendar_sync_status CASCADE;
 DROP TABLE IF EXISTS calendar_provider CASCADE;
 DROP TABLE IF EXISTS tooth_surface CASCADE;
@@ -79,7 +75,6 @@ DROP TABLE IF EXISTS tooth_condition CASCADE;
 DROP TABLE IF EXISTS treatment_plan_status CASCADE;
 DROP TABLE IF EXISTS clinical_visit_status CASCADE;
 DROP TABLE IF EXISTS appointment_status CASCADE;
-DROP TABLE IF EXISTS blog_post_status CASCADE;
 DROP TABLE IF EXISTS service_category CASCADE;
 DROP TABLE IF EXISTS service_cost_type CASCADE;
 DROP TABLE IF EXISTS social_platform CASCADE;
@@ -88,7 +83,7 @@ DROP TABLE IF EXISTS specialty CASCADE;
 DROP FUNCTION IF EXISTS fn_set_updated_at() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_appointment() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_clinical_visit() CASCADE;
-DROP FUNCTION IF EXISTS fn_validate_treatment_plan() CASCADE;
+DROP FUNCTION IF EXISTS fn_validate_treatment_plan_item() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_invoice() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_payment() CASCADE;
 DROP FUNCTION IF EXISTS fn_audit_row() CASCADE;
@@ -1686,12 +1681,6 @@ CREATE INDEX idx_audit_actor ON audit_log (actor_user_id);
 -- ============================================================
 -- SEED DATA
 -- ============================================================
-
-INSERT INTO role (code, name)
-VALUES ('ADMIN', 'Administrador'),
-       ('PROFESSIONAL', 'Profissional'),
-       ('RECEPTIONIST', 'Recepcionista'),
-       ('FINANCIAL', 'Financeiro') ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO appointment_status (code, name, blocks_schedule, final_status)
 VALUES ('SCHEDULED', 'Agendado', TRUE, FALSE),

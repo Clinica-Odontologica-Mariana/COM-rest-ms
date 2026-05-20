@@ -169,28 +169,6 @@
         }
       }
     },
-    "/patients/by-cpf/{cpf}": {
-      "get": {
-        "tags": ["patient-controller"],
-        "operationId": "findByCPF",
-        "parameters": [
-          {
-            "name": "cpf",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/PatientDto" } }
-            }
-          }
-        }
-      }
-    },
     "/auth/me": {
       "get": {
         "tags": ["auth-controller"],
@@ -201,6 +179,213 @@
             "content": {
               "*/*": {
                 "schema": { "$ref": "#/components/schemas/AuthenticatedUser" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/addresses": {
+      "get": {
+        "tags": ["address-controller"],
+        "operationId": "findAllAddresses",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/AddressDto" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["address-controller"],
+        "operationId": "createAddress",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AddressCreateDto" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/AddressDto" } }
+            }
+          }
+        }
+      }
+    },
+    "/addresses/{id}": {
+      "get": {
+        "tags": ["address-controller"],
+        "operationId": "findAddressById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/AddressDto" } }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["address-controller"],
+        "operationId": "updateAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AddressUpdateDto" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/AddressDto" } }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["address-controller"],
+        "operationId": "deleteAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/medical-records/by-patient/{patientId}": {
+      "get": {
+        "tags": ["medical-record-controller"],
+        "operationId": "findMedicalRecordByPatient",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/MedicalRecordDto" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/medical-records/by-patient/{patientId}/notes": {
+      "post": {
+        "tags": ["medical-record-controller"],
+        "operationId": "addMedicalRecordNote",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MedicalRecordNoteCreateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalRecordNoteDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/medical-records/by-patient/{patientId}/attachments": {
+      "post": {
+        "tags": ["medical-record-controller"],
+        "operationId": "addMedicalRecordAttachment",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MedicalRecordAttachmentCreateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalRecordAttachmentDto"
+                }
               }
             }
           }
@@ -404,6 +589,92 @@
           "success": { "type": "boolean" },
           "data": {},
           "error": { "$ref": "#/components/schemas/ApiError" }
+        }
+      },
+      "AddressDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "street": { "type": "string" },
+          "number": { "type": "string" },
+          "complement": { "type": "string" },
+          "neighborhood": { "type": "string" },
+          "city": { "type": "string" },
+          "state": { "type": "string" },
+          "zipCode": { "type": "string" }
+        }
+      },
+      "AddressCreateDto": {
+        "type": "object",
+        "properties": {
+          "street": { "type": "string", "maxLength": 150 },
+          "number": { "type": "string", "maxLength": 20 },
+          "complement": { "type": "string", "maxLength": 100 },
+          "neighborhood": { "type": "string", "maxLength": 100 },
+          "city": { "type": "string", "maxLength": 100 },
+          "state": { "type": "string", "pattern": "^[A-Z]{2}$" },
+          "zipCode": { "type": "string", "pattern": "^[0-9]{8}$" }
+        },
+        "required": ["street", "city", "state", "zipCode"]
+      },
+      "AddressUpdateDto": {
+        "type": "object",
+        "properties": {
+          "street": { "type": "string", "maxLength": 150 },
+          "number": { "type": "string", "maxLength": 20 },
+          "complement": { "type": "string", "maxLength": 100 },
+          "neighborhood": { "type": "string", "maxLength": 100 },
+          "city": { "type": "string", "maxLength": 100 },
+          "state": { "type": "string", "pattern": "^[A-Z]{2}$" },
+          "zipCode": { "type": "string", "pattern": "^[0-9]{8}$" }
+        },
+        "required": ["street", "city", "state", "zipCode"]
+      },
+      "MedicalRecordDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "patientId": { "type": "string", "format": "uuid" },
+          "createdByUserId": { "type": "string", "format": "uuid" },
+          "allergies": { "type": "string" },
+          "chronicConditions": { "type": "string" },
+          "continuousMedications": { "type": "string" },
+          "generalObservations": { "type": "string" }
+        }
+      },
+      "MedicalRecordNoteCreateDto": {
+        "type": "object",
+        "properties": {
+          "note": { "type": "string" }
+        },
+        "required": ["note"]
+      },
+      "MedicalRecordNoteDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "medicalRecordId": { "type": "string", "format": "uuid" },
+          "createdByUserId": { "type": "string", "format": "uuid" },
+          "note": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "MedicalRecordAttachmentCreateDto": {
+        "type": "object",
+        "properties": {
+          "storedFileId": { "type": "string", "format": "uuid" },
+          "description": { "type": "string" }
+        },
+        "required": ["storedFileId"]
+      },
+      "MedicalRecordAttachmentDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "medicalRecordId": { "type": "string", "format": "uuid" },
+          "storedFileId": { "type": "string", "format": "uuid" },
+          "description": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
         }
       }
     }

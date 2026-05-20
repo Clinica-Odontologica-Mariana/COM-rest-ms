@@ -3,6 +3,7 @@
 Aplicacao Spring Boot com PostgreSQL e Keycloak (RBAC com JWT).
 
 ## Stack e padroes implementados
+
 Aplicacao Spring Boot com PostgreSQL (Supabase ou local) e Flyway para migrations de banco.
 
 ## Estrutura arquitetural (MVC em camadas)
@@ -56,7 +57,6 @@ src/test/java/com/clinica/mariana/restms
 - `POST /api/v1/patients` (`ADMIN`, `RECEPTIONIST`)
 - `GET /api/v1/patients` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
 - `GET /api/v1/patients/{id}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `GET /api/v1/patients/by-cpf/{cpf}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
 - `PUT /api/v1/patients/{id}` (`ADMIN`, `RECEPTIONIST`)
 - `DELETE /api/v1/patients/{id}` (`ADMIN`)
 
@@ -85,6 +85,11 @@ Se alguma estiver ausente/invalida, a aplicacao falha na inicializacao com erro 
 
 `SPRING_DATASOURCE_URL` aceita tanto o formato JDBC (`jdbc:postgresql://...`) quanto
 o formato `postgresql://usuario:senha@host:porta/banco` comum em provedores como Supabase.
+
+Para Docker Compose, prefira `SPRING_DATASOURCE_DOCKER_URL`,
+`SPRING_DATASOURCE_DOCKER_USERNAME` e `SPRING_DATASOURCE_DOCKER_PASSWORD` quando precisar
+sobrescrever a conexao interna entre containers. Isso evita conflito com `SPRING_DATASOURCE_URL`
+local apontando para `localhost`.
 
 ## Rodando com Docker Compose
 
@@ -137,7 +142,6 @@ para desenvolvimento. Nao reutilize esses valores em homologacao ou producao.
 
 - Endpoints protegidos exigem `Authorization: Bearer <jwt>`.
 - Respostas passam a usar envelope global `success/data/error`.
-- A busca por CPF usa `GET /api/v1/patients/by-cpf/{cpf}`.
 - `DELETE /api/v1/patients/{id}` retorna envelope de sucesso.
 
 ## Producao (importante)

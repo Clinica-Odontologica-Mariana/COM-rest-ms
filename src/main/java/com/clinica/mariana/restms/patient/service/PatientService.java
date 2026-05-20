@@ -1,5 +1,6 @@
 package com.clinica.mariana.restms.patient.service;
 
+import com.clinica.mariana.restms.medicalrecord.service.MedicalRecordService;
 import com.clinica.mariana.restms.patient.dto.PatientCreateDto;
 import com.clinica.mariana.restms.patient.dto.PatientDto;
 import com.clinica.mariana.restms.patient.dto.PatientUpdateDto;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,9 +20,11 @@ import java.util.UUID;
 public class PatientService {
 
 	private final PatientRepository patientRepository;
+	private final MedicalRecordService medicalRecordService;
 
-	public PatientService(PatientRepository patientRepository) {
+	public PatientService(PatientRepository patientRepository, MedicalRecordService medicalRecordService) {
 		this.patientRepository = patientRepository;
+		this.medicalRecordService = medicalRecordService;
 	}
 
 	@Transactional
@@ -31,15 +34,22 @@ public class PatientService {
 		}
 
 		PatientEntity entity = new PatientEntity();
+		entity.setAddressId(request.addressId());
 		entity.setFullName(request.fullName());
 		entity.setCpf(request.cpf());
 		entity.setPhone(request.phone());
 		entity.setEmail(request.email());
 		entity.setBirthDate(request.birthDate());
+		entity.setEmergencyContactName(request.emergencyContactName());
+		entity.setEmergencyContactPhone(request.emergencyContactPhone());
+		entity.setNotes(request.notes());
 		entity.setActive(true);
 		entity.setInactivatedAt(null);
 
-		return toDto(toModel(patientRepository.save(entity)));
+		PatientEntity saved = patientRepository.save(entity);
+		medicalRecordService.createForPatientIfMissing(saved.getId(), saved.getCreatedByUserId());
+
+		return toDto(toModel(saved));
 	}
 
 	@Transactional(readOnly = true)
@@ -76,11 +86,15 @@ public class PatientService {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Patient cpf already exists");
 		}
 
+		entity.setAddressId(request.addressId());
 		entity.setFullName(request.fullName());
 		entity.setCpf(request.cpf());
 		entity.setPhone(request.phone());
 		entity.setEmail(request.email());
 		entity.setBirthDate(request.birthDate());
+		entity.setEmergencyContactName(request.emergencyContactName());
+		entity.setEmergencyContactPhone(request.emergencyContactPhone());
+		entity.setNotes(request.notes());
 
 		return toDto(toModel(patientRepository.save(entity)));
 	}
@@ -95,18 +109,23 @@ public class PatientService {
 		}
 
 		entity.setActive(false);
-		entity.setInactivatedAt(LocalDateTime.now());
+		entity.setInactivatedAt(OffsetDateTime.now());
 		patientRepository.save(entity);
 	}
 
 	private PatientModel toModel(PatientEntity entity) {
 		return new PatientModel(
 				entity.getId(),
+				entity.getAddressId(),
+				entity.getCreatedByUserId(),
 				entity.getFullName(),
 				entity.getCpf(),
 				entity.getPhone(),
 				entity.getEmail(),
 				entity.getBirthDate(),
+				entity.getEmergencyContactName(),
+				entity.getEmergencyContactPhone(),
+				entity.getNotes(),
 				entity.isActive()
 		);
 	}
@@ -114,11 +133,16 @@ public class PatientService {
 	private PatientDto toDto(PatientModel model) {
 		return new PatientDto(
 				model.id(),
+				model.addressId(),
+				model.createdByUserId(),
 				model.fullName(),
 				model.cpf(),
 				model.phone(),
 				model.email(),
 				model.birthDate(),
+				model.emergencyContactName(),
+				model.emergencyContactPhone(),
+				model.notes(),
 				model.active()
 		);
 	}
