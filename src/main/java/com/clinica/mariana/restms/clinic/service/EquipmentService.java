@@ -6,12 +6,14 @@ import com.clinica.mariana.restms.clinic.dto.EquipmentUpdateDto;
 import com.clinica.mariana.restms.clinic.entity.EquipmentEntity;
 import com.clinica.mariana.restms.clinic.model.EquipmentModel;
 import com.clinica.mariana.restms.clinic.repository.EquipmentRepository;
+import com.clinica.mariana.restms.common.exception.AppException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -46,14 +48,14 @@ public class EquipmentService {
     @Transactional(readOnly = true)
     public EquipmentDto findById(UUID id) {
         EquipmentEntity entity = equipmentRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Equipment not found"));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "EQUIPMENT_NOT_FOUND", "Equipment not found"));
         return toDto(toModel(entity));
     }
 
     @Transactional
     public EquipmentDto update(UUID id, EquipmentUpdateDto request) {
         EquipmentEntity entity = equipmentRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Equipment not found"));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "EQUIPMENT_NOT_FOUND", "Equipment not found"));
 
         EquipmentModel model = new EquipmentModel(
                 id,
@@ -71,10 +73,10 @@ public class EquipmentService {
     @Transactional
     public void inactivate(UUID id) {
         EquipmentEntity entity = equipmentRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Equipment not found"));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "EQUIPMENT_NOT_FOUND", "Equipment not found"));
 
         if (!entity.isActive()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Equipment is already inactive");
+            throw new AppException(HttpStatus.CONFLICT, "EQUIPMENT_ALREADY_INACTIVE", "Equipment is already inactive");
         }
 
         entity.setActive(false);
@@ -85,7 +87,7 @@ public class EquipmentService {
     @Transactional
     public void delete(UUID id) {
         if (!equipmentRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Equipment not found");
+            throw new AppException(HttpStatus.NOT_FOUND, "EQUIPMENT_NOT_FOUND", "Equipment not found");
         }
         equipmentRepository.deleteById(id);
     }

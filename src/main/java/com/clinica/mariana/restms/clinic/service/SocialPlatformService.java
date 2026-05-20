@@ -3,10 +3,11 @@ package com.clinica.mariana.restms.clinic.service;
 import com.clinica.mariana.restms.clinic.dto.SocialPlatformDto;
 import com.clinica.mariana.restms.clinic.entity.SocialPlatformEntity;
 import com.clinica.mariana.restms.clinic.repository.SocialPlatformRepository;
+import com.clinica.mariana.restms.common.exception.AppException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -31,14 +32,14 @@ public class SocialPlatformService {
     @Transactional(readOnly = true)
     public SocialPlatformDto findById(UUID id) {
         SocialPlatformEntity entity = socialPlatformRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Social platform not found"));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "SOCIAL_PLATFORM_NOT_FOUND", "Social platform not found"));
         return toDto(entity);
     }
 
     @Transactional(readOnly = true)
     public SocialPlatformDto findByCode(String code) {
         SocialPlatformEntity entity = socialPlatformRepository.findByCode(code)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Social platform not found"));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "SOCIAL_PLATFORM_NOT_FOUND", "Social platform not found"));
         return toDto(entity);
     }
 

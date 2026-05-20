@@ -6,14 +6,16 @@ import com.clinica.mariana.restms.clinic.dto.ClinicUpdateDto;
 import com.clinica.mariana.restms.clinic.entity.ClinicEntity;
 import com.clinica.mariana.restms.clinic.model.ClinicModel;
 import com.clinica.mariana.restms.clinic.repository.ClinicRepository;
+import com.clinica.mariana.restms.common.exception.AppException;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -29,7 +31,7 @@ public class ClinicService {
     @Transactional
     public ClinicDto create(ClinicCreateDto request) {
         if (clinicRepository.existsByDocument(request.document())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Clinic document already exists");
+            throw new AppException(HttpStatus.CONFLICT,  "CLINIC_DOCUMENT_CONFLICT", "Clinic document already exists");
         }
 
         ClinicModel model = ClinicModel.create(
@@ -63,15 +65,14 @@ public class ClinicService {
     @Transactional(readOnly = true)
     public ClinicDto findById(UUID id) {
         ClinicEntity entity = clinicRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Clinic not found"));
-
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found"));
         return toDto(toModel(entity));
     }
 
     @Transactional(readOnly = true)
     public ClinicDto findByDocument(String document) {
         ClinicEntity entity = clinicRepository.findByDocument(document)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Clinic not found"));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found"));
 
         return toDto(toModel(entity));
     }
@@ -79,10 +80,10 @@ public class ClinicService {
     @Transactional
     public ClinicDto update(UUID id, ClinicUpdateDto request) {
         ClinicEntity entity = clinicRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Clinic not found"));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found"));
 
         if (clinicRepository.existsByDocumentAndIdNot(request.document(), id)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Clinic document already exists");
+            throw new AppException(HttpStatus.CONFLICT, "CLINIC_DOCUMENT_CONFLICT", "Clinic document already exists");
         }
 
         ClinicModel model = new ClinicModel(
@@ -104,10 +105,10 @@ public class ClinicService {
     @Transactional
     public void inactivate(UUID id) {
         ClinicEntity entity = clinicRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Clinic not found"));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found"));
 
         if (!entity.isActive()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Clinic is already inactive");
+            throw new AppException(HttpStatus.CONFLICT, "CLINIC_ALREADY_INACTIVE", "Clinic is already inactive");
         }
 
         entity.setActive(false);
@@ -118,7 +119,7 @@ public class ClinicService {
     @Transactional
     public void delete(UUID id) {
         if (!clinicRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Clinic not found");
+            throw new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found");
         }
         clinicRepository.deleteById(id);
     }

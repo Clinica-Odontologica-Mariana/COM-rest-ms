@@ -6,10 +6,11 @@ import com.clinica.mariana.restms.clinic.dto.WorkingHoursUpdateDto;
 import com.clinica.mariana.restms.clinic.entity.WorkingHoursEntity;
 import com.clinica.mariana.restms.clinic.model.WorkingHoursModel;
 import com.clinica.mariana.restms.clinic.repository.WorkingHoursRepository;
+import com.clinica.mariana.restms.common.exception.AppException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +27,7 @@ public class WorkingHoursService {
     @Transactional
     public WorkingHoursDto create(WorkingHoursCreateDto request) {
         if (workingHoursRepository.existsByClinicIdAndDayOfWeek(request.clinicId(), request.dayOfWeek())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
+            throw new AppException(HttpStatus.CONFLICT, "WORKING_HOURS_DAY_CONFLICT",
                     "Working hours for this clinic and day of week already exist");
         }
 
@@ -53,18 +54,18 @@ public class WorkingHoursService {
     @Transactional(readOnly = true)
     public WorkingHoursDto findById(UUID id) {
         WorkingHoursEntity entity = workingHoursRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Working hours not found"));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "WORKING_HOURS_NOT_FOUND", "Working hours not found"));
         return toDto(toModel(entity));
     }
 
     @Transactional
     public WorkingHoursDto update(UUID id, WorkingHoursUpdateDto request) {
         WorkingHoursEntity entity = workingHoursRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Working hours not found"));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "WORKING_HOURS_NOT_FOUND", "Working hours not found"));
 
         if (workingHoursRepository.existsByClinicIdAndDayOfWeekAndIdNot(
                 entity.getClinicId(), request.dayOfWeek(), id)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
+            throw new AppException(HttpStatus.CONFLICT, "WORKING_HOURS_DAY_CONFLICT",
                     "Working hours for this clinic and day of week already exist");
         }
 
@@ -83,7 +84,7 @@ public class WorkingHoursService {
     @Transactional
     public void delete(UUID id) {
         if (!workingHoursRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Working hours not found");
+            throw new AppException(HttpStatus.NOT_FOUND, "WORKING_HOURS_NOT_FOUND", "Working hours not found");
         }
         workingHoursRepository.deleteById(id);
     }

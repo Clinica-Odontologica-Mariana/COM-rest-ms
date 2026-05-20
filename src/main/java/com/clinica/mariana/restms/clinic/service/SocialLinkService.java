@@ -6,10 +6,11 @@ import com.clinica.mariana.restms.clinic.dto.SocialLinkUpdateDto;
 import com.clinica.mariana.restms.clinic.entity.SocialLinkEntity;
 import com.clinica.mariana.restms.clinic.model.SocialLinkModel;
 import com.clinica.mariana.restms.clinic.repository.SocialLinkRepository;
+import com.clinica.mariana.restms.common.exception.AppException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +27,7 @@ public class SocialLinkService {
     @Transactional
     public SocialLinkDto create(SocialLinkCreateDto request) {
         if (socialLinkRepository.existsByClinicIdAndPlatformId(request.clinicId(), request.platformId())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
+            throw new AppException(HttpStatus.CONFLICT, "SOCIAL_LINK_PLATFORM_CONFLICT",
                     "A social link for this clinic and platform already exists");
         }
 
@@ -51,18 +52,18 @@ public class SocialLinkService {
     @Transactional(readOnly = true)
     public SocialLinkDto findById(UUID id) {
         SocialLinkEntity entity = socialLinkRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Social link not found"));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "SOCIAL_LINK_NOT_FOUND", "Social link not found"));
         return toDto(toModel(entity));
     }
 
     @Transactional
     public SocialLinkDto update(UUID id, SocialLinkUpdateDto request) {
         SocialLinkEntity entity = socialLinkRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Social link not found"));
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "SOCIAL_LINK_NOT_FOUND", "Social link not found"));
 
         if (socialLinkRepository.existsByClinicIdAndPlatformIdAndIdNot(
                 entity.getClinicId(), request.platformId(), id)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
+            throw new AppException(HttpStatus.CONFLICT, "SOCIAL_LINK_PLATFORM_CONFLICT",
                     "A social link for this clinic and platform already exists");
         }
 
@@ -80,7 +81,7 @@ public class SocialLinkService {
     @Transactional
     public void delete(UUID id) {
         if (!socialLinkRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Social link not found");
+            throw new AppException(HttpStatus.NOT_FOUND, "SOCIAL_LINK_NOT_FOUND", "Social link not found");
         }
         socialLinkRepository.deleteById(id);
     }
