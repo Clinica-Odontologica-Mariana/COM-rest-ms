@@ -4,6 +4,8 @@ import com.clinica.mariana.restms.common.api.ApiError;
 import com.clinica.mariana.restms.common.api.ApiResponse;
 import com.clinica.mariana.restms.common.exception.AppException;
 import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -49,6 +51,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<Object>> handleGeneric(Exception ex, WebRequest request) {
+		LoggerFactory.getLogger(GlobalExceptionHandler.class).error("Unexpected error in request", ex);
 		return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "Unexpected error", List.of(), request);
 	}
 

@@ -114,6 +114,10 @@ Servicos:
 O schema inicial e aplicado pelo Flyway a partir de `src/main/resources/db/migration`.
 Para bancos ja inicializados antes do Flyway, `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` permite registrar uma baseline sem recriar as tabelas existentes.
 
+Arquivos de apoio:
+- `.env.example` para copiar e ajustar as variaveis locais
+- `.env` para desenvolvimento local com Docker Compose
+
 Para rodar em background:
 
 - `docker/keycloak/rest-ms-realm.json`
