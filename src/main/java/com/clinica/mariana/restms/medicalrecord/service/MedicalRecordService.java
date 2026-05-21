@@ -2,6 +2,7 @@ package com.clinica.mariana.restms.medicalrecord.service;
 
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordAttachmentCreateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordAttachmentDto;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordAttachmentUpdateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordCreateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteCreateDto;
@@ -16,6 +17,7 @@ import com.clinica.mariana.restms.medicalrecord.repository.MedicalRecordAttachme
 import com.clinica.mariana.restms.medicalrecord.repository.MedicalRecordNoteRepository;
 import com.clinica.mariana.restms.medicalrecord.repository.MedicalRecordRepository;
 import com.clinica.mariana.restms.patient.repository.PatientRepository;
+import com.clinica.mariana.restms.storedfile.entity.StoredFileEntity;
 import com.clinica.mariana.restms.storedfile.repository.StoredFileRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -175,8 +177,9 @@ public class MedicalRecordService {
 	@Transactional
 	public MedicalRecordAttachmentDto addAttachment(UUID patientId, MedicalRecordAttachmentCreateDto request) {
 		MedicalRecordEntity record = findEntityByPatientId(patientId);
-		if (!storedFileRepository.existsById(request.storedFileId())) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Stored file not found");
+		StoredFileEntity storedFile = findStoredFile(request.storedFileId());
+		if (attachmentRepository.existsByStoredFileId(request.storedFileId())) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Stored file already attached to a medical record");
 		}
 
 		MedicalRecordAttachmentEntity attachment = new MedicalRecordAttachmentEntity();
@@ -184,7 +187,40 @@ public class MedicalRecordService {
 		attachment.setStoredFileId(request.storedFileId());
 		attachment.setDescription(request.description());
 
+		return toDto(attachmentRepository.save(attachment), storedFile);
+	}
+
+	@Transactional(readOnly = true)
+	public List<MedicalRecordAttachmentDto> findAttachmentsByPatientId(UUID patientId) {
+		MedicalRecordEntity record = findEntityByPatientId(patientId);
+
+		return attachmentRepository.findAllByMedicalRecordIdOrderByCreatedAtDesc(record.getId())
+				.stream()
+				.map(this::toDto)
+				.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public MedicalRecordAttachmentDto findAttachmentById(UUID patientId, UUID attachmentId) {
+		return toDto(findAttachmentEntityByPatientIdAndAttachmentId(patientId, attachmentId));
+	}
+
+	@Transactional
+	public MedicalRecordAttachmentDto updateAttachment(
+			UUID patientId,
+			UUID attachmentId,
+			MedicalRecordAttachmentUpdateDto request
+	) {
+		MedicalRecordAttachmentEntity attachment = findAttachmentEntityByPatientIdAndAttachmentId(patientId, attachmentId);
+		attachment.setDescription(request.description());
+
 		return toDto(attachmentRepository.save(attachment));
+	}
+
+	@Transactional
+	public void deleteAttachment(UUID patientId, UUID attachmentId) {
+		MedicalRecordAttachmentEntity attachment = findAttachmentEntityByPatientIdAndAttachmentId(patientId, attachmentId);
+		attachmentRepository.delete(attachment);
 	}
 
 	private MedicalRecordEntity findEntityByPatientId(UUID patientId) {
@@ -201,6 +237,21 @@ public class MedicalRecordService {
 
 		return noteRepository.findByIdAndMedicalRecordId(noteId, record.getId())
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record note not found"));
+	}
+
+	private MedicalRecordAttachmentEntity findAttachmentEntityByPatientIdAndAttachmentId(
+			UUID patientId,
+			UUID attachmentId
+	) {
+		MedicalRecordEntity record = findEntityByPatientId(patientId);
+
+		return attachmentRepository.findByIdAndMedicalRecordId(attachmentId, record.getId())
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record attachment not found"));
+	}
+
+	private StoredFileEntity findStoredFile(UUID storedFileId) {
+		return storedFileRepository.findById(storedFileId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Stored file not found"));
 	}
 
 	private MedicalRecordModel toModel(MedicalRecordEntity entity) {
@@ -242,10 +293,17 @@ public class MedicalRecordService {
 	}
 
 	private MedicalRecordAttachmentDto toDto(MedicalRecordAttachmentEntity entity) {
+		return toDto(entity, findStoredFile(entity.getStoredFileId()));
+	}
+
+	private MedicalRecordAttachmentDto toDto(MedicalRecordAttachmentEntity entity, StoredFileEntity storedFile) {
 		return new MedicalRecordAttachmentDto(
 				entity.getId(),
 				entity.getMedicalRecordId(),
 				entity.getStoredFileId(),
+				storedFile.getOriginalFileName(),
+				storedFile.getMimeType(),
+				storedFile.getSizeBytes(),
 				entity.getDescription(),
 				entity.getCreatedAt()
 		);

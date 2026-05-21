@@ -1,5 +1,8 @@
 package com.clinica.mariana.restms.medicalrecord.test;
 
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordAttachmentCreateDto;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordAttachmentDto;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordAttachmentUpdateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordCreateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteCreateDto;
@@ -9,10 +12,13 @@ import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordUpdateDto;
 import com.clinica.mariana.restms.medicalrecord.service.MedicalRecordService;
 import com.clinica.mariana.restms.patient.entity.PatientEntity;
 import com.clinica.mariana.restms.patient.repository.PatientRepository;
+import com.clinica.mariana.restms.storedfile.entity.StoredFileEntity;
+import com.clinica.mariana.restms.storedfile.repository.StoredFileRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
@@ -29,6 +35,9 @@ class MedicalRecordServiceTest {
 
 	@Autowired
 	private PatientRepository patientRepository;
+
+	@Autowired
+	private StoredFileRepository storedFileRepository;
 
 	@Test
 	void shouldRunMedicalRecordFlowAndValidateErrors() {
@@ -111,6 +120,55 @@ class MedicalRecordServiceTest {
 		));
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.deleteNote(otherPatient.getId(), note.id()));
 
+		StoredFileEntity storedFile = storedFileRepository.save(storedFile("radiografia-inicial.png", "image/png", 2048L));
+		MedicalRecordAttachmentDto attachment = medicalRecordService.addAttachment(
+				patient.getId(),
+				new MedicalRecordAttachmentCreateDto(storedFile.getId(), "Radiografia inicial")
+		);
+
+		assertThat(attachment.id()).isNotNull();
+		assertThat(attachment.medicalRecordId()).isEqualTo(created.id());
+		assertThat(attachment.storedFileId()).isEqualTo(storedFile.getId());
+		assertThat(attachment.originalFileName()).isEqualTo("radiografia-inicial.png");
+		assertThat(attachment.mimeType()).isEqualTo("image/png");
+		assertThat(attachment.sizeBytes()).isEqualTo(2048L);
+		assertThat(attachment.description()).isEqualTo("Radiografia inicial");
+
+		assertThat(medicalRecordService.findAttachmentsByPatientId(patient.getId()))
+				.extracting(MedicalRecordAttachmentDto::id)
+				.contains(attachment.id());
+
+		MedicalRecordAttachmentDto foundAttachment = medicalRecordService.findAttachmentById(
+				patient.getId(),
+				attachment.id()
+		);
+		assertThat(foundAttachment.originalFileName()).isEqualTo("radiografia-inicial.png");
+
+		MedicalRecordAttachmentDto updatedAttachment = medicalRecordService.updateAttachment(
+				patient.getId(),
+				attachment.id(),
+				new MedicalRecordAttachmentUpdateDto("Radiografia revisada")
+		);
+		assertThat(updatedAttachment.description()).isEqualTo("Radiografia revisada");
+
+		assertStatus(HttpStatus.CONFLICT, () -> medicalRecordService.addAttachment(
+				patient.getId(),
+				new MedicalRecordAttachmentCreateDto(storedFile.getId(), "Duplicado")
+		));
+		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findAttachmentById(
+				otherPatient.getId(),
+				attachment.id()
+		));
+		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.updateAttachment(
+				otherPatient.getId(),
+				attachment.id(),
+				new MedicalRecordAttachmentUpdateDto("Nao deve atualizar")
+		));
+		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.deleteAttachment(
+				otherPatient.getId(),
+				attachment.id()
+		));
+
 		assertStatus(HttpStatus.CONFLICT, () -> medicalRecordService.create(new MedicalRecordCreateDto(
 				patient.getId(),
 				null,
@@ -136,6 +194,7 @@ class MedicalRecordServiceTest {
 				null
 		)));
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findNotesByPatientId(unknownId));
+		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findAttachmentsByPatientId(unknownId));
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findNoteById(patient.getId(), unknownId));
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.updateNote(
 				patient.getId(),
@@ -143,9 +202,23 @@ class MedicalRecordServiceTest {
 				new MedicalRecordNoteUpdateDto("Nota inexistente")
 		));
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.deleteNote(patient.getId(), unknownId));
+		assertStatus(HttpStatus.BAD_REQUEST, () -> medicalRecordService.addAttachment(
+				patient.getId(),
+				new MedicalRecordAttachmentCreateDto(unknownId, "Arquivo inexistente")
+		));
+		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findAttachmentById(patient.getId(), unknownId));
+		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.updateAttachment(
+				patient.getId(),
+				unknownId,
+				new MedicalRecordAttachmentUpdateDto("Anexo inexistente")
+		));
+		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.deleteAttachment(patient.getId(), unknownId));
 
 		medicalRecordService.deleteNote(patient.getId(), note.id());
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findNoteById(patient.getId(), note.id()));
+
+		medicalRecordService.deleteAttachment(patient.getId(), attachment.id());
+		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findAttachmentById(patient.getId(), attachment.id()));
 
 		medicalRecordService.delete(created.id());
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findById(created.id()));
@@ -167,6 +240,16 @@ class MedicalRecordServiceTest {
 		entity.setEmail(cpf + "@clinic.com");
 		entity.setBirthDate(LocalDate.of(1985, 3, 20));
 		entity.setActive(true);
+		return entity;
+	}
+
+	private StoredFileEntity storedFile(String originalFileName, String mimeType, Long sizeBytes) {
+		StoredFileEntity entity = new StoredFileEntity();
+		ReflectionTestUtils.setField(entity, "bucketName", "medical-records");
+		ReflectionTestUtils.setField(entity, "objectKey", UUID.randomUUID() + "/" + originalFileName);
+		ReflectionTestUtils.setField(entity, "originalFileName", originalFileName);
+		ReflectionTestUtils.setField(entity, "mimeType", mimeType);
+		ReflectionTestUtils.setField(entity, "sizeBytes", sizeBytes);
 		return entity;
 	}
 }

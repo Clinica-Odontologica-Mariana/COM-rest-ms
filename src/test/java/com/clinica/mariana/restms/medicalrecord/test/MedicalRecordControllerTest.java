@@ -1,6 +1,9 @@
 package com.clinica.mariana.restms.medicalrecord.test;
 
 import com.clinica.mariana.restms.medicalrecord.controller.MedicalRecordController;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordAttachmentCreateDto;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordAttachmentDto;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordAttachmentUpdateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordCreateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteCreateDto;
@@ -32,13 +35,23 @@ class MedicalRecordControllerTest {
 		UUID id = UUID.randomUUID();
 		UUID patientId = UUID.randomUUID();
 		UUID noteId = UUID.randomUUID();
+		UUID attachmentId = UUID.randomUUID();
+		UUID storedFileId = UUID.randomUUID();
 		UUID createdByUserId = UUID.randomUUID();
 		MedicalRecordDto dto = dto(id, patientId);
 		MedicalRecordNoteDto noteDto = noteDto(noteId, id);
+		MedicalRecordAttachmentDto attachmentDto = attachmentDto(attachmentId, id, storedFileId);
 		MedicalRecordCreateDto createDto = new MedicalRecordCreateDto(patientId, "Alergia", null, null, null);
 		MedicalRecordUpdateDto updateDto = new MedicalRecordUpdateDto("Nenhuma", null, null, null);
 		MedicalRecordNoteCreateDto noteCreateDto = new MedicalRecordNoteCreateDto("Nota inicial");
 		MedicalRecordNoteUpdateDto noteUpdateDto = new MedicalRecordNoteUpdateDto("Nota atualizada");
+		MedicalRecordAttachmentCreateDto attachmentCreateDto = new MedicalRecordAttachmentCreateDto(
+				storedFileId,
+				"Radiografia inicial"
+		);
+		MedicalRecordAttachmentUpdateDto attachmentUpdateDto = new MedicalRecordAttachmentUpdateDto(
+				"Radiografia revisada"
+		);
 
 		when(medicalRecordService.create(createDto)).thenReturn(dto);
 		when(medicalRecordService.findAll()).thenReturn(List.of(dto));
@@ -49,6 +62,10 @@ class MedicalRecordControllerTest {
 		when(medicalRecordService.findNotesByPatientId(patientId)).thenReturn(List.of(noteDto));
 		when(medicalRecordService.findNoteById(patientId, noteId)).thenReturn(noteDto);
 		when(medicalRecordService.updateNote(patientId, noteId, noteUpdateDto)).thenReturn(noteDto);
+		when(medicalRecordService.addAttachment(patientId, attachmentCreateDto)).thenReturn(attachmentDto);
+		when(medicalRecordService.findAttachmentsByPatientId(patientId)).thenReturn(List.of(attachmentDto));
+		when(medicalRecordService.findAttachmentById(patientId, attachmentId)).thenReturn(attachmentDto);
+		when(medicalRecordService.updateAttachment(patientId, attachmentId, attachmentUpdateDto)).thenReturn(attachmentDto);
 
 		assertThat(controller.create(createDto)).isEqualTo(dto);
 		assertThat(controller.findAll()).containsExactly(dto);
@@ -59,12 +76,19 @@ class MedicalRecordControllerTest {
 		assertThat(controller.findNotesByPatientId(patientId)).containsExactly(noteDto);
 		assertThat(controller.findNoteById(patientId, noteId)).isEqualTo(noteDto);
 		assertThat(controller.updateNote(patientId, noteId, noteUpdateDto)).isEqualTo(noteDto);
+		assertThat(controller.addAttachment(patientId, attachmentCreateDto)).isEqualTo(attachmentDto);
+		assertThat(controller.findAttachmentsByPatientId(patientId)).containsExactly(attachmentDto);
+		assertThat(controller.findAttachmentById(patientId, attachmentId)).isEqualTo(attachmentDto);
+		assertThat(controller.updateAttachment(patientId, attachmentId, attachmentUpdateDto)).isEqualTo(attachmentDto);
 
 		controller.delete(id);
 		verify(medicalRecordService).delete(id);
 
 		controller.deleteNote(patientId, noteId);
 		verify(medicalRecordService).deleteNote(patientId, noteId);
+
+		controller.deleteAttachment(patientId, attachmentId);
+		verify(medicalRecordService).deleteAttachment(patientId, attachmentId);
 	}
 
 	private MedicalRecordDto dto(UUID id, UUID patientId) {
@@ -97,6 +121,19 @@ class MedicalRecordControllerTest {
 				medicalRecordId,
 				UUID.randomUUID(),
 				"Nota inicial",
+				OffsetDateTime.now()
+		);
+	}
+
+	private MedicalRecordAttachmentDto attachmentDto(UUID id, UUID medicalRecordId, UUID storedFileId) {
+		return new MedicalRecordAttachmentDto(
+				id,
+				medicalRecordId,
+				storedFileId,
+				"radiografia.png",
+				"image/png",
+				2048L,
+				"Radiografia inicial",
 				OffsetDateTime.now()
 		);
 	}

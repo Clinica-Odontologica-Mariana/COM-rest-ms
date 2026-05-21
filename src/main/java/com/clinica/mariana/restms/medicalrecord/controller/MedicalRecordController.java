@@ -2,6 +2,7 @@ package com.clinica.mariana.restms.medicalrecord.controller;
 
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordAttachmentCreateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordAttachmentDto;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordAttachmentUpdateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordCreateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteCreateDto;
@@ -124,6 +125,38 @@ public class MedicalRecordController {
 			@Valid @RequestBody MedicalRecordAttachmentCreateDto request
 	) {
 		return medicalRecordService.addAttachment(patientId, request);
+	}
+
+	@GetMapping("/by-patient/{patientId}/attachments")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
+	public List<MedicalRecordAttachmentDto> findAttachmentsByPatientId(@PathVariable UUID patientId) {
+		return medicalRecordService.findAttachmentsByPatientId(patientId);
+	}
+
+	@GetMapping("/by-patient/{patientId}/attachments/{attachmentId}")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
+	public MedicalRecordAttachmentDto findAttachmentById(
+			@PathVariable UUID patientId,
+			@PathVariable UUID attachmentId
+	) {
+		return medicalRecordService.findAttachmentById(patientId, attachmentId);
+	}
+
+	@PutMapping("/by-patient/{patientId}/attachments/{attachmentId}")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
+	public MedicalRecordAttachmentDto updateAttachment(
+			@PathVariable UUID patientId,
+			@PathVariable UUID attachmentId,
+			@Valid @RequestBody MedicalRecordAttachmentUpdateDto request
+	) {
+		return medicalRecordService.updateAttachment(patientId, attachmentId, request);
+	}
+
+	@DeleteMapping("/by-patient/{patientId}/attachments/{attachmentId}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@RolesAllowed({"ADMIN", "DOCTOR"})
+	public void deleteAttachment(@PathVariable UUID patientId, @PathVariable UUID attachmentId) {
+		medicalRecordService.deleteAttachment(patientId, attachmentId);
 	}
 
 	private Optional<UUID> currentUserId(Jwt jwt) {

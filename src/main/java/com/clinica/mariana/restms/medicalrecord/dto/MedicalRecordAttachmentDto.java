@@ -7,6 +7,9 @@ public record MedicalRecordAttachmentDto(
 		UUID id,
 		UUID medicalRecordId,
 		UUID storedFileId,
+		String originalFileName,
+		String mimeType,
+		Long sizeBytes,
 		String description,
 		OffsetDateTime createdAt
 ) {
