@@ -3,6 +3,7 @@
 Aplicacao Spring Boot com PostgreSQL e Keycloak (RBAC com JWT).
 
 ## Stack e padroes implementados
+
 Aplicacao Spring Boot com PostgreSQL (Supabase ou local) e Flyway para migrations de banco.
 
 ## Estrutura arquitetural (MVC em camadas)
@@ -56,9 +57,11 @@ src/test/java/com/clinica/mariana/restms
 - `POST /api/v1/patients` (`ADMIN`, `RECEPTIONIST`)
 - `GET /api/v1/patients` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
 - `GET /api/v1/patients/{id}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `GET /api/v1/patients/cpf/{cpf}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
 - `PUT /api/v1/patients/{id}` (`ADMIN`, `RECEPTIONIST`)
 - `DELETE /api/v1/patients/{id}` (`ADMIN`)
+
+As respostas REST sao envelopadas em `{ "success": true, "data": ... }` para sucesso e
+`{ "success": false, "error": ... }` para erro.
 
 ## Variaveis de ambiente
 
@@ -80,13 +83,22 @@ Variaveis obrigatorias (validadas no startup com `@ConfigurationProperties` + `@
 
 Se alguma estiver ausente/invalida, a aplicacao falha na inicializacao com erro claro no terminal.
 
+`SPRING_DATASOURCE_URL` aceita tanto o formato JDBC (`jdbc:postgresql://...`) quanto
+o formato `postgresql://usuario:senha@host:porta/banco` comum em provedores como Supabase.
+
+Para Docker Compose, prefira `SPRING_DATASOURCE_DOCKER_URL`,
+`SPRING_DATASOURCE_DOCKER_USERNAME` e `SPRING_DATASOURCE_DOCKER_PASSWORD` quando precisar
+sobrescrever a conexao interna entre containers. Isso evita conflito com `SPRING_DATASOURCE_URL`
+local apontando para `localhost`.
+
 ## Rodando com Docker Compose
 
-Esse é o jeito recomendado para subir a aplicação localmente com banco PostgreSQL em container.
+O Compose possui defaults de desenvolvimento equivalentes ao `.env.example`, entao pode
+subir sem `.env`. Para customizar credenciais, copie o template:
 
-O compose sobe dois serviços:
-- `postgres` com os dados da clínica, inicializado com `docker/postgres/init/01-schema.sql`
-- `rest-ms` com a API Spring Boot apontando para o serviço `postgres`
+```bash
+cp .env.example .env
+```
 
 ```bash
 docker compose up --build
@@ -95,6 +107,7 @@ docker compose up --build
 Servicos:
 
 - API: `http://localhost:8080`
+- Swagger UI: `http://localhost:8080/api/v1/swagger-ui/index.html`
 - Keycloak: `http://localhost:8081`
 - PostgreSQL: `localhost:5432`
 
@@ -126,11 +139,21 @@ Usuario admin de API (local):
 - username: `api-admin`
 - password: `api-admin123`
 
+Essas credenciais e o `KEYCLOAK_CLIENT_SECRET` do realm versionado sao fixtures locais
+para desenvolvimento. Nao reutilize esses valores em homologacao ou producao.
+
+## Mudancas de contrato
+
+- Endpoints protegidos exigem `Authorization: Bearer <jwt>`.
+- Respostas passam a usar envelope global `success/data/error`.
+- `DELETE /api/v1/patients/{id}` retorna envelope de sucesso.
+
 ## Producao (importante)
 
 - Nao use `start-dev` em producao.
 - Use Keycloak com banco persistente dedicado (PostgreSQL/MySQL) e backup.
 - Nao use `docker compose down -v` em ambiente produtivo.
+- Gere secrets e usuarios administrativos proprios para cada ambiente.
 
 ## Exemplos cURL
 
