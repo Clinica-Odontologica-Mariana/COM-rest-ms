@@ -6,6 +6,7 @@ import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordCreateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteCreateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteDto;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteUpdateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordUpdateDto;
 import com.clinica.mariana.restms.medicalrecord.entity.MedicalRecordAttachmentEntity;
 import com.clinica.mariana.restms.medicalrecord.entity.MedicalRecordEntity;
@@ -127,13 +128,48 @@ public class MedicalRecordService {
 
 	@Transactional
 	public MedicalRecordNoteDto addNote(UUID patientId, MedicalRecordNoteCreateDto request) {
+		return addNote(patientId, null, request);
+	}
+
+	@Transactional
+	public MedicalRecordNoteDto addNote(UUID patientId, UUID createdByUserId, MedicalRecordNoteCreateDto request) {
 		MedicalRecordEntity record = findEntityByPatientId(patientId);
 
 		MedicalRecordNoteEntity note = new MedicalRecordNoteEntity();
 		note.setMedicalRecordId(record.getId());
+		note.setCreatedByUserId(createdByUserId);
 		note.setNote(request.note());
 
 		return toDto(noteRepository.save(note));
+	}
+
+	@Transactional(readOnly = true)
+	public List<MedicalRecordNoteDto> findNotesByPatientId(UUID patientId) {
+		MedicalRecordEntity record = findEntityByPatientId(patientId);
+
+		return noteRepository.findAllByMedicalRecordIdOrderByCreatedAtDesc(record.getId())
+				.stream()
+				.map(this::toDto)
+				.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public MedicalRecordNoteDto findNoteById(UUID patientId, UUID noteId) {
+		return toDto(findNoteEntityByPatientIdAndNoteId(patientId, noteId));
+	}
+
+	@Transactional
+	public MedicalRecordNoteDto updateNote(UUID patientId, UUID noteId, MedicalRecordNoteUpdateDto request) {
+		MedicalRecordNoteEntity note = findNoteEntityByPatientIdAndNoteId(patientId, noteId);
+		note.setNote(request.note());
+
+		return toDto(noteRepository.save(note));
+	}
+
+	@Transactional
+	public void deleteNote(UUID patientId, UUID noteId) {
+		MedicalRecordNoteEntity note = findNoteEntityByPatientIdAndNoteId(patientId, noteId);
+		noteRepository.delete(note);
 	}
 
 	@Transactional
@@ -158,6 +194,13 @@ public class MedicalRecordService {
 
 		return medicalRecordRepository.findByPatientId(patientId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record not found"));
+	}
+
+	private MedicalRecordNoteEntity findNoteEntityByPatientIdAndNoteId(UUID patientId, UUID noteId) {
+		MedicalRecordEntity record = findEntityByPatientId(patientId);
+
+		return noteRepository.findByIdAndMedicalRecordId(noteId, record.getId())
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record note not found"));
 	}
 
 	private MedicalRecordModel toModel(MedicalRecordEntity entity) {

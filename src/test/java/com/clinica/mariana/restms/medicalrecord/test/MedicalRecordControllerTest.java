@@ -3,11 +3,17 @@ package com.clinica.mariana.restms.medicalrecord.test;
 import com.clinica.mariana.restms.medicalrecord.controller.MedicalRecordController;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordCreateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordDto;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteCreateDto;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteDto;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteUpdateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordUpdateDto;
 import com.clinica.mariana.restms.medicalrecord.service.MedicalRecordService;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.time.OffsetDateTime;
+import java.time.Instant;
+import java.util.Map;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,24 +31,40 @@ class MedicalRecordControllerTest {
 	void shouldDelegateRequestsToService() {
 		UUID id = UUID.randomUUID();
 		UUID patientId = UUID.randomUUID();
+		UUID noteId = UUID.randomUUID();
+		UUID createdByUserId = UUID.randomUUID();
 		MedicalRecordDto dto = dto(id, patientId);
+		MedicalRecordNoteDto noteDto = noteDto(noteId, id);
 		MedicalRecordCreateDto createDto = new MedicalRecordCreateDto(patientId, "Alergia", null, null, null);
 		MedicalRecordUpdateDto updateDto = new MedicalRecordUpdateDto("Nenhuma", null, null, null);
+		MedicalRecordNoteCreateDto noteCreateDto = new MedicalRecordNoteCreateDto("Nota inicial");
+		MedicalRecordNoteUpdateDto noteUpdateDto = new MedicalRecordNoteUpdateDto("Nota atualizada");
 
 		when(medicalRecordService.create(createDto)).thenReturn(dto);
 		when(medicalRecordService.findAll()).thenReturn(List.of(dto));
 		when(medicalRecordService.findById(id)).thenReturn(dto);
 		when(medicalRecordService.findByPatientId(patientId)).thenReturn(dto);
 		when(medicalRecordService.update(id, updateDto)).thenReturn(dto);
+		when(medicalRecordService.addNote(patientId, createdByUserId, noteCreateDto)).thenReturn(noteDto);
+		when(medicalRecordService.findNotesByPatientId(patientId)).thenReturn(List.of(noteDto));
+		when(medicalRecordService.findNoteById(patientId, noteId)).thenReturn(noteDto);
+		when(medicalRecordService.updateNote(patientId, noteId, noteUpdateDto)).thenReturn(noteDto);
 
 		assertThat(controller.create(createDto)).isEqualTo(dto);
 		assertThat(controller.findAll()).containsExactly(dto);
 		assertThat(controller.findById(id)).isEqualTo(dto);
 		assertThat(controller.findByPatientId(patientId)).isEqualTo(dto);
 		assertThat(controller.update(id, updateDto)).isEqualTo(dto);
+		assertThat(controller.addNote(patientId, noteCreateDto, jwt(createdByUserId))).isEqualTo(noteDto);
+		assertThat(controller.findNotesByPatientId(patientId)).containsExactly(noteDto);
+		assertThat(controller.findNoteById(patientId, noteId)).isEqualTo(noteDto);
+		assertThat(controller.updateNote(patientId, noteId, noteUpdateDto)).isEqualTo(noteDto);
 
 		controller.delete(id);
 		verify(medicalRecordService).delete(id);
+
+		controller.deleteNote(patientId, noteId);
+		verify(medicalRecordService).deleteNote(patientId, noteId);
 	}
 
 	private MedicalRecordDto dto(UUID id, UUID patientId) {
@@ -55,6 +77,26 @@ class MedicalRecordControllerTest {
 				"Medicacao",
 				"Observacao",
 				OffsetDateTime.now(),
+				OffsetDateTime.now()
+		);
+	}
+
+	private Jwt jwt(UUID appUserId) {
+		return Jwt.withTokenValue("token")
+				.header("alg", "none")
+				.subject("keycloak-subject")
+				.issuedAt(Instant.now())
+				.expiresAt(Instant.now().plusSeconds(60))
+				.claims(claims -> claims.putAll(Map.of("app_user_id", appUserId.toString())))
+				.build();
+	}
+
+	private MedicalRecordNoteDto noteDto(UUID id, UUID medicalRecordId) {
+		return new MedicalRecordNoteDto(
+				id,
+				medicalRecordId,
+				UUID.randomUUID(),
+				"Nota inicial",
 				OffsetDateTime.now()
 		);
 	}

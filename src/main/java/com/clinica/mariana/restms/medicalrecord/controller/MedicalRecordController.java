@@ -6,11 +6,14 @@ import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordCreateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteCreateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteDto;
+import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordNoteUpdateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordUpdateDto;
 import com.clinica.mariana.restms.medicalrecord.service.MedicalRecordService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -77,9 +81,39 @@ public class MedicalRecordController {
 	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public MedicalRecordNoteDto addNote(
 			@PathVariable UUID patientId,
-			@Valid @RequestBody MedicalRecordNoteCreateDto request
+			@Valid @RequestBody MedicalRecordNoteCreateDto request,
+			@AuthenticationPrincipal Jwt jwt
 	) {
-		return medicalRecordService.addNote(patientId, request);
+		return medicalRecordService.addNote(patientId, currentUserId(jwt).orElse(null), request);
+	}
+
+	@GetMapping("/by-patient/{patientId}/notes")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
+	public List<MedicalRecordNoteDto> findNotesByPatientId(@PathVariable UUID patientId) {
+		return medicalRecordService.findNotesByPatientId(patientId);
+	}
+
+	@GetMapping("/by-patient/{patientId}/notes/{noteId}")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
+	public MedicalRecordNoteDto findNoteById(@PathVariable UUID patientId, @PathVariable UUID noteId) {
+		return medicalRecordService.findNoteById(patientId, noteId);
+	}
+
+	@PutMapping("/by-patient/{patientId}/notes/{noteId}")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
+	public MedicalRecordNoteDto updateNote(
+			@PathVariable UUID patientId,
+			@PathVariable UUID noteId,
+			@Valid @RequestBody MedicalRecordNoteUpdateDto request
+	) {
+		return medicalRecordService.updateNote(patientId, noteId, request);
+	}
+
+	@DeleteMapping("/by-patient/{patientId}/notes/{noteId}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@RolesAllowed({"ADMIN", "DOCTOR"})
+	public void deleteNote(@PathVariable UUID patientId, @PathVariable UUID noteId) {
+		medicalRecordService.deleteNote(patientId, noteId);
 	}
 
 	@PostMapping("/by-patient/{patientId}/attachments")
@@ -90,5 +124,26 @@ public class MedicalRecordController {
 			@Valid @RequestBody MedicalRecordAttachmentCreateDto request
 	) {
 		return medicalRecordService.addAttachment(patientId, request);
+	}
+
+	private Optional<UUID> currentUserId(Jwt jwt) {
+		if (jwt == null) {
+			return Optional.empty();
+		}
+
+		String appUserId = jwt.getClaimAsString("app_user_id");
+		if (appUserId != null && !appUserId.isBlank()) {
+			return parseUuid(appUserId);
+		}
+
+		return parseUuid(jwt.getSubject());
+	}
+
+	private Optional<UUID> parseUuid(String value) {
+		try {
+			return value == null || value.isBlank() ? Optional.empty() : Optional.of(UUID.fromString(value));
+		} catch (IllegalArgumentException ex) {
+			return Optional.empty();
+		}
 	}
 }
