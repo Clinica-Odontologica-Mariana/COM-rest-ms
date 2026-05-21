@@ -13,7 +13,7 @@ public interface PatientRepository extends JpaRepository<PatientEntity, UUID> {
 
 	boolean existsByCpfAndIdNot(String cpf, UUID id);
 
-	List<PatientEntity> findAllByActiveTrueOrderByFullNameAsc();
-
 	Optional<PatientEntity> findByCpf(String cpf);
+
+	List<PatientEntity> findAllByActiveTrueOrderByFullNameAsc();
 }

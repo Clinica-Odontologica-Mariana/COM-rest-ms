@@ -8,7 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -18,6 +18,12 @@ public class PatientEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
 	private UUID id;
+
+	@Column(name = "address_id")
+	private UUID addressId;
+
+	@Column(name = "created_by_user_id")
+	private UUID createdByUserId;
 
 	@Column(name = "full_name", nullable = false, length = 150)
 	private String fullName;
@@ -31,14 +37,23 @@ public class PatientEntity {
 	@Column(name = "email", length = 150)
 	private String email;
 
-	@Column(name = "birth_date")
+	@Column(name = "birth_date", nullable = false)
 	private LocalDate birthDate;
+
+	@Column(name = "emergency_contact_name", length = 150)
+	private String emergencyContactName;
+
+	@Column(name = "emergency_contact_phone", length = 20)
+	private String emergencyContactPhone;
+
+	@Column(name = "notes")
+	private String notes;
 
 	@Column(name = "active", nullable = false)
 	private boolean active;
 
 	@Column(name = "inactivated_at")
-	private LocalDateTime inactivatedAt;
+	private OffsetDateTime inactivatedAt;
 
 	public UUID getId() {
 		return id;
@@ -46,6 +61,22 @@ public class PatientEntity {
 
 	public void setId(UUID id) {
 		this.id = id;
+	}
+
+	public UUID getAddressId() {
+		return addressId;
+	}
+
+	public void setAddressId(UUID addressId) {
+		this.addressId = addressId;
+	}
+
+	public UUID getCreatedByUserId() {
+		return createdByUserId;
+	}
+
+	public void setCreatedByUserId(UUID createdByUserId) {
+		this.createdByUserId = createdByUserId;
 	}
 
 	public String getFullName() {
@@ -88,6 +119,30 @@ public class PatientEntity {
 		this.birthDate = birthDate;
 	}
 
+	public String getEmergencyContactName() {
+		return emergencyContactName;
+	}
+
+	public void setEmergencyContactName(String emergencyContactName) {
+		this.emergencyContactName = emergencyContactName;
+	}
+
+	public String getEmergencyContactPhone() {
+		return emergencyContactPhone;
+	}
+
+	public void setEmergencyContactPhone(String emergencyContactPhone) {
+		this.emergencyContactPhone = emergencyContactPhone;
+	}
+
+	public String getNotes() {
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+		this.notes = notes;
+	}
+
 	public boolean isActive() {
 		return active;
 	}
@@ -96,11 +151,11 @@ public class PatientEntity {
 		this.active = active;
 	}
 
-	public LocalDateTime getInactivatedAt() {
+	public OffsetDateTime getInactivatedAt() {
 		return inactivatedAt;
 	}
 
-	public void setInactivatedAt(LocalDateTime inactivatedAt) {
+	public void setInactivatedAt(OffsetDateTime inactivatedAt) {
 		this.inactivatedAt = inactivatedAt;
 	}
 }
