@@ -1,0 +1,64 @@
+{
+  "realm": "rest-ms",
+  "enabled": true,
+  "displayName": "rest-ms",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": true,
+  "rememberMe": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "ADMIN",
+        "description": "System administrator"
+      },
+      {
+        "name": "RECEPTIONIST",
+        "description": "Reception operations"
+      },
+      {
+        "name": "DOCTOR",
+        "description": "Doctor operations"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "rest-ms-api",
+      "name": "rest-ms-api",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "rest-ms-api-secret",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "implicitFlowEnabled": false,
+      "fullScopeAllowed": true
+    }
+  ],
+  "users": [
+    {
+      "username": "api-admin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "API",
+      "lastName": "Admin",
+      "email": "api-admin@rest-ms.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "api-admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ADMIN"
+      ],
+      "clientRoles": {
+        "realm-management": [
+          "realm-admin"
+        ]
+      }
+    }
+  ]
+}

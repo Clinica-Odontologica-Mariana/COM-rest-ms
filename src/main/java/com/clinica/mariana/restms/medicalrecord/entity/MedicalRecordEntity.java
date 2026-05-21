@@ -1,19 +1,13 @@
 package com.clinica.mariana.restms.medicalrecord.entity;
 
-import com.clinica.mariana.restms.patient.entity.PatientEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -24,39 +18,29 @@ public class MedicalRecordEntity {
 	@GeneratedValue(strategy = GenerationType.UUID)
 	private UUID id;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "patient_id", nullable = false, unique = true)
-	private PatientEntity patient;
+	@Column(name = "patient_id", nullable = false, unique = true)
+	private UUID patientId;
 
-	@Column(name = "allergies", columnDefinition = "TEXT")
+	@Column(name = "created_by_user_id")
+	private UUID createdByUserId;
+
+	@Column(name = "allergies")
 	private String allergies;
 
-	@Column(name = "chronic_conditions", columnDefinition = "TEXT")
+	@Column(name = "chronic_conditions")
 	private String chronicConditions;
 
-	@Column(name = "continuous_medications", columnDefinition = "TEXT")
+	@Column(name = "continuous_medications")
 	private String continuousMedications;
 
-	@Column(name = "general_observations", columnDefinition = "TEXT")
+	@Column(name = "general_observations")
 	private String generalObservations;
 
-	@Column(name = "created_at", nullable = false)
-	private LocalDateTime createdAt;
+	@Column(name = "created_at", insertable = false, updatable = false)
+	private OffsetDateTime createdAt;
 
-	@Column(name = "updated_at", nullable = false)
-	private LocalDateTime updatedAt;
-
-	@PrePersist
-	void prePersist() {
-		LocalDateTime now = LocalDateTime.now();
-		createdAt = now;
-		updatedAt = now;
-	}
-
-	@PreUpdate
-	void preUpdate() {
-		updatedAt = LocalDateTime.now();
-	}
+	@Column(name = "updated_at", insertable = false, updatable = false)
+	private OffsetDateTime updatedAt;
 
 	public UUID getId() {
 		return id;
@@ -66,12 +50,20 @@ public class MedicalRecordEntity {
 		this.id = id;
 	}
 
-	public PatientEntity getPatient() {
-		return patient;
+	public UUID getPatientId() {
+		return patientId;
 	}
 
-	public void setPatient(PatientEntity patient) {
-		this.patient = patient;
+	public void setPatientId(UUID patientId) {
+		this.patientId = patientId;
+	}
+
+	public UUID getCreatedByUserId() {
+		return createdByUserId;
+	}
+
+	public void setCreatedByUserId(UUID createdByUserId) {
+		this.createdByUserId = createdByUserId;
 	}
 
 	public String getAllergies() {
@@ -106,19 +98,11 @@ public class MedicalRecordEntity {
 		this.generalObservations = generalObservations;
 	}
 
-	public LocalDateTime getCreatedAt() {
+	public OffsetDateTime getCreatedAt() {
 		return createdAt;
 	}
 
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
-	}
-
-	public LocalDateTime getUpdatedAt() {
+	public OffsetDateTime getUpdatedAt() {
 		return updatedAt;
-	}
-
-	public void setUpdatedAt(LocalDateTime updatedAt) {
-		this.updatedAt = updatedAt;
 	}
 }

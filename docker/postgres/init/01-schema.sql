@@ -1,9 +1,6 @@
-CREATE
-EXTENSION IF NOT EXISTS "pgcrypto";
-CREATE
-EXTENSION IF NOT EXISTS "btree_gist";
-CREATE
-EXTENSION IF NOT EXISTS "citext";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "btree_gist";
+CREATE EXTENSION IF NOT EXISTS "citext";
 
 -- ============================================================
 -- CLINICA ODONTOLOGICA MARIANA - FINAL DATABASE SCHEMA
@@ -37,7 +34,6 @@ EXTENSION IF NOT EXISTS "citext";
 
 DROP TABLE IF EXISTS audit_log CASCADE;
 DROP TABLE IF EXISTS social_link CASCADE;
-DROP TABLE IF EXISTS blog_post CASCADE;
 DROP TABLE IF EXISTS payment CASCADE;
 DROP TABLE IF EXISTS invoice_item CASCADE;
 DROP TABLE IF EXISTS invoice CASCADE;
@@ -66,13 +62,12 @@ DROP TABLE IF EXISTS professional CASCADE;
 DROP TABLE IF EXISTS workplace CASCADE;
 DROP TABLE IF EXISTS clinic CASCADE;
 DROP TABLE IF EXISTS address CASCADE;
-DROP TABLE IF EXISTS user_role CASCADE;
 DROP TABLE IF EXISTS app_user CASCADE;
 
-DROP TABLE IF EXISTS invoice_status CASCADE;
 DROP TABLE IF EXISTS payment_method CASCADE;
-DROP TABLE IF EXISTS payment_status CASCADE;
+DROP TABLE IF EXISTS invoice_status CASCADE;
 DROP TABLE IF EXISTS consent_type CASCADE;
+DROP TABLE IF EXISTS payment_status CASCADE;
 DROP TABLE IF EXISTS calendar_sync_status CASCADE;
 DROP TABLE IF EXISTS calendar_provider CASCADE;
 DROP TABLE IF EXISTS tooth_surface CASCADE;
@@ -80,17 +75,15 @@ DROP TABLE IF EXISTS tooth_condition CASCADE;
 DROP TABLE IF EXISTS treatment_plan_status CASCADE;
 DROP TABLE IF EXISTS clinical_visit_status CASCADE;
 DROP TABLE IF EXISTS appointment_status CASCADE;
-DROP TABLE IF EXISTS blog_post_status CASCADE;
 DROP TABLE IF EXISTS service_category CASCADE;
 DROP TABLE IF EXISTS service_cost_type CASCADE;
 DROP TABLE IF EXISTS social_platform CASCADE;
 DROP TABLE IF EXISTS specialty CASCADE;
-DROP TABLE IF EXISTS role CASCADE;
 
 DROP FUNCTION IF EXISTS fn_set_updated_at() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_appointment() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_clinical_visit() CASCADE;
-DROP FUNCTION IF EXISTS fn_validate_treatment_plan() CASCADE;
+DROP FUNCTION IF EXISTS fn_validate_treatment_plan_item() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_invoice() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_payment() CASCADE;
 DROP FUNCTION IF EXISTS fn_audit_row() CASCADE;
@@ -98,13 +91,6 @@ DROP FUNCTION IF EXISTS fn_audit_row() CASCADE;
 -- ============================================================
 -- DOMAIN TABLES
 -- ============================================================
-
-CREATE TABLE role
-(
-    id   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    code VARCHAR(30) NOT NULL UNIQUE,
-    name VARCHAR(50) NOT NULL UNIQUE
-);
 
 CREATE TABLE appointment_status
 (
@@ -246,19 +232,6 @@ CREATE TABLE app_user
             (active = TRUE AND inactivated_at IS NULL) OR
             (active = FALSE AND inactivated_at IS NOT NULL)
         )
-);
-
-CREATE TABLE user_role
-(
-    user_id UUID NOT NULL,
-    role_id UUID NOT NULL,
-    PRIMARY KEY (user_id, role_id),
-    CONSTRAINT fk_user_role_user
-        FOREIGN KEY (user_id) REFERENCES app_user (id)
-            ON DELETE CASCADE,
-    CONSTRAINT fk_user_role_role
-        FOREIGN KEY (role_id) REFERENCES role (id)
-            ON DELETE RESTRICT
 );
 
 -- ============================================================
@@ -599,7 +572,11 @@ ALTER TABLE working_hours
     ADD CONSTRAINT ex_working_hours_overlap EXCLUDE USING gist (
         clinic_id WITH =,
         day_of_week WITH =,
-        timerange(start_time, end_time, '[)') WITH &&
+        tsrange(
+            '2000-01-01'::DATE + start_time,
+            '2000-01-01'::DATE + end_time,
+            '[)'
+        ) WITH &&
     );
 
 CREATE TABLE schedule_block
@@ -1704,12 +1681,6 @@ CREATE INDEX idx_audit_actor ON audit_log (actor_user_id);
 -- ============================================================
 -- SEED DATA
 -- ============================================================
-
-INSERT INTO role (code, name)
-VALUES ('ADMIN', 'Administrador'),
-       ('PROFESSIONAL', 'Profissional'),
-       ('RECEPTIONIST', 'Recepcionista'),
-       ('FINANCIAL', 'Financeiro') ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO appointment_status (code, name, blocks_schedule, final_status)
 VALUES ('SCHEDULED', 'Agendado', TRUE, FALSE),

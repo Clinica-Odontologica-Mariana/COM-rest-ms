@@ -7,7 +7,7 @@ import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordUpdateDto;
 import com.clinica.mariana.restms.medicalrecord.service.MedicalRecordService;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,13 +49,13 @@ class MedicalRecordControllerTest {
 		return new MedicalRecordDto(
 				id,
 				patientId,
-				"Paciente",
+				UUID.randomUUID(),
 				"Alergia",
 				"Condicao",
 				"Medicacao",
 				"Observacao",
-				LocalDateTime.now(),
-				LocalDateTime.now()
+				OffsetDateTime.now(),
+				OffsetDateTime.now()
 		);
 	}
 }

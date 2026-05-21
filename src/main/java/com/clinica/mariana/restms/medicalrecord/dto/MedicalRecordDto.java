@@ -1,17 +1,17 @@
 package com.clinica.mariana.restms.medicalrecord.dto;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public record MedicalRecordDto(
 		UUID id,
 		UUID patientId,
-		String patientFullName,
+		UUID createdByUserId,
 		String allergies,
 		String chronicConditions,
 		String continuousMedications,
 		String generalObservations,
-		LocalDateTime createdAt,
-		LocalDateTime updatedAt
+		OffsetDateTime createdAt,
+		OffsetDateTime updatedAt
 ) {
 }

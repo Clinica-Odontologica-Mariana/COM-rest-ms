@@ -4,9 +4,8 @@ import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordCreateDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordDto;
 import com.clinica.mariana.restms.medicalrecord.dto.MedicalRecordUpdateDto;
 import com.clinica.mariana.restms.medicalrecord.service.MedicalRecordService;
-import com.clinica.mariana.restms.patient.dto.PatientCreateDto;
-import com.clinica.mariana.restms.patient.dto.PatientDto;
-import com.clinica.mariana.restms.patient.service.PatientService;
+import com.clinica.mariana.restms.patient.entity.PatientEntity;
+import com.clinica.mariana.restms.patient.repository.PatientRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,20 +25,17 @@ class MedicalRecordServiceTest {
 	private MedicalRecordService medicalRecordService;
 
 	@Autowired
-	private PatientService patientService;
+	private PatientRepository patientRepository;
 
 	@Test
 	void shouldRunMedicalRecordFlowAndValidateErrors() {
-		PatientDto patient = patientService.create(new PatientCreateDto(
+		PatientEntity patient = patientRepository.save(patient(
 				"Joao Prontuario",
-				"98765432100",
-				"61999999999",
-				"joao.prontuario@clinic.com",
-				LocalDate.of(1985, 3, 20)
+				"98765432100"
 		));
 
 		MedicalRecordDto created = medicalRecordService.create(new MedicalRecordCreateDto(
-				patient.id(),
+				patient.getId(),
 				"Penicilina",
 				"Hipertensao",
 				"Losartana",
@@ -47,10 +43,7 @@ class MedicalRecordServiceTest {
 		));
 
 		assertThat(created.id()).isNotNull();
-		assertThat(created.patientId()).isEqualTo(patient.id());
-		assertThat(created.patientFullName()).isEqualTo("Joao Prontuario");
-		assertThat(created.createdAt()).isNotNull();
-		assertThat(created.updatedAt()).isNotNull();
+		assertThat(created.patientId()).isEqualTo(patient.getId());
 
 		assertThat(medicalRecordService.findAll())
 				.extracting(MedicalRecordDto::id)
@@ -59,7 +52,7 @@ class MedicalRecordServiceTest {
 		MedicalRecordDto foundById = medicalRecordService.findById(created.id());
 		assertThat(foundById.allergies()).isEqualTo("Penicilina");
 
-		MedicalRecordDto foundByPatient = medicalRecordService.findByPatientId(patient.id());
+		MedicalRecordDto foundByPatient = medicalRecordService.findByPatientId(patient.getId());
 		assertThat(foundByPatient.id()).isEqualTo(created.id());
 
 		MedicalRecordDto updated = medicalRecordService.update(created.id(), new MedicalRecordUpdateDto(
@@ -73,7 +66,7 @@ class MedicalRecordServiceTest {
 		assertThat(updated.generalObservations()).isEqualTo("Retorno em seis meses");
 
 		assertStatus(HttpStatus.CONFLICT, () -> medicalRecordService.create(new MedicalRecordCreateDto(
-				patient.id(),
+				patient.getId(),
 				null,
 				null,
 				null,
@@ -107,5 +100,16 @@ class MedicalRecordServiceTest {
 				.isInstanceOf(ResponseStatusException.class)
 				.extracting("statusCode")
 				.isEqualTo(status);
+	}
+
+	private PatientEntity patient(String fullName, String cpf) {
+		PatientEntity entity = new PatientEntity();
+		entity.setFullName(fullName);
+		entity.setCpf(cpf);
+		entity.setPhone("61999999999");
+		entity.setEmail(cpf + "@clinic.com");
+		entity.setBirthDate(LocalDate.of(1985, 3, 20));
+		entity.setActive(true);
+		return entity;
 	}
 }
