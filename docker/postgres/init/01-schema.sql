@@ -172,13 +172,6 @@ CREATE TABLE consent_type
     description TEXT
 );
 
-CREATE TABLE blog_post_status
-(
-    id   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    code VARCHAR(30) NOT NULL UNIQUE,
-    name VARCHAR(50) NOT NULL UNIQUE
-);
-
 CREATE TABLE service_category
 (
     id   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1048,39 +1041,6 @@ CREATE TABLE payment
 -- CONTENT / SOCIAL
 -- ============================================================
 
-CREATE TABLE blog_post
-(
-    id             UUID PRIMARY KEY      DEFAULT gen_random_uuid(),
-    status_id      UUID         NOT NULL,
-    author_user_id UUID,
-    cover_file_id  UUID,
-    title          VARCHAR(200) NOT NULL,
-    slug           VARCHAR(220) NOT NULL UNIQUE,
-    summary        TEXT,
-    content        TEXT         NOT NULL,
-    published_at   TIMESTAMPTZ,
-    active         BOOLEAN      NOT NULL DEFAULT TRUE,
-    inactivated_at TIMESTAMPTZ,
-    created_at     TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at     TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT chk_blog_slug CHECK (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'
-) ,
-    CONSTRAINT chk_blog_post_inactivation
-        CHECK (
-            (active = TRUE AND inactivated_at IS NULL) OR
-            (active = FALSE AND inactivated_at IS NOT NULL)
-        ),
-    CONSTRAINT fk_blog_status
-        FOREIGN KEY (status_id) REFERENCES blog_post_status (id)
-        ON DELETE RESTRICT,
-    CONSTRAINT fk_blog_author
-        FOREIGN KEY (author_user_id) REFERENCES app_user (id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_blog_cover_file
-        FOREIGN KEY (cover_file_id) REFERENCES stored_file (id)
-        ON DELETE SET NULL
-);
-
 CREATE TABLE social_link
 (
     id          UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
@@ -1463,11 +1423,6 @@ CREATE TRIGGER trg_payment_updated_at
     ON payment
     FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
 
-CREATE TRIGGER trg_blog_post_updated_at
-    BEFORE UPDATE
-    ON blog_post
-    FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
-
 -- ============================================================
 -- BUSINESS TRIGGERS
 -- ============================================================
@@ -1670,8 +1625,6 @@ CREATE INDEX idx_payment_patient ON payment (patient_id);
 CREATE INDEX idx_payment_status ON payment (status_id);
 CREATE INDEX idx_payment_paid_at ON payment (paid_at);
 
-CREATE INDEX idx_blog_post_status ON blog_post (status_id);
-CREATE INDEX idx_blog_post_slug ON blog_post (slug);
 CREATE INDEX idx_social_link_clinic ON social_link (clinic_id);
 
 CREATE INDEX idx_audit_table_row ON audit_log (table_name, row_id);
@@ -1764,11 +1717,6 @@ VALUES ('DATA_PROCESSING', 'Tratamento de dados pessoais',
        ('MARKETING', 'Comunicacoes de marketing', 'Consentimento para envio de comunicacoes promocionais.'),
        ('TREATMENT', 'Tratamento odontologico',
         'Consentimento informado para realizacao de tratamento odontologico.') ON CONFLICT (code) DO NOTHING;
-
-INSERT INTO blog_post_status (code, name)
-VALUES ('DRAFT', 'Rascunho'),
-       ('PUBLISHED', 'Publicado'),
-       ('ARCHIVED', 'Arquivado') ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO service_category (code, name)
 VALUES ('PREVENTIVE', 'Preventivo'),
