@@ -5,6 +5,8 @@
   "registrationAllowed": false,
   "resetPasswordAllowed": true,
   "rememberMe": true,
+  "accessTokenLifespan": 86400,
+  "ssoSessionMaxLifespan": 86400,
   "roles": {
     "realm": [
       {
