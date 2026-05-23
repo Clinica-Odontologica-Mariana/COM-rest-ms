@@ -14,7 +14,7 @@ public record WorkplaceModel(
             throw new IllegalArgumentException("clinicId is required");
         }
 
-        name = requireNotBlank(name, "name");
+        requireNotBlank(name, "name");
     }
 
     public static WorkplaceModel create(

@@ -38,6 +38,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AddressControllerTest {
 
 	private static final String CONTEXT_PATH = "/api/v1";
+	private static final String ADDRESSES_PATH = CONTEXT_PATH + "/addresses";
+	private static final String ADDRESS_BY_ID_PATH = ADDRESSES_PATH + "/{id}";
+	private static final String ADMIN_ROLE = "ADMIN";
+	private static final String DOCTOR_ROLE = "DOCTOR";
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -75,16 +79,16 @@ class AddressControllerTest {
 			assertThat(created.state()).isEqualTo("DF");
 			assertThat(created.zipCode()).isEqualTo("70000000");
 
-			mockMvc.perform(get("/api/v1/addresses/{id}", created.id())
+			mockMvc.perform(get(ADDRESS_BY_ID_PATH, created.id())
 							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("DOCTOR")))
+							.with(jwtWithRole(DOCTOR_ROLE)))
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$.data.id", is(created.id().toString())))
 					.andExpect(jsonPath("$.data.street", is("Rua das Flores")));
 
-			mockMvc.perform(put("/api/v1/addresses/{id}", created.id())
+			mockMvc.perform(put(ADDRESS_BY_ID_PATH, created.id())
 							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN"))
+							.with(jwtWithRole(ADMIN_ROLE))
 							.contentType(MediaType.APPLICATION_JSON)
 							.content("""
 									{
@@ -101,21 +105,41 @@ class AddressControllerTest {
 					.andExpect(jsonPath("$.data.street", is("Avenida Principal")))
 					.andExpect(jsonPath("$.data.zipCode", is("70000001")));
 
-			mockMvc.perform(get("/api/v1/addresses")
+			mockMvc.perform(get(ADDRESSES_PATH)
 							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("DOCTOR")))
+							.with(jwtWithRole(DOCTOR_ROLE)))
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$.data", hasSize(1)));
 
-			mockMvc.perform(delete("/api/v1/addresses/{id}", created.id())
+			mockMvc.perform(delete(ADDRESS_BY_ID_PATH, created.id())
 							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN")))
+							.with(jwtWithRole(ADMIN_ROLE)))
 					.andExpect(status().isNoContent());
 
-			mockMvc.perform(get("/api/v1/addresses/{id}", created.id())
+			mockMvc.perform(get(ADDRESS_BY_ID_PATH, created.id())
 							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("DOCTOR")))
+							.with(jwtWithRole(DOCTOR_ROLE)))
 					.andExpect(status().isNotFound());
+
+			mockMvc.perform(delete(ADDRESS_BY_ID_PATH, created.id())
+							.contextPath(CONTEXT_PATH)
+							.with(jwtWithRole(ADMIN_ROLE)))
+					.andExpect(status().isNoContent());
+		}
+
+		private AddressDto createAddress(String payload) throws Exception {
+			String response = mockMvc.perform(post(ADDRESSES_PATH)
+							.contextPath(CONTEXT_PATH)
+							.with(jwtWithRole(ADMIN_ROLE))
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(payload))
+					.andExpect(status().isCreated())
+					.andReturn()
+					.getResponse()
+					.getContentAsString();
+
+			JsonNode data = objectMapper.readTree(response).get("data");
+			return objectMapper.treeToValue(data, AddressDto.class);
 		}
 	}
 
@@ -127,9 +151,9 @@ class AddressControllerTest {
 		@MethodSource("invalidCreatePayloads")
 		@DisplayName("When creating, then validation rejects the command")
 		void shouldRejectInvalidCreatePayloads(String scenario, String payload) throws Exception {
-			mockMvc.perform(post("/api/v1/addresses")
+			mockMvc.perform(post(ADDRESSES_PATH)
 							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN"))
+							.with(jwtWithRole(ADMIN_ROLE))
 							.contentType(MediaType.APPLICATION_JSON)
 							.content(payload))
 					.andExpect(status().isBadRequest());
@@ -170,21 +194,6 @@ class AddressControllerTest {
 							""")
 			);
 		}
-	}
-
-	private AddressDto createAddress(String payload) throws Exception {
-		String response = mockMvc.perform(post("/api/v1/addresses")
-						.contextPath(CONTEXT_PATH)
-						.with(jwtWithRole("ADMIN"))
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(payload))
-				.andExpect(status().isCreated())
-				.andReturn()
-				.getResponse()
-				.getContentAsString();
-
-		JsonNode data = objectMapper.readTree(response).get("data");
-		return objectMapper.treeToValue(data, AddressDto.class);
 	}
 
 	private RequestPostProcessor jwtWithRole(String role) {

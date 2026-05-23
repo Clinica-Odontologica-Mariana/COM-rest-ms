@@ -18,6 +18,8 @@ import java.util.UUID;
 @Service
 public class WorkplaceService {
 
+	private static final String WORKPLACE_NOT_FOUND = "Workplace not found";
+
 	private final WorkplaceRepository workplaceRepository;
 
 	public WorkplaceService(WorkplaceRepository workplaceRepository) {
@@ -59,7 +61,7 @@ public class WorkplaceService {
 	@Transactional(readOnly = true)
 	public WorkplaceDto findById(UUID id) {
 		WorkplaceEntity entity = workplaceRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Workplace not found"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, WORKPLACE_NOT_FOUND));
 
 		return toDto(entity);
 	}
@@ -67,7 +69,7 @@ public class WorkplaceService {
 	@Transactional(readOnly = true)
 	public WorkplaceDto findByClinicIdAndName(UUID clinicId, String name) {
 		WorkplaceEntity entity = workplaceRepository.findByClinicIdAndName(clinicId, name)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Workplace not found"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, WORKPLACE_NOT_FOUND));
 
 		return toDto(entity);
 	}
@@ -75,7 +77,7 @@ public class WorkplaceService {
 	@Transactional
 	public WorkplaceDto update(UUID id, WorkplaceUpdateDto request) {
 		WorkplaceEntity entity = workplaceRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Workplace not found"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, WORKPLACE_NOT_FOUND));
 
 		if (workplaceRepository.existsByClinicIdAndNameAndIdNot(entity.getClinicId(), request.name(), id)) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Workplace name already exists for this clinic");
@@ -90,7 +92,7 @@ public class WorkplaceService {
 	@Transactional
 	public void delete(UUID id) {
 		WorkplaceEntity entity = workplaceRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Workplace not found"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, WORKPLACE_NOT_FOUND));
 
 		if (!entity.isActive()) {
 			return;
