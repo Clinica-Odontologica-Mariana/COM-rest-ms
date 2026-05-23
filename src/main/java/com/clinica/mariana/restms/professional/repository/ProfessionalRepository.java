@@ -8,6 +8,10 @@ import java.util.UUID;
 
 public interface ProfessionalRepository extends JpaRepository<ProfessionalEntity, UUID> {
 
+	boolean existsByUserId(UUID userId);
+
+	boolean existsByUserIdAndIdNot(UUID userId, UUID id);
+
 	boolean existsByClinicIdAndLicenseNumber(UUID clinicId, String licenseNumber);
 
 	boolean existsByClinicIdAndLicenseNumberAndIdNot(UUID clinicId, String licenseNumber, UUID id);

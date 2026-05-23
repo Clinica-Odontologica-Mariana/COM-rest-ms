@@ -14,19 +14,27 @@ import com.clinica.mariana.restms.professional.dto.ProfessionalDto;
 import com.clinica.mariana.restms.professional.dto.ProfessionalUpdateDto;
 import com.clinica.mariana.restms.professional.entity.ProfessionalEntity;
 import com.clinica.mariana.restms.professional.model.ProfessionalModel;
+import com.clinica.mariana.restms.professional.repository.ProfessionalReferenceRepository;
 import com.clinica.mariana.restms.professional.repository.ProfessionalRepository;
 
 @Service
 public class ProfessionalService {
 
 	private final ProfessionalRepository professionalRepository;
+	private final ProfessionalReferenceRepository referenceRepository;
 
-	public ProfessionalService(ProfessionalRepository professionalRepository) {
+	public ProfessionalService(
+			ProfessionalRepository professionalRepository,
+			ProfessionalReferenceRepository referenceRepository
+	) {
 		this.professionalRepository = professionalRepository;
+		this.referenceRepository = referenceRepository;
 	}
 
 	@Transactional
 	public ProfessionalDto create(ProfessionalCreateDto request) {
+		validateReferences(request.userId(), request.clinicId(), request.specialtyId());
+		validateUniqueUser(request.userId(), null);
 		validateUniqueLicenseInClinic(request.clinicId(), request.licenseNumber(), null);
 
 		ProfessionalEntity entity = new ProfessionalEntity();
@@ -62,6 +70,8 @@ public class ProfessionalService {
 		ProfessionalEntity entity = professionalRepository.findById(id)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Professional not found"));
 
+		validateReferences(request.userId(), request.clinicId(), request.specialtyId());
+		validateUniqueUser(request.userId(), id);
 		validateUniqueLicenseInClinic(request.clinicId(), request.licenseNumber(), id);
 
 		entity.setUserId(request.userId());
@@ -84,6 +94,29 @@ public class ProfessionalService {
 		entity.setActive(false);
 		entity.setInactivatedAt(OffsetDateTime.now());
 		professionalRepository.save(entity);
+	}
+
+	private void validateReferences(UUID userId, UUID clinicId, UUID specialtyId) {
+		if (!referenceRepository.userExists(userId)) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+		}
+		if (!referenceRepository.clinicExists(clinicId)) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Clinic not found");
+		}
+		if (!referenceRepository.specialtyExists(specialtyId)) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Specialty not found");
+		}
+	}
+
+	private void validateUniqueUser(UUID userId, UUID professionalIdToIgnore) {
+		boolean alreadyExists = professionalIdToIgnore == null
+				? professionalRepository.existsByUserId(userId)
+				: professionalRepository.existsByUserIdAndIdNot(userId, professionalIdToIgnore);
+
+		if (alreadyExists) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"User already has a professional profile");
+		}
 	}
 
 	private void validateUniqueLicenseInClinic(UUID clinicId, String licenseNumber, UUID professionalIdToIgnore) {

@@ -56,7 +56,7 @@ class AuthControllerTest {
 			LoginRequestDto request = new LoginRequestDto("api-admin", "api-admin123");
 			LoginResponseDto response = new LoginResponseDto(
 					"access-token",
-					300L,
+					86400L,
 					"refresh-token",
 					1800L,
 					"Bearer",
@@ -76,7 +76,7 @@ class AuthControllerTest {
 					.andExpect(status().isOk())
 					.andExpect(jsonPath("$.success", is(true)))
 					.andExpect(jsonPath("$.data.accessToken", is("access-token")))
-					.andExpect(jsonPath("$.data.expiresIn", is(300)))
+					.andExpect(jsonPath("$.data.expiresIn", is(86400)))
 					.andExpect(jsonPath("$.data.refreshToken", is("refresh-token")))
 					.andExpect(jsonPath("$.data.refreshExpiresIn", is(1800)))
 					.andExpect(jsonPath("$.data.tokenType", is("Bearer")));

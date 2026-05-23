@@ -396,6 +396,7 @@
       "get": {
         "tags": ["professional-controller"],
         "operationId": "findAllProfessionals",
+        "security": [{ "bearerAuth": [] }],
         "responses": {
           "200": {
             "description": "OK",
@@ -407,12 +408,15 @@
                 }
               }
             }
-          }
+          },
+          "401": { "description": "Unauthorized", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "403": { "description": "Forbidden", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } }
         }
       },
       "post": {
         "tags": ["professional-controller"],
         "operationId": "createProfessional",
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "content": {
             "application/json": {
@@ -429,7 +433,12 @@
                 "schema": { "$ref": "#/components/schemas/ProfessionalDto" }
               }
             }
-          }
+          },
+          "400": { "description": "Bad Request", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "401": { "description": "Unauthorized", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "403": { "description": "Forbidden", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "404": { "description": "Referenced resource not found", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "409": { "description": "Conflict", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } }
         }
       }
     },
@@ -437,6 +446,7 @@
       "get": {
         "tags": ["professional-controller"],
         "operationId": "findProfessionalById",
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
             "name": "id",
@@ -453,12 +463,16 @@
                 "schema": { "$ref": "#/components/schemas/ProfessionalDto" }
               }
             }
-          }
+          },
+          "401": { "description": "Unauthorized", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "403": { "description": "Forbidden", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "404": { "description": "Not Found", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } }
         }
       },
       "put": {
         "tags": ["professional-controller"],
         "operationId": "updateProfessional",
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
             "name": "id",
@@ -483,12 +497,18 @@
                 "schema": { "$ref": "#/components/schemas/ProfessionalDto" }
               }
             }
-          }
+          },
+          "400": { "description": "Bad Request", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "401": { "description": "Unauthorized", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "403": { "description": "Forbidden", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "404": { "description": "Not Found", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "409": { "description": "Conflict", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } }
         }
       },
       "delete": {
         "tags": ["professional-controller"],
         "operationId": "deleteProfessional",
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
             "name": "id",
@@ -498,12 +518,22 @@
           }
         ],
         "responses": {
-          "204": { "description": "No Content" }
+          "204": { "description": "No Content" },
+          "401": { "description": "Unauthorized", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "403": { "description": "Forbidden", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "404": { "description": "Not Found", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } }
         }
       }
     }
   },
   "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
     "schemas": {
       "PatientUpdateDto": {
         "type": "object",

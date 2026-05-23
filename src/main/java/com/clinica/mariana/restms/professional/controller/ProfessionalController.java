@@ -34,7 +34,7 @@ public class ProfessionalController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	@RolesAllowed({ "ADMIN", "DOCTOR" })
+	@RolesAllowed({ "ADMIN", "RECEPTIONIST" })
 	public ProfessionalDto create(@Valid @RequestBody ProfessionalCreateDto request) {
 		return professionalService.create(request);
 	}
