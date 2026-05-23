@@ -31,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class WorkplaceControllerIntegrationTest {
 
     private static final String CONTEXT_PATH = "/api/v1";
+    private static final String WORKPLACES_PATH = CONTEXT_PATH + "/workplaces";
 
     @Autowired
     private MockMvc mockMvc;
@@ -41,8 +42,7 @@ class WorkplaceControllerIntegrationTest {
     @MethodSource("invalidCreatePayloads")
     @DisplayName("When creating workplace, invalid payloads return 400 Bad Request")
     void shouldRejectInvalidCreatePayloads(String scenario, String payload) throws Exception {
-        mockMvc.perform(post("/api/v1/workplaces")
-                        .contextPath(CONTEXT_PATH)
+        mockMvc.perform(post(WORKPLACES_PATH)
                         .with(jwtWithRole("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))

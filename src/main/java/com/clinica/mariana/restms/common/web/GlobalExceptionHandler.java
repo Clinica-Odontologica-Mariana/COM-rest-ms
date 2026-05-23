@@ -12,6 +12,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.server.ResponseStatusException;
@@ -21,6 +22,9 @@ import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+	private static final String VALIDATION_ERROR_CODE = "VALIDATION_ERROR";
+	private static final String VALIDATION_ERROR_MESSAGE = "Validation failed";
 
 	@ExceptionHandler(AppException.class)
 	public ResponseEntity<ApiResponse<Object>> handleAppException(AppException ex, WebRequest request) {
@@ -33,13 +37,19 @@ public class GlobalExceptionHandler {
 				.stream()
 				.map(this::toFieldMessage)
 				.toList();
-		return buildErrorResponse(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Validation failed", details, request);
+		return buildErrorResponse(HttpStatus.BAD_REQUEST, VALIDATION_ERROR_CODE, VALIDATION_ERROR_MESSAGE, details, request);
 	}
 
 	@ExceptionHandler(ConstraintViolationException.class)
 	public ResponseEntity<ApiResponse<Object>> handleConstraintViolation(ConstraintViolationException ex, WebRequest request) {
 		List<String> details = ex.getConstraintViolations().stream().map(v -> v.getPropertyPath() + ": " + v.getMessage()).toList();
-		return buildErrorResponse(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Validation failed", details, request);
+		return buildErrorResponse(HttpStatus.BAD_REQUEST, VALIDATION_ERROR_CODE, VALIDATION_ERROR_MESSAGE, details, request);
+	}
+
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ApiResponse<Object>> handleNotReadable(HttpMessageNotReadableException ex, WebRequest request) {
+		String message = ex.getMostSpecificCause() == null ? "Malformed request body" : ex.getMostSpecificCause().getMessage();
+		return buildErrorResponse(HttpStatus.BAD_REQUEST, VALIDATION_ERROR_CODE, VALIDATION_ERROR_MESSAGE, List.of(message), request);
 	}
 
 	@ExceptionHandler(ResponseStatusException.class)

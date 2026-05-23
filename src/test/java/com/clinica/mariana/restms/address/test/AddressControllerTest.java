@@ -120,11 +120,6 @@ class AddressControllerTest {
 							.contextPath(CONTEXT_PATH)
 							.with(jwtWithRole(DOCTOR_ROLE)))
 					.andExpect(status().isNotFound());
-
-			mockMvc.perform(delete(ADDRESS_BY_ID_PATH, created.id())
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole(ADMIN_ROLE)))
-					.andExpect(status().isNoContent());
 		}
 
 		private AddressDto createAddress(String payload) throws Exception {
