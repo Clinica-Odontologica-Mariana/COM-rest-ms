@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -208,6 +209,33 @@ class AppointmentServiceTest {
 	}
 
 	@Test
+	void shouldUpdateAppointmentWithFailedGoogleCalendarSync() throws IOException {
+		UUID id = UUID.randomUUID();
+		AppointmentEntity entity = buildEntity(id);
+		entity.setExternalCalendarEventId("existing-event-id");
+		entity.setCalendarSyncStatus(syncedSync);
+
+		AppointmentUpdateDto request = new AppointmentUpdateDto(
+				scheduledStatus.getId(),
+				OffsetDateTime.now().plusDays(1),
+				OffsetDateTime.now().plusDays(1).plusHours(1),
+				"Updated notes",
+				true
+		);
+
+		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
+		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
+		when(calendarSyncStatusRepository.findByCode("FAILED")).thenReturn(Optional.of(failedSync));
+		doThrow(new IOException("Google Calendar unavailable"))
+				.when(googleCalendarService).updateEvent(any(), any(), any(), any(), any());
+		when(appointmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+		AppointmentDto result = appointmentService.update(id, request);
+
+		assertThat(result.calendarSyncStatusCode()).isEqualTo("FAILED");
+	}
+
+	@Test
 	void shouldThrowNotFoundWhenUpdatingNonExistentAppointment() {
 		UUID id = UUID.randomUUID();
 		AppointmentUpdateDto request = new AppointmentUpdateDto(
@@ -243,6 +271,26 @@ class AppointmentServiceTest {
 		assertThat(entity.getCancelledAt()).isNotNull();
 		assertThat(entity.getStatus().getCode()).isEqualTo("CANCELLED");
 		assertThat(entity.getExternalCalendarEventId()).isNull();
+	}
+
+	@Test
+	void shouldCancelAppointmentWithFailedGoogleCalendarDelete() throws IOException {
+		UUID id = UUID.randomUUID();
+		AppointmentEntity entity = buildEntity(id);
+		entity.setExternalCalendarEventId("event-to-delete");
+		entity.setCalendarSyncStatus(syncedSync);
+
+		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
+		when(appointmentStatusRepository.findByCode("CANCELLED")).thenReturn(Optional.of(cancelledStatus));
+		when(calendarSyncStatusRepository.findByCode("FAILED")).thenReturn(Optional.of(failedSync));
+		doThrow(new IOException("Google Calendar unavailable"))
+				.when(googleCalendarService).deleteEvent(any());
+		when(appointmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+		appointmentService.delete(id);
+
+		assertThat(entity.getCancelledAt()).isNotNull();
+		assertThat(entity.getCalendarSyncStatus().getCode()).isEqualTo("FAILED");
 	}
 
 	@Test
