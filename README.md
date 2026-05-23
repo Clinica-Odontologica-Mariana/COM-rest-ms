@@ -1,4 +1,5 @@
 # COM-rest-ms
+
 Aplicacao Spring Boot com PostgreSQL e Keycloak (RBAC com JWT).
 
 ## Stack e padroes implementados
@@ -9,39 +10,21 @@ Aplicacao Spring Boot com PostgreSQL (Supabase ou local) e Flyway para migration
 
 ```text
 src/main/java/com/clinica/mariana/restms
-├── auth
-│   ├── controller
-│   ├── dto
-│   ├── properties
-│   └── service
-├── clinic
-│   ├── controller
-│   ├── dto
-│   ├── entity
-│   ├── model
-│   ├── repository
-│   └── service
-├── common
-│   ├── api
-│   ├── exception
-│   └── web
 ├── config
+│   └── .gitkeep
 ├── patient
-│   ├── controller
-│   ├── dto
-│   ├── entity
 │   ├── model
-│   ├── repository
-│   └── service
-├── security
-│   ├── config
-│   ├── interceptor
-│   └── model
-├── users
-│   ├── controller
-│   ├── dto
-│   └── service
+│   │   └── PatientModel.java
+│   ├── view
+│   │   └── PatientView.java
+│   └── controller
+│       └── PatientController.java
 └── RestMsApplication.java
+
+src/test/java/com/clinica/mariana/restms
+└── patient
+	└── test
+		└── PatientControllerTest.java
 ```
 
 - Spring Security como guard global (`SecurityFilterChain`)
@@ -53,12 +36,11 @@ src/main/java/com/clinica/mariana/restms
   - erro: `{ "success": false, "error": ... }`
 - Keycloak como fonte unica de autenticacao/usuarios
 
-## Estrutura simplificada dos modulos
+## Estrutura simplificada
 
 - `auth`: login e usuario autenticado (`/auth/login`, `/auth/me`)
 - `users`: criacao de usuarios no Keycloak (`/users`)
-- `clinic`: dominio da clinica (CRUD de clinicas, horarios, equipamentos e redes sociais)
-- `patient`: dominio do paciente (CRUD de pacientes)
+- `patient`: dominio da clinica (CRUD de pacientes)
 - `security`: configuracao de autenticacao/autorizacao
 - `common`: padrao de resposta e tratamento global de erros
 
@@ -69,48 +51,6 @@ src/main/java/com/clinica/mariana/restms
 - `POST /api/v1/auth/login` (publico)
 - `GET /api/v1/auth/me` (autenticado, retorna claims principais do token)
 - `POST /api/v1/users` (somente `ADMIN`) -> cria usuario no Keycloak e atribui role existente
-
-### Clinics
-
-- `POST /api/v1/clinics` (`ADMIN`, `RECEPTIONIST`)
-- `GET /api/v1/clinics` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `GET /api/v1/clinics/paged` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `GET /api/v1/clinics/{id}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `GET /api/v1/clinics/document/{document}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `PUT /api/v1/clinics/{id}` (`ADMIN`, `RECEPTIONIST`)
-- `PATCH /api/v1/clinics/{id}/inactivate` (`ADMIN`)
-- `DELETE /api/v1/clinics/{id}` (`ADMIN`)
-
-### Working Hours
-
-- `POST /api/v1/working-hours` (`ADMIN`, `RECEPTIONIST`)
-- `GET /api/v1/working-hours?clinicId=` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `GET /api/v1/working-hours/{id}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `PUT /api/v1/working-hours/{id}` (`ADMIN`, `RECEPTIONIST`)
-- `DELETE /api/v1/working-hours/{id}` (`ADMIN`)
-
-### Equipment
-
-- `POST /api/v1/equipment` (`ADMIN`, `RECEPTIONIST`)
-- `GET /api/v1/equipment?clinicId=&activeOnly=` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `GET /api/v1/equipment/{id}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `PUT /api/v1/equipment/{id}` (`ADMIN`, `RECEPTIONIST`)
-- `PATCH /api/v1/equipment/{id}/inactivate` (`ADMIN`)
-- `DELETE /api/v1/equipment/{id}` (`ADMIN`)
-
-### Social Links
-
-- `POST /api/v1/social-links` (`ADMIN`, `RECEPTIONIST`)
-- `GET /api/v1/social-links?clinicId=` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `GET /api/v1/social-links/{id}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `PUT /api/v1/social-links/{id}` (`ADMIN`, `RECEPTIONIST`)
-- `DELETE /api/v1/social-links/{id}` (`ADMIN`)
-
-### Social Platforms (lookup)
-
-- `GET /api/v1/social-platforms` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `GET /api/v1/social-platforms/{id}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `GET /api/v1/social-platforms/code/{code}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
 
 ### Patients
 
@@ -206,9 +146,7 @@ para desenvolvimento. Nao reutilize esses valores em homologacao ou producao.
 
 - Endpoints protegidos exigem `Authorization: Bearer <jwt>`.
 - Respostas passam a usar envelope global `success/data/error`.
-- A busca por CPF usa `GET /api/v1/patients/by-cpf/{cpf}`.
-- A busca de clinica por CNPJ usa `GET /api/v1/clinics/document/{document}`.
-- `DELETE` e `PATCH /inactivate` retornam envelope de sucesso com `data: null`.
+- `DELETE /api/v1/patients/{id}` retorna envelope de sucesso.
 
 ## Producao (importante)
 
@@ -227,23 +165,6 @@ curl -s -X POST http://localhost:8080/api/v1/auth/login \
   -d '{
     "username": "api-admin",
     "password": "api-admin123"
-  }'
-```
-
-### Criar clinica (ADMIN)
-
-```bash
-TOKEN="<access_token>"
-
-curl -s -X POST http://localhost:8080/api/v1/clinics \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Clinica Mariana",
-    "document": "12345678000195",
-    "phone": "61999998888",
-    "email": "contato@clinicamariana.com.br",
-    "timezone": "America/Sao_Paulo"
   }'
 ```
 

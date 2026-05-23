@@ -1,5 +1,8 @@
 package com.clinica.mariana.restms.security.config;
 
+import com.clinica.mariana.restms.security.config.RestAccessDeniedHandler;
+import com.clinica.mariana.restms.security.config.RestAuthenticationEntryPoint;
+import com.clinica.mariana.restms.security.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.jwt.Jwt;
 

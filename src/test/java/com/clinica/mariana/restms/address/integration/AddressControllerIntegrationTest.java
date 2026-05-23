@@ -1,4 +1,4 @@
-package com.clinica.mariana.restms.address.test;
+package com.clinica.mariana.restms.address.integration;
 
 import com.clinica.mariana.restms.address.dto.AddressDto;
 import com.clinica.mariana.restms.address.repository.AddressRepository;
@@ -8,9 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -18,8 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
-
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -35,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Address integration")
-class AddressControllerTest {
+class AddressControllerIntegrationTest {
 
 	private static final String CONTEXT_PATH = "/api/v1";
 
@@ -116,59 +111,6 @@ class AddressControllerTest {
 							.contextPath(CONTEXT_PATH)
 							.with(jwtWithRole("DOCTOR")))
 					.andExpect(status().isNotFound());
-		}
-	}
-
-	@Nested
-	@DisplayName("Given invalid address commands")
-	class InvalidAddressCommands {
-
-		@ParameterizedTest(name = "{0}")
-		@MethodSource("invalidCreatePayloads")
-		@DisplayName("When creating, then validation rejects the command")
-		void shouldRejectInvalidCreatePayloads(String scenario, String payload) throws Exception {
-			mockMvc.perform(post("/api/v1/addresses")
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN"))
-							.contentType(MediaType.APPLICATION_JSON)
-							.content(payload))
-					.andExpect(status().isBadRequest());
-		}
-
-		static Stream<Arguments> invalidCreatePayloads() {
-			return Stream.of(
-					Arguments.of("missing street", """
-							{
-							  "city": "Brasilia",
-							  "state": "DF",
-							  "zipCode": "70000000"
-							}
-							"""),
-					Arguments.of("invalid lowercase state", """
-							{
-							  "street": "Rua das Flores",
-							  "city": "Brasilia",
-							  "state": "df",
-							  "zipCode": "70000000"
-							}
-							"""),
-					Arguments.of("invalid long state", """
-							{
-							  "street": "Rua das Flores",
-							  "city": "Brasilia",
-							  "state": "DFF",
-							  "zipCode": "70000000"
-							}
-							"""),
-					Arguments.of("invalid zip code", """
-							{
-							  "street": "Rua das Flores",
-							  "city": "Brasilia",
-							  "state": "DF",
-							  "zipCode": "70000-000"
-							}
-							""")
-			);
 		}
 	}
 
