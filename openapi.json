@@ -391,6 +391,116 @@
           }
         }
       }
+    },
+    "/professionals": {
+      "get": {
+        "tags": ["professional-controller"],
+        "operationId": "findAllProfessionals",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ProfessionalDto" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["professional-controller"],
+        "operationId": "createProfessional",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ProfessionalCreateDto" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/ProfessionalDto" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/professionals/{id}": {
+      "get": {
+        "tags": ["professional-controller"],
+        "operationId": "findProfessionalById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/ProfessionalDto" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["professional-controller"],
+        "operationId": "updateProfessional",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ProfessionalUpdateDto" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/ProfessionalDto" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["professional-controller"],
+        "operationId": "deleteProfessional",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "No Content" }
+        }
+      }
     }
   },
   "components": {
@@ -629,6 +739,37 @@
           "zipCode": { "type": "string", "pattern": "^[0-9]{8}$" }
         },
         "required": ["street", "city", "state", "zipCode"]
+      },
+      "ProfessionalDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "userId": { "type": "string", "format": "uuid" },
+          "clinicId": { "type": "string", "format": "uuid" },
+          "specialtyId": { "type": "string", "format": "uuid" },
+          "licenseNumber": { "type": "string" },
+          "active": { "type": "boolean" }
+        }
+      },
+      "ProfessionalCreateDto": {
+        "type": "object",
+        "properties": {
+          "userId": { "type": "string", "format": "uuid" },
+          "clinicId": { "type": "string", "format": "uuid" },
+          "specialtyId": { "type": "string", "format": "uuid" },
+          "licenseNumber": { "type": "string", "maxLength": 50, "minLength": 1 }
+        },
+        "required": ["userId", "clinicId", "specialtyId", "licenseNumber"]
+      },
+      "ProfessionalUpdateDto": {
+        "type": "object",
+        "properties": {
+          "userId": { "type": "string", "format": "uuid" },
+          "clinicId": { "type": "string", "format": "uuid" },
+          "specialtyId": { "type": "string", "format": "uuid" },
+          "licenseNumber": { "type": "string", "maxLength": 50, "minLength": 1 }
+        },
+        "required": ["userId", "clinicId", "specialtyId", "licenseNumber"]
       },
       "MedicalRecordDto": {
         "type": "object",
