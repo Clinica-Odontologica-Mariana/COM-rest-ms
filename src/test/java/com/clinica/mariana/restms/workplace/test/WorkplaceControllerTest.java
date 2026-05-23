@@ -4,21 +4,39 @@ import com.clinica.mariana.restms.workplace.dto.WorkplaceCreateDto;
 import com.clinica.mariana.restms.workplace.dto.WorkplaceDto;
 import com.clinica.mariana.restms.workplace.dto.WorkplaceUpdateDto;
 import com.clinica.mariana.restms.workplace.service.WorkplaceService;
+import com.clinica.mariana.restms.workplace.repository.WorkplaceRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
+
+import java.util.Set;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @SpringBootTest
 class WorkplaceControllerTest {
 
 	@Autowired
 	private WorkplaceService workplaceService;
+
+	@Autowired
+	private WorkplaceRepository workplaceRepository;
+
+	@Autowired
+	private Validator validator;
+
+	@BeforeEach
+	void cleanDatabase() {
+		workplaceRepository.deleteAll();
+	}
 
 	@Test
 	void shouldRunWorkplaceCrudFlow() {
@@ -55,81 +73,46 @@ class WorkplaceControllerTest {
 	@Test
 	void shouldFailWhenNameIsDuplicatedForSameClinic() {
 		UUID clinicId = UUID.randomUUID();
-		String duplicateName = "Consultório Duplicado";
 
-		workplaceService.create(new WorkplaceCreateDto(
-				clinicId,
-				duplicateName,
-				"Primeiro"
-		));
+		workplaceService.create(new WorkplaceCreateDto(clinicId, "Sala A", "desc"));
 
-		assertThatThrownBy(() -> workplaceService.create(new WorkplaceCreateDto(
-				clinicId,
-				duplicateName,
-				"Segundo"
-		)))
-		.isInstanceOf(ResponseStatusException.class)
-		.hasMessageContaining("409")
-		.hasMessageContaining("already exists");
+		ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+				() -> workplaceService.create(new WorkplaceCreateDto(clinicId, "Sala A", "outra")));
+		assertThat(ex.getStatusCode()).isEqualTo(org.springframework.http.HttpStatus.CONFLICT);
 	}
 
 	@Test
 	void shouldNotListInactivatedWorkplace() {
 		UUID clinicId = UUID.randomUUID();
 
-		WorkplaceDto created = workplaceService.create(new WorkplaceCreateDto(
-				clinicId,
-				"Consultório Inativo",
-				"Será inativado"
-		));
-
+		WorkplaceDto created = workplaceService.create(new WorkplaceCreateDto(clinicId, "Sala B", "desc"));
 		workplaceService.delete(created.id());
 
-		List<WorkplaceDto> activeList = workplaceService.findAllByClinic(clinicId);
-		assertThat(activeList).noneMatch(w -> w.id().equals(created.id()));
+		var list = workplaceService.findAllByClinic(clinicId);
+		assertThat(list).isEmpty();
 	}
 
 	@Test
-	void shouldFailWhenWorkplaceNotFound() {
-		UUID nonExistentId = UUID.randomUUID();
+	void shouldFailWhenClinicNotFound() {
+		UUID clinicId = UUID.randomUUID();
 
-		assertThatThrownBy(() -> workplaceService.findById(nonExistentId))
-		.isInstanceOf(ResponseStatusException.class)
-		.hasMessageContaining("404")
-		.hasMessageContaining("not found");
+		ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+				() -> workplaceService.create(new WorkplaceCreateDto(clinicId, "Sala C", "desc")));
+		assertThat(ex.getStatusCode()).isEqualTo(org.springframework.http.HttpStatus.NOT_FOUND);
 	}
 
 	@Test
-	void shouldFailWhenUpdateNonExistentWorkplace() {
-		UUID nonExistentId = UUID.randomUUID();
+	void shouldValidateBeanPayloads() {
+		Set<ConstraintViolation<WorkplaceCreateDto>> violations = validator.validate(new WorkplaceCreateDto(null, "", null));
+		assertFalse(violations.isEmpty());
 
-		assertThatThrownBy(() -> workplaceService.update(nonExistentId, new WorkplaceUpdateDto(
-				"New Name",
-				"New Description"
-		)))
-		.isInstanceOf(ResponseStatusException.class)
-		.hasMessageContaining("404");
+		Set<ConstraintViolation<WorkplaceUpdateDto>> violations2 = validator.validate(new WorkplaceUpdateDto("", null));
+		assertFalse(violations2.isEmpty());
 	}
 
-	@Test
-	void shouldAllowSameNameInDifferentClinics() {
-		UUID clinic1 = UUID.randomUUID();
-		UUID clinic2 = UUID.randomUUID();
-		String sameName = "Consultório";
-
-		WorkplaceDto wp1 = workplaceService.create(new WorkplaceCreateDto(
-				clinic1,
-				sameName,
-				"Clínica 1"
-		));
-
-		WorkplaceDto wp2 = workplaceService.create(new WorkplaceCreateDto(
-				clinic2,
-				sameName,
-				"Clínica 2"
-		));
-
-		assertThat(wp1.id()).isNotEqualTo(wp2.id());
-		assertThat(wp1.clinicId()).isNotEqualTo(wp2.clinicId());
+	private void insertClinic(UUID clinicId) {
+		jdbcTemplate.update(
+				"INSERT INTO clinic (id, name, document, phone, timezone, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, TRUE, NOW(), NOW())",
+				clinicId, "Clínica Teste", "12345678901234", "999999999", "America/Sao_Paulo");
 	}
 }

@@ -2,6 +2,9 @@
 
 Aplicacao Spring Boot com PostgreSQL e Keycloak (RBAC com JWT).
 
+![CI-CD](https://github.com/Clinica-Odontologica-Mariana/COM-rest-ms/actions/workflows/cicd.yml/badge.svg)
+![Coverage](https://codecov.io/gh/Clinica-Odontologica-Mariana/COM-rest-ms/graph/badge.svg)
+
 ## Stack e padroes implementados
 
 Aplicacao Spring Boot com PostgreSQL (Supabase ou local) e Flyway para migrations de banco.
@@ -71,6 +74,63 @@ src/test/java/com/clinica/mariana/restms
 
 As respostas REST sao envelopadas em `{ "success": true, "data": ... }` para sucesso e
 `{ "success": false, "error": ... }` para erro.
+
+## CI/CD (base SDD)
+
+O projeto possui uma base inicial de CI/CD para validar PRs e branches principais sem deploy real.
+
+Workflow atual:
+
+- `cicd.yml` (workflow unico `CI-CD`):
+  - `pull_request` para `develop` e `main`
+  - `push` para `develop` e `main`
+  - `workflow_dispatch` para placeholder manual de deploy futuro
+  - job de Gradle: `chmod +x ./gradlew`, `./gradlew clean test --no-daemon`, `./gradlew build -x test --no-daemon`
+  - job de cobertura: `./gradlew jacocoTestReport --no-daemon`, artifact JaCoCo e upload para Codecov
+  - job de Docker: build da imagem com `push: false`
+  - job `publish-placeholder`: somente documenta futura publicacao em push
+  - job `release-placeholder`: somente documenta futuro deploy em execucao manual
+
+Boas praticas aplicadas no CI/CD:
+
+- `permissions` minimas (`contents: read`)
+- `concurrency` para cancelar execucoes antigas por branch/workflow
+- `timeout-minutes` por job
+- nenhum deploy em PR
+- nenhuma exigencia de secret real para CI basico
+
+Observacoes importantes para o pipeline atual:
+
+- Os testes automatizados usam H2 em memoria com modo PostgreSQL.
+- Flyway esta desabilitado nos testes (`spring.flyway.enabled=false` em perfil de teste/task Gradle).
+- Testes de seguranca usam JWT mockado (`spring-security-test`), sem necessidade de subir Keycloak no CI.
+- Nao ha dependencia ativa de MinIO nos testes atuais.
+
+Comandos locais equivalentes ao CI:
+
+```bash
+./gradlew clean test
+./gradlew build
+docker build -t com-rest-ms:local .
+```
+
+### Secrets e variaveis para deploy futuro (placeholder)
+
+O deploy real ainda nao esta ativado. Quando a hospedagem for definida, os secrets abaixo devem ser configurados conforme estrategia final:
+
+- Registry: `REGISTRY_USERNAME`, `REGISTRY_PASSWORD`, `GHCR_TOKEN`
+- Host: `HOST`, `HOST_USER`, `HOST_SSH_KEY`, `HOST_PORT`
+- Banco: `PROD_DATABASE_URL`, `PROD_DATABASE_USERNAME`, `PROD_DATABASE_PASSWORD`
+- Keycloak: `KEYCLOAK_ISSUER_URI`, `KEYCLOAK_JWK_SET_URI`
+- MinIO: `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`
+- Opcional: `PROD_ENV_FILE`
+
+Acoplamento futuro previsto:
+
+1. publicar imagem no registry definido;
+2. autenticar no host por SSH;
+3. atualizar stack/container com variaveis de producao;
+4. aplicar estrategia de healthcheck e rollback.
 
 ## Variaveis de ambiente
 
