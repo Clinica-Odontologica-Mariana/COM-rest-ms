@@ -4,6 +4,7 @@ import com.clinica.mariana.restms.patient.dto.PatientCreateDto;
 import com.clinica.mariana.restms.patient.dto.PatientDto;
 import com.clinica.mariana.restms.patient.dto.PatientUpdateDto;
 import com.clinica.mariana.restms.patient.service.PatientService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/patients")
+@RequestMapping("/patients")
 public class PatientController {
 
 	private final PatientService patientService;
@@ -31,32 +32,32 @@ public class PatientController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
+	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
 	public PatientDto create(@Valid @RequestBody PatientCreateDto request) {
 		return patientService.create(request);
 	}
 
 	@GetMapping
+	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
 	public List<PatientDto> findAll() {
 		return patientService.findAll();
 	}
 
 	@GetMapping("/{id}")
+	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
 	public PatientDto findById(@PathVariable UUID id) {
 		return patientService.findById(id);
 	}
 
-	@GetMapping("/{cpf}")
-	public PatientDto findByCPF(@PathVariable String cpf) {
-		return patientService.findByCpf(cpf);
-	}
-
 	@PutMapping("/{id}")
+	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
 	public PatientDto update(@PathVariable UUID id, @Valid @RequestBody PatientUpdateDto request) {
 		return patientService.update(id, request);
 	}
 
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@RolesAllowed("ADMIN")
 	public void delete(@PathVariable UUID id) {
 		patientService.delete(id);
 	}

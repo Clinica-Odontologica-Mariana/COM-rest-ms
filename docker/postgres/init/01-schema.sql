@@ -1,9 +1,6 @@
-CREATE
-EXTENSION IF NOT EXISTS "pgcrypto";
-CREATE
-EXTENSION IF NOT EXISTS "btree_gist";
-CREATE
-EXTENSION IF NOT EXISTS "citext";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "btree_gist";
+CREATE EXTENSION IF NOT EXISTS "citext";
 
 -- ============================================================
 -- CLINICA ODONTOLOGICA MARIANA - FINAL DATABASE SCHEMA
@@ -37,7 +34,6 @@ EXTENSION IF NOT EXISTS "citext";
 
 DROP TABLE IF EXISTS audit_log CASCADE;
 DROP TABLE IF EXISTS social_link CASCADE;
-DROP TABLE IF EXISTS blog_post CASCADE;
 DROP TABLE IF EXISTS payment CASCADE;
 DROP TABLE IF EXISTS invoice_item CASCADE;
 DROP TABLE IF EXISTS invoice CASCADE;
@@ -66,13 +62,12 @@ DROP TABLE IF EXISTS professional CASCADE;
 DROP TABLE IF EXISTS workplace CASCADE;
 DROP TABLE IF EXISTS clinic CASCADE;
 DROP TABLE IF EXISTS address CASCADE;
-DROP TABLE IF EXISTS user_role CASCADE;
 DROP TABLE IF EXISTS app_user CASCADE;
 
-DROP TABLE IF EXISTS invoice_status CASCADE;
 DROP TABLE IF EXISTS payment_method CASCADE;
-DROP TABLE IF EXISTS payment_status CASCADE;
+DROP TABLE IF EXISTS invoice_status CASCADE;
 DROP TABLE IF EXISTS consent_type CASCADE;
+DROP TABLE IF EXISTS payment_status CASCADE;
 DROP TABLE IF EXISTS calendar_sync_status CASCADE;
 DROP TABLE IF EXISTS calendar_provider CASCADE;
 DROP TABLE IF EXISTS tooth_surface CASCADE;
@@ -80,17 +75,15 @@ DROP TABLE IF EXISTS tooth_condition CASCADE;
 DROP TABLE IF EXISTS treatment_plan_status CASCADE;
 DROP TABLE IF EXISTS clinical_visit_status CASCADE;
 DROP TABLE IF EXISTS appointment_status CASCADE;
-DROP TABLE IF EXISTS blog_post_status CASCADE;
 DROP TABLE IF EXISTS service_category CASCADE;
 DROP TABLE IF EXISTS service_cost_type CASCADE;
 DROP TABLE IF EXISTS social_platform CASCADE;
 DROP TABLE IF EXISTS specialty CASCADE;
-DROP TABLE IF EXISTS role CASCADE;
 
 DROP FUNCTION IF EXISTS fn_set_updated_at() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_appointment() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_clinical_visit() CASCADE;
-DROP FUNCTION IF EXISTS fn_validate_treatment_plan() CASCADE;
+DROP FUNCTION IF EXISTS fn_validate_treatment_plan_item() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_invoice() CASCADE;
 DROP FUNCTION IF EXISTS fn_validate_payment() CASCADE;
 DROP FUNCTION IF EXISTS fn_audit_row() CASCADE;
@@ -98,13 +91,6 @@ DROP FUNCTION IF EXISTS fn_audit_row() CASCADE;
 -- ============================================================
 -- DOMAIN TABLES
 -- ============================================================
-
-CREATE TABLE role
-(
-    id   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    code VARCHAR(30) NOT NULL UNIQUE,
-    name VARCHAR(50) NOT NULL UNIQUE
-);
 
 CREATE TABLE appointment_status
 (
@@ -186,13 +172,6 @@ CREATE TABLE consent_type
     description TEXT
 );
 
-CREATE TABLE blog_post_status
-(
-    id   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    code VARCHAR(30) NOT NULL UNIQUE,
-    name VARCHAR(50) NOT NULL UNIQUE
-);
-
 CREATE TABLE service_category
 (
     id   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -246,19 +225,6 @@ CREATE TABLE app_user
             (active = TRUE AND inactivated_at IS NULL) OR
             (active = FALSE AND inactivated_at IS NOT NULL)
         )
-);
-
-CREATE TABLE user_role
-(
-    user_id UUID NOT NULL,
-    role_id UUID NOT NULL,
-    PRIMARY KEY (user_id, role_id),
-    CONSTRAINT fk_user_role_user
-        FOREIGN KEY (user_id) REFERENCES app_user (id)
-            ON DELETE CASCADE,
-    CONSTRAINT fk_user_role_role
-        FOREIGN KEY (role_id) REFERENCES role (id)
-            ON DELETE RESTRICT
 );
 
 -- ============================================================
@@ -599,7 +565,11 @@ ALTER TABLE working_hours
     ADD CONSTRAINT ex_working_hours_overlap EXCLUDE USING gist (
         clinic_id WITH =,
         day_of_week WITH =,
-        timerange(start_time, end_time, '[)') WITH &&
+        tsrange(
+            '2000-01-01'::DATE + start_time,
+            '2000-01-01'::DATE + end_time,
+            '[)'
+        ) WITH &&
     );
 
 CREATE TABLE schedule_block
@@ -1071,39 +1041,6 @@ CREATE TABLE payment
 -- CONTENT / SOCIAL
 -- ============================================================
 
-CREATE TABLE blog_post
-(
-    id             UUID PRIMARY KEY      DEFAULT gen_random_uuid(),
-    status_id      UUID         NOT NULL,
-    author_user_id UUID,
-    cover_file_id  UUID,
-    title          VARCHAR(200) NOT NULL,
-    slug           VARCHAR(220) NOT NULL UNIQUE,
-    summary        TEXT,
-    content        TEXT         NOT NULL,
-    published_at   TIMESTAMPTZ,
-    active         BOOLEAN      NOT NULL DEFAULT TRUE,
-    inactivated_at TIMESTAMPTZ,
-    created_at     TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at     TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT chk_blog_slug CHECK (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'
-) ,
-    CONSTRAINT chk_blog_post_inactivation
-        CHECK (
-            (active = TRUE AND inactivated_at IS NULL) OR
-            (active = FALSE AND inactivated_at IS NOT NULL)
-        ),
-    CONSTRAINT fk_blog_status
-        FOREIGN KEY (status_id) REFERENCES blog_post_status (id)
-        ON DELETE RESTRICT,
-    CONSTRAINT fk_blog_author
-        FOREIGN KEY (author_user_id) REFERENCES app_user (id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_blog_cover_file
-        FOREIGN KEY (cover_file_id) REFERENCES stored_file (id)
-        ON DELETE SET NULL
-);
-
 CREATE TABLE social_link
 (
     id          UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
@@ -1486,11 +1423,6 @@ CREATE TRIGGER trg_payment_updated_at
     ON payment
     FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
 
-CREATE TRIGGER trg_blog_post_updated_at
-    BEFORE UPDATE
-    ON blog_post
-    FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
-
 -- ============================================================
 -- BUSINESS TRIGGERS
 -- ============================================================
@@ -1693,8 +1625,6 @@ CREATE INDEX idx_payment_patient ON payment (patient_id);
 CREATE INDEX idx_payment_status ON payment (status_id);
 CREATE INDEX idx_payment_paid_at ON payment (paid_at);
 
-CREATE INDEX idx_blog_post_status ON blog_post (status_id);
-CREATE INDEX idx_blog_post_slug ON blog_post (slug);
 CREATE INDEX idx_social_link_clinic ON social_link (clinic_id);
 
 CREATE INDEX idx_audit_table_row ON audit_log (table_name, row_id);
@@ -1704,12 +1634,6 @@ CREATE INDEX idx_audit_actor ON audit_log (actor_user_id);
 -- ============================================================
 -- SEED DATA
 -- ============================================================
-
-INSERT INTO role (code, name)
-VALUES ('ADMIN', 'Administrador'),
-       ('PROFESSIONAL', 'Profissional'),
-       ('RECEPTIONIST', 'Recepcionista'),
-       ('FINANCIAL', 'Financeiro') ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO appointment_status (code, name, blocks_schedule, final_status)
 VALUES ('SCHEDULED', 'Agendado', TRUE, FALSE),
@@ -1793,11 +1717,6 @@ VALUES ('DATA_PROCESSING', 'Tratamento de dados pessoais',
        ('MARKETING', 'Comunicacoes de marketing', 'Consentimento para envio de comunicacoes promocionais.'),
        ('TREATMENT', 'Tratamento odontologico',
         'Consentimento informado para realizacao de tratamento odontologico.') ON CONFLICT (code) DO NOTHING;
-
-INSERT INTO blog_post_status (code, name)
-VALUES ('DRAFT', 'Rascunho'),
-       ('PUBLISHED', 'Publicado'),
-       ('ARCHIVED', 'Arquivado') ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO service_category (code, name)
 VALUES ('PREVENTIVE', 'Preventivo'),
