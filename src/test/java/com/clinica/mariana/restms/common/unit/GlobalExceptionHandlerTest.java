@@ -1,6 +1,7 @@
-package com.clinica.mariana.restms.common.web;
+package com.clinica.mariana.restms.common.unit;
 
 import com.clinica.mariana.restms.common.api.ApiResponse;
+import com.clinica.mariana.restms.common.web.GlobalExceptionHandler;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;

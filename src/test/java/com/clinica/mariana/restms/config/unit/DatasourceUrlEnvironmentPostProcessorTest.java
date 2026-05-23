@@ -1,5 +1,6 @@
-package com.clinica.mariana.restms.config;
+package com.clinica.mariana.restms.config.unit;
 
+import com.clinica.mariana.restms.config.DatasourceUrlEnvironmentPostProcessor;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 

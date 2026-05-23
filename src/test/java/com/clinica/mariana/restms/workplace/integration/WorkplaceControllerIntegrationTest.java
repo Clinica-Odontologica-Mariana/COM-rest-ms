@@ -1,4 +1,4 @@
-package com.clinica.mariana.restms.workplace.test;
+package com.clinica.mariana.restms.workplace.integration;
 
 import com.clinica.mariana.restms.workplace.dto.WorkplaceCreateDto;
 import com.clinica.mariana.restms.workplace.dto.WorkplaceDto;
@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @SpringBootTest
-class WorkplaceControllerTest {
+class WorkplaceControllerIntegrationTest {
 
 	@Autowired
 	private WorkplaceService workplaceService;
@@ -93,12 +93,12 @@ class WorkplaceControllerTest {
 	}
 
 	@Test
-	void shouldFailWhenClinicNotFound() {
+	void shouldCreateWithoutClinicLookup() {
 		UUID clinicId = UUID.randomUUID();
 
-		ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-				() -> workplaceService.create(new WorkplaceCreateDto(clinicId, "Sala C", "desc")));
-		assertThat(ex.getStatusCode()).isEqualTo(org.springframework.http.HttpStatus.NOT_FOUND);
+		WorkplaceDto created = workplaceService.create(new WorkplaceCreateDto(clinicId, "Sala C", "desc"));
+		assertThat(created.id()).isNotNull();
+		assertThat(created.clinicId()).isEqualTo(clinicId);
 	}
 
 	@Test
@@ -110,9 +110,4 @@ class WorkplaceControllerTest {
 		assertFalse(violations2.isEmpty());
 	}
 
-	private void insertClinic(UUID clinicId) {
-		jdbcTemplate.update(
-				"INSERT INTO clinic (id, name, document, phone, timezone, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, TRUE, NOW(), NOW())",
-				clinicId, "Clínica Teste", "12345678901234", "999999999", "America/Sao_Paulo");
-	}
 }
