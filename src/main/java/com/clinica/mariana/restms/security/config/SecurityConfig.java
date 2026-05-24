@@ -24,46 +24,35 @@ public class SecurityConfig {
 	private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 	private final RestAccessDeniedHandler restAccessDeniedHandler;
 
-	public SecurityConfig(
-			RestAuthenticationEntryPoint restAuthenticationEntryPoint,
-			RestAccessDeniedHandler restAccessDeniedHandler
-	) {
+	public SecurityConfig(RestAuthenticationEntryPoint restAuthenticationEntryPoint,
+			RestAccessDeniedHandler restAccessDeniedHandler) {
 		this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
 		this.restAccessDeniedHandler = restAccessDeniedHandler;
 	}
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http
-				.csrf(AbstractHttpConfigurer::disable)
+		http.csrf(AbstractHttpConfigurer::disable)
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth
-						.requestMatchers(
-							"/actuator/health",
-							"/swagger-ui/**",
-							"/swagger-ui.html",
-							"/v3/api-docs.yaml",
-							"/v3/api-docs",
-							"/v3/api-docs/**",
-							"/auth/login",
-							"/api/v1/auth/login",
-							"/error",
-							"/api/v1/error"
-						).permitAll()
-						.anyRequest().authenticated()
-				)
-				.exceptionHandling(exceptionHandling -> exceptionHandling
-						.authenticationEntryPoint(restAuthenticationEntryPoint)
-						.accessDeniedHandler(restAccessDeniedHandler)
-				)
-				.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
+				.authorizeHttpRequests(
+						auth -> auth
+								.requestMatchers("/actuator/health", "/swagger-ui/**", "/swagger-ui.html",
+										"/v3/api-docs.yaml", "/v3/api-docs", "/v3/api-docs/**", "/auth/login",
+										"/api/v1/auth/login", "/error", "/api/v1/error")
+								.permitAll().anyRequest().authenticated())
+				.exceptionHandling(
+						exceptionHandling -> exceptionHandling.authenticationEntryPoint(restAuthenticationEntryPoint)
+								.accessDeniedHandler(restAccessDeniedHandler))
+				.oauth2ResourceServer(
+						oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
 		return http.build();
 	}
 
 	@Bean
 	Converter<Jwt, JwtAuthenticationToken> jwtAuthenticationConverter() {
-		return jwt -> new JwtAuthenticationToken(jwt, extractAuthorities(jwt), jwt.getClaimAsString("preferred_username"));
+		return jwt -> new JwtAuthenticationToken(jwt, extractAuthorities(jwt),
+				jwt.getClaimAsString("preferred_username"));
 	}
 
 	private Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {

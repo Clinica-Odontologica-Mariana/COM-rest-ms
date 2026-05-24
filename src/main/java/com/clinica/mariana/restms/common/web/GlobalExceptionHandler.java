@@ -4,7 +4,6 @@ import com.clinica.mariana.restms.common.api.ApiError;
 import com.clinica.mariana.restms.common.api.ApiResponse;
 import com.clinica.mariana.restms.common.exception.AppException;
 import jakarta.validation.ConstraintViolationException;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,17 +28,17 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<ApiResponse<Object>> handleValidation(MethodArgumentNotValidException ex, WebRequest request) {
-		List<String> details = ex.getBindingResult().getFieldErrors()
-				.stream()
-				.map(this::toFieldMessage)
-				.toList();
+	public ResponseEntity<ApiResponse<Object>> handleValidation(MethodArgumentNotValidException ex,
+			WebRequest request) {
+		List<String> details = ex.getBindingResult().getFieldErrors().stream().map(this::toFieldMessage).toList();
 		return buildErrorResponse(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Validation failed", details, request);
 	}
 
 	@ExceptionHandler(ConstraintViolationException.class)
-	public ResponseEntity<ApiResponse<Object>> handleConstraintViolation(ConstraintViolationException ex, WebRequest request) {
-		List<String> details = ex.getConstraintViolations().stream().map(v -> v.getPropertyPath() + ": " + v.getMessage()).toList();
+	public ResponseEntity<ApiResponse<Object>> handleConstraintViolation(ConstraintViolationException ex,
+			WebRequest request) {
+		List<String> details = ex.getConstraintViolations().stream()
+				.map(v -> v.getPropertyPath() + ": " + v.getMessage()).toList();
 		return buildErrorResponse(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Validation failed", details, request);
 	}
 
@@ -58,23 +57,13 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<Object>> handleGeneric(Exception ex, WebRequest request) {
 		LoggerFactory.getLogger(GlobalExceptionHandler.class).error("Unexpected error in request", ex);
-		return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "Unexpected error", List.of(), request);
+		return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "Unexpected error", List.of(),
+				request);
 	}
 
-	private ResponseEntity<ApiResponse<Object>> buildErrorResponse(
-			HttpStatus status,
-			String code,
-			String message,
-			List<String> details,
-			WebRequest request
-	) {
-		ApiError error = new ApiError(
-				code,
-				message,
-				details,
-				Instant.now(),
-				extractPath(request)
-		);
+	private ResponseEntity<ApiResponse<Object>> buildErrorResponse(HttpStatus status, String code, String message,
+			List<String> details, WebRequest request) {
+		ApiError error = new ApiError(code, message, details, Instant.now(), extractPath(request));
 		return ResponseEntity.status(status).body(ApiResponse.failure(error));
 	}
 

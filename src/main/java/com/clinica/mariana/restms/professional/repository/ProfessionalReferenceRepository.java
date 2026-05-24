@@ -27,10 +27,8 @@ public class ProfessionalReferenceRepository {
 	}
 
 	private boolean existsById(String tableName, UUID id) {
-		Number count = (Number) entityManager
-				.createNativeQuery("select count(*) from " + tableName + " where id = :id")
-				.setParameter("id", id)
-				.getSingleResult();
+		Number count = (Number) entityManager.createNativeQuery("select count(*) from " + tableName + " where id = :id")
+				.setParameter("id", id).getSingleResult();
 		return count.longValue() > 0;
 	}
 }

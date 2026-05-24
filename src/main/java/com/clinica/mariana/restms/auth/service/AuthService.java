@@ -27,23 +27,16 @@ public class AuthService {
 	}
 
 	public LoginResponseDto login(LoginRequestDto request) {
-		Map<String, Object> tokenPayload = requestToken(Map.of(
-				"grant_type", "password",
-				"client_id", keycloakProperties.clientId(),
-				"client_secret", keycloakProperties.clientSecret(),
-				"username", request.username(),
-				"password", request.password(),
-				"scope", "openid"
-		));
+		Map<String, Object> tokenPayload = requestToken(Map.of("grant_type", "password", "client_id",
+				keycloakProperties.clientId(), "client_secret", keycloakProperties.clientSecret(), "username",
+				request.username(), "password", request.password(), "scope", "openid"));
 
 		return new LoginResponseDto(
-				requiredString(tokenPayload, "access_token", "KEYCLOAK_TOKEN_ERROR", "Token response missing access_token"),
-				readLong(tokenPayload, "expires_in"),
-				readString(tokenPayload, "refresh_token"),
-				readLong(tokenPayload, "refresh_expires_in"),
-				readString(tokenPayload, "token_type"),
-				readString(tokenPayload, "scope")
-		);
+				requiredString(tokenPayload, "access_token", "KEYCLOAK_TOKEN_ERROR",
+						"Token response missing access_token"),
+				readLong(tokenPayload, "expires_in"), readString(tokenPayload, "refresh_token"),
+				readLong(tokenPayload, "refresh_expires_in"), readString(tokenPayload, "token_type"),
+				readString(tokenPayload, "scope"));
 	}
 
 	private Map<String, Object> requestToken(Map<String, String> formValues) {
@@ -53,18 +46,12 @@ public class AuthService {
 		try {
 			Map<String, Object> response = restClient.post()
 					.uri("/realms/{realm}/protocol/openid-connect/token", keycloakProperties.realm())
-					.contentType(MediaType.APPLICATION_FORM_URLENCODED)
-					.body(formData)
-					.retrieve()
-					.body(Map.class);
+					.contentType(MediaType.APPLICATION_FORM_URLENCODED).body(formData).retrieve().body(Map.class);
 			return response == null ? Map.of() : response;
 		} catch (RestClientResponseException ex) {
-			throw new AppException(
-					HttpStatus.UNAUTHORIZED,
-					"KEYCLOAK_AUTH_FAILED",
+			throw new AppException(HttpStatus.UNAUTHORIZED, "KEYCLOAK_AUTH_FAILED",
 					"Invalid credentials or Keycloak authentication error",
-					List.of("status=" + ex.getStatusCode().value())
-			);
+					List.of("status=" + ex.getStatusCode().value()));
 		}
 	}
 

@@ -21,19 +21,15 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
 	}
 
 	@Override
-	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
+			Exception ex) {
 		Long startedAt = (Long) request.getAttribute("startedAtMs");
 		long elapsed = startedAt == null ? -1 : (System.currentTimeMillis() - startedAt);
 
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		String user = authentication == null ? "anonymous" : authentication.getName();
 
-		LOGGER.info("method={} path={} status={} user={} elapsedMs={}",
-				request.getMethod(),
-				request.getRequestURI(),
-				response.getStatus(),
-				user,
-				elapsed
-		);
+		LOGGER.info("method={} path={} status={} user={} elapsedMs={}", request.getMethod(), request.getRequestURI(),
+				response.getStatus(), user, elapsed);
 	}
 }

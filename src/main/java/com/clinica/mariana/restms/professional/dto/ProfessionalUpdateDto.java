@@ -6,18 +6,11 @@ import jakarta.validation.constraints.Size;
 
 import java.util.UUID;
 
-public record ProfessionalUpdateDto(
-		@NotNull(message = "userId is required")
-		UUID userId,
+public record ProfessionalUpdateDto(@NotNull(message = "userId is required") UUID userId,
 
-		@NotNull(message = "clinicId is required")
-		UUID clinicId,
+		@NotNull(message = "clinicId is required") UUID clinicId,
 
-		@NotNull(message = "specialtyId is required")
-		UUID specialtyId,
+		@NotNull(message = "specialtyId is required") UUID specialtyId,
 
-		@NotBlank(message = "licenseNumber is required")
-		@Size(max = 50, message = "licenseNumber must have at most 50 characters")
-		String licenseNumber
-) {
+		@NotBlank(message = "licenseNumber is required") @Size(max = 50, message = "licenseNumber must have at most 50 characters") String licenseNumber) {
 }

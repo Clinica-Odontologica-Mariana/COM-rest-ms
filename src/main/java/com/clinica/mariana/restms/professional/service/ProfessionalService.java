@@ -23,10 +23,8 @@ public class ProfessionalService {
 	private final ProfessionalRepository professionalRepository;
 	private final ProfessionalReferenceRepository referenceRepository;
 
-	public ProfessionalService(
-			ProfessionalRepository professionalRepository,
-			ProfessionalReferenceRepository referenceRepository
-	) {
+	public ProfessionalService(ProfessionalRepository professionalRepository,
+			ProfessionalReferenceRepository referenceRepository) {
 		this.professionalRepository = professionalRepository;
 		this.referenceRepository = referenceRepository;
 	}
@@ -50,11 +48,8 @@ public class ProfessionalService {
 
 	@Transactional(readOnly = true)
 	public List<ProfessionalDto> findAll() {
-		return professionalRepository.findAllByActiveTrueOrderByLicenseNumberAsc()
-				.stream()
-				.map(this::toModel)
-				.map(this::toDto)
-				.toList();
+		return professionalRepository.findAllByActiveTrueOrderByLicenseNumberAsc().stream().map(this::toModel)
+				.map(this::toDto).toList();
 	}
 
 	@Transactional(readOnly = true)
@@ -114,8 +109,7 @@ public class ProfessionalService {
 				: professionalRepository.existsByUserIdAndIdNot(userId, professionalIdToIgnore);
 
 		if (alreadyExists) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT,
-					"User already has a professional profile");
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "User already has a professional profile");
 		}
 	}
 
@@ -132,22 +126,12 @@ public class ProfessionalService {
 	}
 
 	private ProfessionalModel toModel(ProfessionalEntity entity) {
-		return new ProfessionalModel(
-				entity.getId(),
-				entity.getUserId(),
-				entity.getClinicId(),
-				entity.getSpecialtyId(),
-				entity.getLicenseNumber(),
-				entity.isActive());
+		return new ProfessionalModel(entity.getId(), entity.getUserId(), entity.getClinicId(), entity.getSpecialtyId(),
+				entity.getLicenseNumber(), entity.isActive());
 	}
 
 	private ProfessionalDto toDto(ProfessionalModel model) {
-		return new ProfessionalDto(
-				model.id(),
-				model.userId(),
-				model.clinicId(),
-				model.specialtyId(),
-				model.licenseNumber(),
-				model.active());
+		return new ProfessionalDto(model.id(), model.userId(), model.clinicId(), model.specialtyId(),
+				model.licenseNumber(), model.active());
 	}
 }

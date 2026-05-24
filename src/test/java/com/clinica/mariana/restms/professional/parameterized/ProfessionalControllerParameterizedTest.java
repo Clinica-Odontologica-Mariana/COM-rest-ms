@@ -34,45 +34,37 @@ class ProfessionalControllerParameterizedTest {
 	@MethodSource("invalidCreatePayloads")
 	@DisplayName("When creating, then validation rejects the command")
 	void shouldRejectInvalidCreatePayloads(String scenario, String payload) throws Exception {
-		mockMvc.perform(post("/api/v1/professionals")
-					.contextPath(CONTEXT_PATH)
-					.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))
-					.contentType(MediaType.APPLICATION_JSON)
-					.content(payload))
-				.andExpect(status().isBadRequest());
+		mockMvc.perform(post("/api/v1/professionals").contextPath(CONTEXT_PATH)
+				.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))
+				.contentType(MediaType.APPLICATION_JSON).content(payload)).andExpect(status().isBadRequest());
 	}
 
 	static Stream<Arguments> invalidCreatePayloads() {
-		return Stream.of(
-				Arguments.of("missing userId", """
-						{
-						  "clinicId": "%s",
-						  "specialtyId": "%s",
-						  "licenseNumber": "CRO-DF-22222"
-						}
-						""".formatted(CLINIC_ID, SPECIALTY_ID)),
-				Arguments.of("missing clinicId", """
-						{
-						  "userId": "1fa11324-3ee1-4da2-9747-a7e13c5cd0e6",
-						  "specialtyId": "%s",
-						  "licenseNumber": "CRO-DF-22222"
-						}
-						""".formatted(SPECIALTY_ID)),
-				Arguments.of("missing specialtyId", """
-						{
-						  "userId": "1fa11324-3ee1-4da2-9747-a7e13c5cd0e6",
-						  "clinicId": "%s",
-						  "licenseNumber": "CRO-DF-22222"
-						}
-						""".formatted(CLINIC_ID)),
-				Arguments.of("blank licenseNumber", """
-						{
-						  "userId": "1fa11324-3ee1-4da2-9747-a7e13c5cd0e6",
-						  "clinicId": "%s",
-						  "specialtyId": "%s",
-						  "licenseNumber": " "
-						}
-						""".formatted(CLINIC_ID, SPECIALTY_ID))
-		);
+		return Stream.of(Arguments.of("missing userId", """
+				{
+				  "clinicId": "%s",
+				  "specialtyId": "%s",
+				  "licenseNumber": "CRO-DF-22222"
+				}
+				""".formatted(CLINIC_ID, SPECIALTY_ID)), Arguments.of("missing clinicId", """
+				{
+				  "userId": "1fa11324-3ee1-4da2-9747-a7e13c5cd0e6",
+				  "specialtyId": "%s",
+				  "licenseNumber": "CRO-DF-22222"
+				}
+				""".formatted(SPECIALTY_ID)), Arguments.of("missing specialtyId", """
+				{
+				  "userId": "1fa11324-3ee1-4da2-9747-a7e13c5cd0e6",
+				  "clinicId": "%s",
+				  "licenseNumber": "CRO-DF-22222"
+				}
+				""".formatted(CLINIC_ID)), Arguments.of("blank licenseNumber", """
+				{
+				  "userId": "1fa11324-3ee1-4da2-9747-a7e13c5cd0e6",
+				  "clinicId": "%s",
+				  "specialtyId": "%s",
+				  "licenseNumber": " "
+				}
+				""".formatted(CLINIC_ID, SPECIALTY_ID)));
 	}
 }

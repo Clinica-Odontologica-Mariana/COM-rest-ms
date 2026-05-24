@@ -34,25 +34,25 @@ public class ProfessionalController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	@RolesAllowed({ "ADMIN", "RECEPTIONIST" })
+	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
 	public ProfessionalDto create(@Valid @RequestBody ProfessionalCreateDto request) {
 		return professionalService.create(request);
 	}
 
 	@GetMapping
-	@RolesAllowed({ "ADMIN", "RECEPTIONIST", "DOCTOR" })
+	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
 	public List<ProfessionalDto> findAll() {
 		return professionalService.findAll();
 	}
 
 	@GetMapping("/{id}")
-	@RolesAllowed({ "ADMIN", "RECEPTIONIST", "DOCTOR" })
+	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
 	public ProfessionalDto findById(@PathVariable UUID id) {
 		return professionalService.findById(id);
 	}
 
 	@PutMapping("/{id}")
-	@RolesAllowed({ "ADMIN", "RECEPTIONIST" })
+	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
 	public ProfessionalDto update(@PathVariable UUID id, @Valid @RequestBody ProfessionalUpdateDto request) {
 		return professionalService.update(id, request);
 	}

@@ -3,40 +3,25 @@ package com.clinica.mariana.restms.address.model;
 import java.util.Locale;
 import java.util.UUID;
 
-public record AddressModel(
-		UUID id,
-		String street,
-		String number,
-		String complement,
-		String neighborhood,
-		String city,
-		String state,
-		String zipCode
-) {
+public record AddressModel(UUID id, String street, String number, String complement, String neighborhood, String city,
+		String state, String zipCode) {
 	public AddressModel {
-		street = requireNotBlank(street, "street");
-		city = requireNotBlank(city, "city");
+		requireNotBlank(street, "street");
+		requireNotBlank(city, "city");
 		state = requireNotBlank(state, "state").toUpperCase(Locale.ROOT);
-		zipCode = requireNotBlank(zipCode, "zipCode");
+		requireNotBlank(zipCode, "zipCode");
 
 		if (!state.matches("^[A-Z]{2}$")) {
 			throw new IllegalArgumentException("state must contain exactly 2 uppercase letters");
 		}
 
-		if (!zipCode.matches("^[0-9]{8}$")) {
+		if (!zipCode.matches("^\\d{8}$")) {
 			throw new IllegalArgumentException("zipCode must contain exactly 8 digits");
 		}
 	}
 
-	public static AddressModel create(
-			String street,
-			String number,
-			String complement,
-			String neighborhood,
-			String city,
-			String state,
-			String zipCode
-	) {
+	public static AddressModel create(String street, String number, String complement, String neighborhood, String city,
+			String state, String zipCode) {
 		return new AddressModel(null, street, number, complement, neighborhood, city, state, zipCode);
 	}
 
