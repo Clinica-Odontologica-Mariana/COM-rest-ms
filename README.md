@@ -35,8 +35,8 @@ src/test/java/com/clinica/mariana/restms
 - Usuario autenticado via `@AuthenticationPrincipal Jwt`
 - Interceptor HTTP para logging de request (`RequestLoggingInterceptor`)
 - Envelope global de resposta:
-  - sucesso: `{ "success": true, "data": ... }`
-  - erro: `{ "success": false, "error": ... }`
+    - sucesso: `{ "success": true, "data": ... }`
+    - erro: `{ "success": false, "error": ... }`
 - Keycloak como fonte unica de autenticacao/usuarios
 
 ## Estrutura simplificada
@@ -82,14 +82,13 @@ O projeto possui uma base inicial de CI/CD para validar PRs e branches principai
 Workflow atual:
 
 - `cicd.yml` (workflow unico `CI-CD`):
-  - `pull_request` para `develop` e `main`
-  - `push` para `develop` e `main`
-  - `workflow_dispatch` para placeholder manual de deploy futuro
-  - job de Gradle: `chmod +x ./gradlew`, `./gradlew clean test --no-daemon`, `./gradlew build -x test --no-daemon`
-  - job de cobertura: `./gradlew jacocoTestReport --no-daemon`, artifact JaCoCo e upload para Codecov
-  - job de Docker: build da imagem com `push: false`
-  - job `publish-placeholder`: somente documenta futura publicacao em push
-  - job `release-placeholder`: somente documenta futuro deploy em execucao manual
+    - `pull_request` para `develop` e `main`
+    - `push` para `develop` e `main`
+    - `workflow_dispatch` para placeholder manual de deploy futuro
+    - job de Gradle: `chmod +x ./gradlew`, `./gradlew test --no-daemon`,
+      `./gradlew check --no-daemon`, `./gradlew build --no-daemon`
+    - step de Docker: `docker build -t com-rest-ms:ci .`, sem push de imagem
+    - step manual de notas para deploy futuro, sem deploy real
 
 Boas praticas aplicadas no CI/CD:
 
@@ -109,14 +108,16 @@ Observacoes importantes para o pipeline atual:
 Comandos locais equivalentes ao CI:
 
 ```bash
-./gradlew clean test
-./gradlew build
+./gradlew test --no-daemon
+./gradlew check --no-daemon
+./gradlew build --no-daemon
 docker build -t com-rest-ms:local .
 ```
 
 ### Secrets e variaveis para deploy futuro (placeholder)
 
-O deploy real ainda nao esta ativado. Quando a hospedagem for definida, os secrets abaixo devem ser configurados conforme estrategia final:
+O deploy real ainda nao esta ativado. Quando a hospedagem for definida, os secrets abaixo devem ser configurados
+conforme estrategia final:
 
 - Registry: `REGISTRY_USERNAME`, `REGISTRY_PASSWORD`, `GHCR_TOKEN`
 - Host: `HOST`, `HOST_USER`, `HOST_SSH_KEY`, `HOST_PORT`
@@ -196,6 +197,7 @@ Evite `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` no desenvolvimento comum, pois is
 registrar uma baseline em um schema legado e pular a migration inicial.
 
 Arquivos de apoio:
+
 - `.env.example` para copiar e ajustar as variaveis locais
 - `.env` para desenvolvimento local com Docker Compose
 
