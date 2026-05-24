@@ -23,6 +23,12 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 class AppointmentControllerTest {
 
+	private static final String SCHEDULED = "SCHEDULED";
+	private static final String CONFIRMED = "CONFIRMED";
+	private static final String GOOGLE_EVENT_INTEGRATION_TEST = "google-event-integration-test";
+	private static final String CONSULTA_DE_ROTINA = "Consulta de rotina";
+	private static final String CONSULTA_CONFIRMADA = "Consulta confirmada";
+
 	@Autowired
 	private AppointmentService appointmentService;
 
@@ -34,19 +40,19 @@ class AppointmentControllerTest {
 
 	@Test
 	void shouldRunAppointmentCrudFlow() throws IOException {
-		when(googleCalendarService.createEvent(any(), any(), any(), any())).thenReturn("google-event-integration-test");
+		when(googleCalendarService.createEvent(any(), any(), any(), any())).thenReturn(GOOGLE_EVENT_INTEGRATION_TEST);
 
-		UUID scheduledStatusId = appointmentStatusRepository.findByCode("SCHEDULED").orElseThrow().getId();
+		UUID scheduledStatusId = appointmentStatusRepository.findByCode(SCHEDULED).orElseThrow().getId();
 
 		OffsetDateTime start = OffsetDateTime.now().plusDays(1).withNano(0);
 		OffsetDateTime end = start.plusHours(1);
 
 		AppointmentDto created = appointmentService.create(new AppointmentCreateDto(UUID.randomUUID(),
-				UUID.randomUUID(), null, UUID.randomUUID(), scheduledStatusId, start, end, "Consulta de rotina", true));
+				UUID.randomUUID(), null, UUID.randomUUID(), scheduledStatusId, start, end, CONSULTA_DE_ROTINA, true));
 
 		assertThat(created.id()).isNotNull();
-		assertThat(created.statusCode()).isEqualTo("SCHEDULED");
-		assertThat(created.externalCalendarEventId()).isEqualTo("google-event-integration-test");
+		assertThat(created.statusCode()).isEqualTo(SCHEDULED);
+		assertThat(created.externalCalendarEventId()).isEqualTo(GOOGLE_EVENT_INTEGRATION_TEST);
 		assertThat(created.calendarSyncStatusCode()).isEqualTo("SYNCED");
 
 		List<AppointmentDto> all = appointmentService.findAll();
@@ -57,13 +63,13 @@ class AppointmentControllerTest {
 		List<AppointmentDto> byPeriod = appointmentService.findByPeriod(periodStart, periodEnd);
 		assertThat(byPeriod).anyMatch(a -> a.id().equals(created.id()));
 
-		UUID confirmedStatusId = appointmentStatusRepository.findByCode("CONFIRMED").orElseThrow().getId();
+		UUID confirmedStatusId = appointmentStatusRepository.findByCode(CONFIRMED).orElseThrow().getId();
 
 		AppointmentDto updated = appointmentService.update(created.id(), new AppointmentUpdateDto(confirmedStatusId,
-				start.plusMinutes(15), end.plusMinutes(15), "Consulta confirmada", true));
+				start.plusMinutes(15), end.plusMinutes(15), CONSULTA_CONFIRMADA, true));
 
-		assertThat(updated.statusCode()).isEqualTo("CONFIRMED");
-		assertThat(updated.notes()).isEqualTo("Consulta confirmada");
+		assertThat(updated.statusCode()).isEqualTo(CONFIRMED);
+		assertThat(updated.notes()).isEqualTo(CONSULTA_CONFIRMADA);
 
 		appointmentService.delete(created.id());
 

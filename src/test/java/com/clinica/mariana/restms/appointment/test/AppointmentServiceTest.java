@@ -39,6 +39,18 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AppointmentServiceTest {
 
+	private static final String SCHEDULED = "SCHEDULED";
+	private static final String CANCELLED = "CANCELLED";
+	private static final String GOOGLE = "GOOGLE";
+	private static final String PENDING = "PENDING";
+	private static final String SYNCED = "SYNCED";
+	private static final String FAILED = "FAILED";
+	private static final String NOT_SYNCED = "NOT_SYNCED";
+	private static final String GOOGLE_CALENDAR_UNAVAILABLE = "Google Calendar unavailable";
+	private static final String EXISTING_EVENT_ID = "existing-event-id";
+	private static final String UPDATED_NOTES = "Updated notes";
+	private static final String EVENT_TO_DELETE = "event-to-delete";
+
 	@Mock
 	private AppointmentRepository appointmentRepository;
 
@@ -67,17 +79,17 @@ class AppointmentServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		scheduledStatus = buildStatus(UUID.randomUUID(), "SCHEDULED", "Agendado");
-		cancelledStatus = buildStatus(UUID.randomUUID(), "CANCELLED", "Cancelado");
+		scheduledStatus = buildStatus(UUID.randomUUID(), SCHEDULED, "Agendado");
+		cancelledStatus = buildStatus(UUID.randomUUID(), CANCELLED, "Cancelado");
 
 		googleProvider = new CalendarProviderEntity();
 		googleProvider.setId(UUID.randomUUID());
-		googleProvider.setCode("GOOGLE");
+		googleProvider.setCode(GOOGLE);
 
-		pendingSync = buildSyncStatus(UUID.randomUUID(), "PENDING");
-		syncedSync = buildSyncStatus(UUID.randomUUID(), "SYNCED");
-		failedSync = buildSyncStatus(UUID.randomUUID(), "FAILED");
-		notSyncedSync = buildSyncStatus(UUID.randomUUID(), "NOT_SYNCED");
+		pendingSync = buildSyncStatus(UUID.randomUUID(), PENDING);
+		syncedSync = buildSyncStatus(UUID.randomUUID(), SYNCED);
+		failedSync = buildSyncStatus(UUID.randomUUID(), FAILED);
+		notSyncedSync = buildSyncStatus(UUID.randomUUID(), NOT_SYNCED);
 	}
 
 	@Test
@@ -85,9 +97,9 @@ class AppointmentServiceTest {
 		AppointmentCreateDto request = buildCreateDto();
 
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
-		when(calendarProviderRepository.findByCode("GOOGLE")).thenReturn(Optional.of(googleProvider));
-		when(calendarSyncStatusRepository.findByCode("PENDING")).thenReturn(Optional.of(pendingSync));
-		when(calendarSyncStatusRepository.findByCode("SYNCED")).thenReturn(Optional.of(syncedSync));
+		when(calendarProviderRepository.findByCode(GOOGLE)).thenReturn(Optional.of(googleProvider));
+		when(calendarSyncStatusRepository.findByCode(PENDING)).thenReturn(Optional.of(pendingSync));
+		when(calendarSyncStatusRepository.findByCode(SYNCED)).thenReturn(Optional.of(syncedSync));
 		when(googleCalendarService.createEvent(any(), any(), any(), any())).thenReturn("google-event-id-123");
 		when(appointmentRepository.save(any())).thenAnswer(inv -> {
 			AppointmentEntity e = inv.getArgument(0);
@@ -107,8 +119,8 @@ class AppointmentServiceTest {
 
 		assertThat(result.id()).isNotNull();
 		assertThat(result.externalCalendarEventId()).isEqualTo("google-event-id-123");
-		assertThat(result.calendarSyncStatusCode()).isEqualTo("SYNCED");
-		assertThat(result.statusCode()).isEqualTo("SCHEDULED");
+		assertThat(result.calendarSyncStatusCode()).isEqualTo(SYNCED);
+		assertThat(result.statusCode()).isEqualTo(SCHEDULED);
 		verify(googleCalendarService).createEvent(eq("Consulta"), any(), any(), any());
 	}
 
@@ -117,11 +129,11 @@ class AppointmentServiceTest {
 		AppointmentCreateDto request = buildCreateDto();
 
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
-		when(calendarProviderRepository.findByCode("GOOGLE")).thenReturn(Optional.of(googleProvider));
-		when(calendarSyncStatusRepository.findByCode("PENDING")).thenReturn(Optional.of(pendingSync));
-		when(calendarSyncStatusRepository.findByCode("FAILED")).thenReturn(Optional.of(failedSync));
+		when(calendarProviderRepository.findByCode(GOOGLE)).thenReturn(Optional.of(googleProvider));
+		when(calendarSyncStatusRepository.findByCode(PENDING)).thenReturn(Optional.of(pendingSync));
+		when(calendarSyncStatusRepository.findByCode(FAILED)).thenReturn(Optional.of(failedSync));
 		when(googleCalendarService.createEvent(any(), any(), any(), any()))
-				.thenThrow(new IOException("Google Calendar unavailable"));
+				.thenThrow(new IOException(GOOGLE_CALENDAR_UNAVAILABLE));
 		when(appointmentRepository.save(any())).thenAnswer(inv -> {
 			AppointmentEntity e = inv.getArgument(0);
 			if (e.getId() == null) {
@@ -138,7 +150,7 @@ class AppointmentServiceTest {
 
 		AppointmentDto result = appointmentService.create(request);
 
-		assertThat(result.calendarSyncStatusCode()).isEqualTo("FAILED");
+		assertThat(result.calendarSyncStatusCode()).isEqualTo(FAILED);
 		assertThat(result.externalCalendarEventId()).isNull();
 	}
 
@@ -172,21 +184,21 @@ class AppointmentServiceTest {
 	void shouldUpdateAppointmentAndSyncToGoogleCalendar() throws IOException {
 		UUID id = UUID.randomUUID();
 		AppointmentEntity entity = buildEntity(id);
-		entity.setExternalCalendarEventId("existing-event-id");
+		entity.setExternalCalendarEventId(EXISTING_EVENT_ID);
 		entity.setCalendarSyncStatus(syncedSync);
 
 		AppointmentUpdateDto request = new AppointmentUpdateDto(scheduledStatus.getId(),
-				OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusHours(1), "Updated notes", true);
+				OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusHours(1), UPDATED_NOTES, true);
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
-		when(calendarSyncStatusRepository.findByCode("SYNCED")).thenReturn(Optional.of(syncedSync));
+		when(calendarSyncStatusRepository.findByCode(SYNCED)).thenReturn(Optional.of(syncedSync));
 		when(appointmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
 		AppointmentDto result = appointmentService.update(id, request);
 
-		assertThat(result.notes()).isEqualTo("Updated notes");
-		verify(googleCalendarService).updateEvent(eq("existing-event-id"), eq("Consulta"), any(), any(), any());
+		assertThat(result.notes()).isEqualTo(UPDATED_NOTES);
+		verify(googleCalendarService).updateEvent(eq(EXISTING_EVENT_ID), eq("Consulta"), any(), any(), any());
 	}
 
 	@Test
@@ -196,7 +208,7 @@ class AppointmentServiceTest {
 		entity.setExternalCalendarEventId(null);
 
 		AppointmentUpdateDto request = new AppointmentUpdateDto(scheduledStatus.getId(),
-				OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusHours(1), "Updated notes", true);
+				OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusHours(1), UPDATED_NOTES, true);
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
@@ -211,22 +223,22 @@ class AppointmentServiceTest {
 	void shouldUpdateAppointmentWithFailedGoogleCalendarSync() throws IOException {
 		UUID id = UUID.randomUUID();
 		AppointmentEntity entity = buildEntity(id);
-		entity.setExternalCalendarEventId("existing-event-id");
+		entity.setExternalCalendarEventId(EXISTING_EVENT_ID);
 		entity.setCalendarSyncStatus(syncedSync);
 
 		AppointmentUpdateDto request = new AppointmentUpdateDto(scheduledStatus.getId(),
-				OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusHours(1), "Updated notes", true);
+				OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusHours(1), UPDATED_NOTES, true);
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
-		when(calendarSyncStatusRepository.findByCode("FAILED")).thenReturn(Optional.of(failedSync));
-		doThrow(new IOException("Google Calendar unavailable")).when(googleCalendarService).updateEvent(any(), any(),
+		when(calendarSyncStatusRepository.findByCode(FAILED)).thenReturn(Optional.of(failedSync));
+		doThrow(new IOException(GOOGLE_CALENDAR_UNAVAILABLE)).when(googleCalendarService).updateEvent(any(), any(),
 				any(), any(), any());
 		when(appointmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
 		AppointmentDto result = appointmentService.update(id, request);
 
-		assertThat(result.calendarSyncStatusCode()).isEqualTo("FAILED");
+		assertThat(result.calendarSyncStatusCode()).isEqualTo(FAILED);
 	}
 
 	@Test
@@ -245,19 +257,19 @@ class AppointmentServiceTest {
 	void shouldCancelAppointmentAndDeleteFromGoogleCalendar() throws IOException {
 		UUID id = UUID.randomUUID();
 		AppointmentEntity entity = buildEntity(id);
-		entity.setExternalCalendarEventId("event-to-delete");
+		entity.setExternalCalendarEventId(EVENT_TO_DELETE);
 		entity.setCalendarSyncStatus(syncedSync);
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
-		when(appointmentStatusRepository.findByCode("CANCELLED")).thenReturn(Optional.of(cancelledStatus));
-		when(calendarSyncStatusRepository.findByCode("NOT_SYNCED")).thenReturn(Optional.of(notSyncedSync));
+		when(appointmentStatusRepository.findByCode(CANCELLED)).thenReturn(Optional.of(cancelledStatus));
+		when(calendarSyncStatusRepository.findByCode(NOT_SYNCED)).thenReturn(Optional.of(notSyncedSync));
 		when(appointmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
 		appointmentService.delete(id);
 
-		verify(googleCalendarService).deleteEvent("event-to-delete");
+		verify(googleCalendarService).deleteEvent(EVENT_TO_DELETE);
 		assertThat(entity.getCancelledAt()).isNotNull();
-		assertThat(entity.getStatus().getCode()).isEqualTo("CANCELLED");
+		assertThat(entity.getStatus().getCode()).isEqualTo(CANCELLED);
 		assertThat(entity.getExternalCalendarEventId()).isNull();
 	}
 
@@ -265,19 +277,19 @@ class AppointmentServiceTest {
 	void shouldCancelAppointmentWithFailedGoogleCalendarDelete() throws IOException {
 		UUID id = UUID.randomUUID();
 		AppointmentEntity entity = buildEntity(id);
-		entity.setExternalCalendarEventId("event-to-delete");
+		entity.setExternalCalendarEventId(EVENT_TO_DELETE);
 		entity.setCalendarSyncStatus(syncedSync);
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
-		when(appointmentStatusRepository.findByCode("CANCELLED")).thenReturn(Optional.of(cancelledStatus));
-		when(calendarSyncStatusRepository.findByCode("FAILED")).thenReturn(Optional.of(failedSync));
-		doThrow(new IOException("Google Calendar unavailable")).when(googleCalendarService).deleteEvent(any());
+		when(appointmentStatusRepository.findByCode(CANCELLED)).thenReturn(Optional.of(cancelledStatus));
+		when(calendarSyncStatusRepository.findByCode(FAILED)).thenReturn(Optional.of(failedSync));
+		doThrow(new IOException(GOOGLE_CALENDAR_UNAVAILABLE)).when(googleCalendarService).deleteEvent(any());
 		when(appointmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
 		appointmentService.delete(id);
 
 		assertThat(entity.getCancelledAt()).isNotNull();
-		assertThat(entity.getCalendarSyncStatus().getCode()).isEqualTo("FAILED");
+		assertThat(entity.getCalendarSyncStatus().getCode()).isEqualTo(FAILED);
 	}
 
 	@Test
