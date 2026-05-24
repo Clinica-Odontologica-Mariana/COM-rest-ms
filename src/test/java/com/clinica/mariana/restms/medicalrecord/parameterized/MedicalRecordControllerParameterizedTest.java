@@ -36,8 +36,7 @@ class MedicalRecordControllerParameterizedTest {
 	@MethodSource("invalidCreatePayloads")
 	@DisplayName("Ao criar, então a validação rejeita o comando")
 	void shouldRejectInvalidCreatePayloads(String scenario, String payload) throws Exception {
-		mockMvc.perform(post("/medical-records")
-				.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR")))
+		mockMvc.perform(post("/medical-records").with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR")))
 				.contentType(MediaType.APPLICATION_JSON).content(payload)).andExpect(status().isBadRequest());
 	}
 
@@ -45,32 +44,29 @@ class MedicalRecordControllerParameterizedTest {
 	@MethodSource("oversizedFieldPayloads")
 	@DisplayName("Ao criar com campos muito grandes, então a validação rejeita o comando")
 	void shouldRejectOversizedFields(String scenario, String payload) throws Exception {
-		mockMvc.perform(post("/medical-records")
-				.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR")))
+		mockMvc.perform(post("/medical-records").with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR")))
 				.contentType(MediaType.APPLICATION_JSON).content(payload)).andExpect(status().isBadRequest());
 	}
 
 	static Stream<Arguments> invalidCreatePayloads() {
-		return Stream.of(
-				Arguments.of("patientId obrigatório ausente", """
-						{
-						  "allergies": "%s",
-						  "chronicConditions": "%s",
-						  "continuousMedications": "%s",
-						  "generalObservations": "%s"
-						}
-						""".formatted(ALLERGIES, CHRONIC_CONDITIONS, CONTINUOUS_MEDICATIONS, GENERAL_OBSERVATIONS)));
+		return Stream.of(Arguments.of("patientId obrigatório ausente", """
+				{
+				  "allergies": "%s",
+				  "chronicConditions": "%s",
+				  "continuousMedications": "%s",
+				  "generalObservations": "%s"
+				}
+				""".formatted(ALLERGIES, CHRONIC_CONDITIONS, CONTINUOUS_MEDICATIONS, GENERAL_OBSERVATIONS)));
 	}
 
 	static Stream<Arguments> oversizedFieldPayloads() {
 		String oversizedString = "x".repeat(4001);
-		return Stream.of(
-				Arguments.of("alergias excedem 4000 caracteres", """
-						{
-						  "patientId": "%s",
-						  "allergies": "%s"
-						}
-						""".formatted(PATIENT_ID, oversizedString)),
+		return Stream.of(Arguments.of("alergias excedem 4000 caracteres", """
+				{
+				  "patientId": "%s",
+				  "allergies": "%s"
+				}
+				""".formatted(PATIENT_ID, oversizedString)),
 				Arguments.of("condiçõesCrônicas excedem 4000 caracteres", """
 						{
 						  "patientId": "%s",

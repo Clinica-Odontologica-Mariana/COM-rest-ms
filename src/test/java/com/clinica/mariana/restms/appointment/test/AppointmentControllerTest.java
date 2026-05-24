@@ -40,8 +40,7 @@ class AppointmentControllerTest {
 
 	@Test
 	void shouldRunAppointmentCrudFlow() throws IOException {
-		when(googleCalendarService.createEvent(any(), any(), any(), any()))
-				.thenReturn(GOOGLE_EVENT_INTEGRATION_TEST);
+		when(googleCalendarService.createEvent(any(), any(), any(), any())).thenReturn(GOOGLE_EVENT_INTEGRATION_TEST);
 
 		UUID scheduledStatusId = appointmentStatusRepository.findByCode(SCHEDULED).orElseThrow().getId();
 
