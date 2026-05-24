@@ -21,6 +21,8 @@ import com.clinica.mariana.restms.users.dto.CreateUserResponseDto;
 
 @Service
 public class UserService {
+	private static final String PASSWORD = "password";
+	private static final String STATUS_PREFIX = "status=";
 
 	private final KeycloakProperties keycloakProperties;
 	private final RestClient restClient;
@@ -38,9 +40,9 @@ public class UserService {
 	}
 
 	private String requestAdminToken() {
-		Map<String, Object> tokenPayload = requestToken(Map.of("grant_type", "password", "client_id",
+		Map<String, Object> tokenPayload = requestToken(Map.of("grant_type", PASSWORD, "client_id",
 				keycloakProperties.clientId(), "client_secret", keycloakProperties.clientSecret(), "username",
-				keycloakProperties.adminUsername(), "password", keycloakProperties.adminPassword(), "scope", "openid"));
+				keycloakProperties.adminUsername(), PASSWORD, keycloakProperties.adminPassword(), "scope", "openid"));
 
 		return requiredString(tokenPayload, "access_token", "KEYCLOAK_TOKEN_ERROR",
 				"Failed to retrieve admin token from Keycloak");
@@ -58,7 +60,7 @@ public class UserService {
 		} catch (RestClientResponseException ex) {
 			throw new AppException(HttpStatus.UNAUTHORIZED, "KEYCLOAK_AUTH_FAILED",
 					"Invalid credentials or Keycloak authentication error",
-					List.of("status=" + ex.getStatusCode().value()));
+					List.of(STATUS_PREFIX + ex.getStatusCode().value()));
 		}
 	}
 
@@ -69,7 +71,7 @@ public class UserService {
 		payload.put("email", request.email());
 		payload.put("emailVerified", true);
 		payload.put("credentials",
-				List.of(Map.of("type", "password", "value", request.password(), "temporary", false)));
+				List.of(Map.of("type", PASSWORD, "value", request.password(), "temporary", false)));
 		if (request.firstName() != null && !request.firstName().isBlank()) {
 			payload.put("firstName", request.firstName());
 		}
@@ -87,7 +89,7 @@ public class UserService {
 				throw new AppException(HttpStatus.CONFLICT, "USER_ALREADY_EXISTS", "User already exists in Keycloak");
 			}
 			throw new AppException(HttpStatus.BAD_GATEWAY, "KEYCLOAK_CREATE_USER_FAILED",
-					"Failed to create user in Keycloak", List.of("status=" + ex.getStatusCode().value()));
+					"Failed to create user in Keycloak", List.of(STATUS_PREFIX + ex.getStatusCode().value()));
 		}
 
 		URI location = response.getHeaders().getLocation();
@@ -115,7 +117,7 @@ public class UserService {
 					.body(List.of(Map.of("id", role.id(), "name", role.name()))).retrieve().toBodilessEntity();
 		} catch (RestClientResponseException ex) {
 			throw new AppException(HttpStatus.BAD_GATEWAY, "KEYCLOAK_ASSIGN_ROLE_FAILED",
-					"Failed to assign role to user in Keycloak", List.of("status=" + ex.getStatusCode().value()));
+					"Failed to assign role to user in Keycloak", List.of(STATUS_PREFIX + ex.getStatusCode().value()));
 		}
 	}
 
@@ -131,7 +133,7 @@ public class UserService {
 						"Role not found in Keycloak: " + roleName);
 			}
 			throw new AppException(HttpStatus.BAD_GATEWAY, "KEYCLOAK_ROLE_FETCH_FAILED",
-					"Failed to fetch role from Keycloak", List.of("status=" + ex.getStatusCode().value()));
+					"Failed to fetch role from Keycloak", List.of(STATUS_PREFIX + ex.getStatusCode().value()));
 		}
 
 		if (rolePayload == null) {
