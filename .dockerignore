@@ -1,12 +1,19 @@
 .git
 .gitignore
+.github
 .gradle
 build
 out
 .idea
+.vscode
 *.iml
 *.log
+*.tmp
+*.swp
+*.swo
 
 # Local env and editor leftovers
 .env
+.env.*
 .DS_Store
+node_modules

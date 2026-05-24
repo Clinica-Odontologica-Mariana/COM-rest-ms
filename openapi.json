@@ -391,9 +391,149 @@
           }
         }
       }
+    },
+    "/professionals": {
+      "get": {
+        "tags": ["professional-controller"],
+        "operationId": "findAllProfessionals",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ProfessionalDto" }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "403": { "description": "Forbidden", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } }
+        }
+      },
+      "post": {
+        "tags": ["professional-controller"],
+        "operationId": "createProfessional",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ProfessionalCreateDto" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/ProfessionalDto" }
+              }
+            }
+          },
+          "400": { "description": "Bad Request", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "401": { "description": "Unauthorized", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "403": { "description": "Forbidden", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "404": { "description": "Referenced resource not found", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "409": { "description": "Conflict", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } }
+        }
+      }
+    },
+    "/professionals/{id}": {
+      "get": {
+        "tags": ["professional-controller"],
+        "operationId": "findProfessionalById",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/ProfessionalDto" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "403": { "description": "Forbidden", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "404": { "description": "Not Found", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } }
+        }
+      },
+      "put": {
+        "tags": ["professional-controller"],
+        "operationId": "updateProfessional",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ProfessionalUpdateDto" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/ProfessionalDto" }
+              }
+            }
+          },
+          "400": { "description": "Bad Request", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "401": { "description": "Unauthorized", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "403": { "description": "Forbidden", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "404": { "description": "Not Found", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "409": { "description": "Conflict", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["professional-controller"],
+        "operationId": "deleteProfessional",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "No Content" },
+          "401": { "description": "Unauthorized", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "403": { "description": "Forbidden", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
+          "404": { "description": "Not Found", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } }
+        }
+      }
     }
   },
   "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
     "schemas": {
       "PatientUpdateDto": {
         "type": "object",
@@ -629,6 +769,37 @@
           "zipCode": { "type": "string", "pattern": "^[0-9]{8}$" }
         },
         "required": ["street", "city", "state", "zipCode"]
+      },
+      "ProfessionalDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "userId": { "type": "string", "format": "uuid" },
+          "clinicId": { "type": "string", "format": "uuid" },
+          "specialtyId": { "type": "string", "format": "uuid" },
+          "licenseNumber": { "type": "string" },
+          "active": { "type": "boolean" }
+        }
+      },
+      "ProfessionalCreateDto": {
+        "type": "object",
+        "properties": {
+          "userId": { "type": "string", "format": "uuid" },
+          "clinicId": { "type": "string", "format": "uuid" },
+          "specialtyId": { "type": "string", "format": "uuid" },
+          "licenseNumber": { "type": "string", "maxLength": 50, "minLength": 1 }
+        },
+        "required": ["userId", "clinicId", "specialtyId", "licenseNumber"]
+      },
+      "ProfessionalUpdateDto": {
+        "type": "object",
+        "properties": {
+          "userId": { "type": "string", "format": "uuid" },
+          "clinicId": { "type": "string", "format": "uuid" },
+          "specialtyId": { "type": "string", "format": "uuid" },
+          "licenseNumber": { "type": "string", "maxLength": 50, "minLength": 1 }
+        },
+        "required": ["userId", "clinicId", "specialtyId", "licenseNumber"]
       },
       "MedicalRecordDto": {
         "type": "object",

@@ -17,8 +17,21 @@ RUN ./gradlew clean bootJar --no-daemon
 FROM eclipse-temurin:25-jre AS runtime
 WORKDIR /app
 
-COPY --from=builder /app/build/libs/*.jar app.jar
+# Copy only the Spring Boot executable jar (ignore the plain jar when present).
+RUN set -eux; \
+	groupadd --system spring; \
+	useradd --system --gid spring --create-home spring
+
+COPY --from=builder /app/build/libs/rest-ms-*.jar /tmp/
+RUN set -eux; \
+	BOOT_JAR="$(find /tmp -maxdepth 1 -type f -name '*.jar' | grep -v -- '-plain\.jar$' | head -n 1)"; \
+	test -n "$BOOT_JAR"; \
+	mv "$BOOT_JAR" /app/app.jar; \
+	rm -f /tmp/*.jar; \
+	chown spring:spring /app/app.jar
 
 EXPOSE 8080
+
+USER spring:spring
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

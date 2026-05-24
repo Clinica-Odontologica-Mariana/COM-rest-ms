@@ -4,8 +4,11 @@ import com.clinica.mariana.restms.common.api.ApiError;
 import com.clinica.mariana.restms.common.api.ApiResponse;
 import com.clinica.mariana.restms.common.exception.AppException;
 import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -47,8 +50,14 @@ public class GlobalExceptionHandler {
 		return buildErrorResponse(HttpStatus.valueOf(ex.getStatusCode().value()), code, reason, List.of(), request);
 	}
 
+	@ExceptionHandler(AccessDeniedException.class)
+	public ResponseEntity<ApiResponse<Object>> handleAccessDenied(AccessDeniedException ex, WebRequest request) {
+		return buildErrorResponse(HttpStatus.FORBIDDEN, "FORBIDDEN", "Access denied", List.of(), request);
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<Object>> handleGeneric(Exception ex, WebRequest request) {
+		LoggerFactory.getLogger(GlobalExceptionHandler.class).error("Unexpected error in request", ex);
 		return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "Unexpected error", List.of(), request);
 	}
 

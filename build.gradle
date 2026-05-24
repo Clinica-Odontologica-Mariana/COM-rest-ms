@@ -27,8 +27,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.springframework.boot:spring-boot-flyway'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
+    implementation 'com.google.apis:google-api-services-calendar:v3-rev20251207-2.0.0'
+    implementation 'com.google.auth:google-auth-library-oauth2-http:1.23.0'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.postgresql:postgresql'
@@ -76,48 +78,30 @@ tasks.named('jacocoTestReport') {
         csv.required = false
     }
 
-    classDirectories.setFrom(files(classDirectories.files.collect {
+    classDirectories.setFrom(files(sourceSets.main.output.classesDirs.collect {
         fileTree(dir: it, exclude: coverageExclusions)
     }))
 }
 
 tasks.named('jacocoTestCoverageVerification') {
     dependsOn tasks.named('test')
+    dependsOn tasks.named('classes')
 
-    classDirectories.setFrom(files(classDirectories.files.collect {
+    classDirectories.setFrom(files(sourceSets.main.output.classesDirs.collect {
         fileTree(dir: it, exclude: coverageExclusions)
     }))
 
     violationRules {
         rule {
             limit {
-                counter = 'INSTRUCTION'
-                value = 'COVEREDRATIO'
-                minimum = 1.00
-            }
-            limit {
                 counter = 'LINE'
                 value = 'COVEREDRATIO'
-                minimum = 1.00
-            }
-            limit {
-                counter = 'BRANCH'
-                value = 'COVEREDRATIO'
-                minimum = 1.00
-            }
-            limit {
-                counter = 'METHOD'
-                value = 'COVEREDRATIO'
-                minimum = 1.00
-            }
-            limit {
-                counter = 'CLASS'
-                value = 'COVEREDRATIO'
-                minimum = 1.00
+                minimum = 0.60
             }
         }
     }
 }
 
-// The verification task remains available for CI tuning, but the current 100%
-// thresholds are not enforced by `build` while the test suite is being expanded.
+tasks.named('check') {
+    dependsOn tasks.named('jacocoTestCoverageVerification')
+}

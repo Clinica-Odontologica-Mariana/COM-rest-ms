@@ -1,0 +1,114 @@
+name: CI-CD
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: cicd-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and Test (Gradle)
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: gradle
+
+      - name: Grant execute permission to Gradle wrapper
+        run: chmod +x ./gradlew
+
+      - name: Run tests
+        run: ./gradlew clean test --no-daemon
+
+      - name: Generate JaCoCo XML report
+        run: ./gradlew jacocoTestReport --no-daemon
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: |
+            build/reports/jacoco/test/jacocoTestReport.xml
+            build/reports/jacoco/test/html/**
+          if-no-files-found: error
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          use_oidc: true
+          files: build/reports/jacoco/test/jacocoTestReport.xml
+          flags: unittests
+          fail_ci_if_error: false
+
+      - name: Build application
+        run: ./gradlew build -x test --no-daemon
+
+  docker-build:
+    name: Validate Docker Image Build
+    if: github.event_name != 'workflow_dispatch'
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: |
+            com-rest-ms:ci
+            com-rest-ms:${{ github.sha }}
+
+  publish-placeholder:
+    name: Publish Placeholder (no push)
+    if: github.event_name == 'push'
+    needs: docker-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Future registry publication notes
+        run: |
+          echo "Docker image publication is not enabled yet."
+          echo "Future tags: latest, develop/main, ${{ github.sha }} and semantic version tags."
+          echo "Configure secrets before enabling push: REGISTRY_USERNAME, REGISTRY_PASSWORD or GHCR_TOKEN."
+
+  release-placeholder:
+    name: Future Deploy Placeholder
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Explain current status
+        run: |
+          echo "Release/deploy is intentionally not implemented yet."
+          echo "This workflow exists as a placeholder for future host deployment integration."
+          echo "Expected future inputs: registry credentials, SSH access, production env vars, domain/HTTPS."

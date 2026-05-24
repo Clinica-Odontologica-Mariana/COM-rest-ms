@@ -41,6 +41,11 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: rest-ms
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_DOCKER_URL:-jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres-db}}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_DOCKER_USERNAME:-${POSTGRES_USER:-postgres-usuarios}}
@@ -54,14 +59,13 @@ services:
       KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-api-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-api-admin123}
       SPRING_FLYWAY_ENABLED: true
-      SPRING_FLYWAY_BASELINE_ON_MIGRATE: true
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: false
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REFRESH_TOKEN: ${GOOGLE_REFRESH_TOKEN}
+      GOOGLE_CALENDAR_ID: ${GOOGLE_CALENDAR_ID}
     ports:
       - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      keycloak:
-        condition: service_healthy
     restart: unless-stopped
 volumes:
   postgres_data:
