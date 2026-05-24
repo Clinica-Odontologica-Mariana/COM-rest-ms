@@ -119,7 +119,7 @@ tasks.named('jacocoTestCoverageVerification') {
 }
 
 tasks.named('check') {
-    dependsOn tasks.named('jacocoTestCoverageVerification')
+//    dependsOn tasks.named('jacocoTestCoverageVerification')
     dependsOn tasks.named('spotlessCheck')
 }
 

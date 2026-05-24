@@ -60,8 +60,7 @@ class AppointmentControllerHttpTest {
 	@BeforeEach
 	void setup() throws IOException {
 		appointmentRepository.deleteAll();
-		when(googleCalendarService.createEvent(any(), any(), any(), any()))
-				.thenReturn("google-event-http-test");
+		when(googleCalendarService.createEvent(any(), any(), any(), any())).thenReturn("google-event-http-test");
 	}
 
 	@Nested
@@ -71,11 +70,8 @@ class AppointmentControllerHttpTest {
 		@Test
 		@DisplayName("When created, then 201 is returned with appointment data")
 		void shouldCreateAndReturnAppointment() throws Exception {
-			mockMvc.perform(post(BASE)
-							.with(jwtAsReceptionist())
-							.contentType(MediaType.APPLICATION_JSON)
-							.content(buildCreatePayload(STATUS_SCHEDULED)))
-					.andExpect(status().isCreated())
+			mockMvc.perform(post(BASE).with(jwtAsReceptionist()).contentType(MediaType.APPLICATION_JSON)
+					.content(buildCreatePayload(STATUS_SCHEDULED))).andExpect(status().isCreated())
 					.andExpect(jsonPath("$.data.id", notNullValue()))
 					.andExpect(jsonPath("$.data.statusCode", is("SCHEDULED")))
 					.andExpect(jsonPath("$.data.notes", is("Consulta de rotina")))
@@ -88,8 +84,7 @@ class AppointmentControllerHttpTest {
 		void shouldListAllAppointments() throws Exception {
 			createAppointment(STATUS_SCHEDULED);
 
-			mockMvc.perform(get(BASE).with(jwtAsReceptionist()))
-					.andExpect(status().isOk())
+			mockMvc.perform(get(BASE).with(jwtAsReceptionist())).andExpect(status().isOk())
 					.andExpect(jsonPath("$.data", hasSize(greaterThanOrEqualTo(1))));
 		}
 
@@ -101,11 +96,9 @@ class AppointmentControllerHttpTest {
 			OffsetDateTime start = created.startDatetime().minusHours(1);
 			OffsetDateTime end = created.endDatetime().plusHours(1);
 
-			mockMvc.perform(get(BASE + "/period")
-							.with(jwtAsReceptionist())
-							.param("start", start.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
-							.param("end", end.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)))
-					.andExpect(status().isOk())
+			mockMvc.perform(get(BASE + "/period").with(jwtAsReceptionist())
+					.param("start", start.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+					.param("end", end.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))).andExpect(status().isOk())
 					.andExpect(jsonPath("$.data", hasSize(greaterThanOrEqualTo(1))))
 					.andExpect(jsonPath("$.data[0].id", is(created.id().toString())));
 		}
@@ -118,23 +111,19 @@ class AppointmentControllerHttpTest {
 			OffsetDateTime newStart = created.startDatetime().plusMinutes(30);
 			OffsetDateTime newEnd = created.endDatetime().plusMinutes(30);
 
-			mockMvc.perform(put(BASE + "/" + created.id())
-							.with(jwtAsReceptionist())
-							.contentType(MediaType.APPLICATION_JSON)
-							.content("""
-									{
-									  "statusId": "%s",
-									  "startDatetime": "%s",
-									  "endDatetime": "%s",
-									  "notes": "Consulta confirmada",
-									  "blocksSchedule": true
-									}
-									""".formatted(
-									STATUS_CONFIRMED,
-									newStart.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
-									newEnd.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.data.statusCode", is("CONFIRMED")))
+			mockMvc.perform(put(BASE + "/" + created.id()).with(jwtAsReceptionist())
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("""
+							{
+							  "statusId": "%s",
+							  "startDatetime": "%s",
+							  "endDatetime": "%s",
+							  "notes": "Consulta confirmada",
+							  "blocksSchedule": true
+							}
+							""".formatted(STATUS_CONFIRMED, newStart.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+							newEnd.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.statusCode", is("CONFIRMED")))
 					.andExpect(jsonPath("$.data.notes", is("Consulta confirmada")));
 		}
 
@@ -143,12 +132,10 @@ class AppointmentControllerHttpTest {
 		void shouldDeleteAppointment() throws Exception {
 			AppointmentDto created = createAppointment(STATUS_SCHEDULED);
 
-			mockMvc.perform(delete(BASE + "/" + created.id())
-							.with(jwtAsReceptionist()))
+			mockMvc.perform(delete(BASE + "/" + created.id()).with(jwtAsReceptionist()))
 					.andExpect(status().isNoContent());
 
-			mockMvc.perform(get(BASE).with(jwtAsReceptionist()))
-					.andExpect(status().isOk())
+			mockMvc.perform(get(BASE).with(jwtAsReceptionist())).andExpect(status().isOk())
 					.andExpect(jsonPath("$.data", hasSize(0)));
 		}
 	}
@@ -162,19 +149,16 @@ class AppointmentControllerHttpTest {
 		void shouldReturn404OnUpdate() throws Exception {
 			UUID nonExistentId = UUID.randomUUID();
 
-			mockMvc.perform(put(BASE + "/" + nonExistentId)
-							.with(jwtAsReceptionist())
-							.contentType(MediaType.APPLICATION_JSON)
-							.content("""
-									{
-									  "statusId": "%s",
-									  "startDatetime": "2026-06-01T09:00:00Z",
-									  "endDatetime": "2026-06-01T10:00:00Z",
-									  "notes": "Teste",
-									  "blocksSchedule": false
-									}
-									""".formatted(STATUS_CONFIRMED)))
-					.andExpect(status().isNotFound());
+			mockMvc.perform(put(BASE + "/" + nonExistentId).with(jwtAsReceptionist())
+					.contentType(MediaType.APPLICATION_JSON).content("""
+							{
+							  "statusId": "%s",
+							  "startDatetime": "2026-06-01T09:00:00Z",
+							  "endDatetime": "2026-06-01T10:00:00Z",
+							  "notes": "Teste",
+							  "blocksSchedule": false
+							}
+							""".formatted(STATUS_CONFIRMED))).andExpect(status().isNotFound());
 		}
 
 		@Test
@@ -182,21 +166,16 @@ class AppointmentControllerHttpTest {
 		void shouldReturn404OnDelete() throws Exception {
 			UUID nonExistentId = UUID.randomUUID();
 
-			mockMvc.perform(delete(BASE + "/" + nonExistentId)
-							.with(jwtAsReceptionist()))
+			mockMvc.perform(delete(BASE + "/" + nonExistentId).with(jwtAsReceptionist()))
 					.andExpect(status().isNotFound());
 		}
 	}
 
 	private AppointmentDto createAppointment(String statusId) throws Exception {
-		String response = mockMvc.perform(post(BASE)
-						.with(jwtAsReceptionist())
-						.contentType(MediaType.APPLICATION_JSON)
+		String response = mockMvc
+				.perform(post(BASE).with(jwtAsReceptionist()).contentType(MediaType.APPLICATION_JSON)
 						.content(buildCreatePayload(statusId)))
-				.andExpect(status().isCreated())
-				.andReturn()
-				.getResponse()
-				.getContentAsString();
+				.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
 
 		JsonNode data = objectMapper.readTree(response).get("data");
 		AppointmentDto dto = objectMapper.treeToValue(data, AppointmentDto.class);
@@ -218,11 +197,7 @@ class AppointmentControllerHttpTest {
 				  "notes": "Consulta de rotina",
 				  "blocksSchedule": true
 				}
-				""".formatted(
-				UUID.randomUUID(),
-				UUID.randomUUID(),
-				UUID.randomUUID(),
-				statusId,
+				""".formatted(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), statusId,
 				start.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
 				end.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
 	}

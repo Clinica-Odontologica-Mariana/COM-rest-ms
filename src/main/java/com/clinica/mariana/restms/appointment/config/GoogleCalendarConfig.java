@@ -26,16 +26,10 @@ public class GoogleCalendarConfig {
 
 	@Bean
 	public Calendar googleCalendar() throws GeneralSecurityException, IOException {
-		UserCredentials credentials = UserCredentials.newBuilder()
-				.setClientId(clientId)
-				.setClientSecret(clientSecret)
-				.setRefreshToken(refreshToken)
-				.build();
+		UserCredentials credentials = UserCredentials.newBuilder().setClientId(clientId).setClientSecret(clientSecret)
+				.setRefreshToken(refreshToken).build();
 
-		return new Calendar.Builder(
-				GoogleNetHttpTransport.newTrustedTransport(),
-				GsonFactory.getDefaultInstance(),
-				new HttpCredentialsAdapter(credentials)
-		).setApplicationName("Clinica Mariana").build();
+		return new Calendar.Builder(GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(),
+				new HttpCredentialsAdapter(credentials)).setApplicationName("Clinica Mariana").build();
 	}
 }

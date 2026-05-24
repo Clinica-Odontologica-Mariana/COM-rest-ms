@@ -91,9 +91,15 @@ class AppointmentServiceTest {
 		when(googleCalendarService.createEvent(any(), any(), any(), any())).thenReturn("google-event-id-123");
 		when(appointmentRepository.save(any())).thenAnswer(inv -> {
 			AppointmentEntity e = inv.getArgument(0);
-			if (e.getId() == null) e.setId(UUID.randomUUID());
-			if (e.getCreatedAt() == null) e.setCreatedAt(OffsetDateTime.now());
-			if (e.getUpdatedAt() == null) e.setUpdatedAt(OffsetDateTime.now());
+			if (e.getId() == null) {
+				e.setId(UUID.randomUUID());
+			}
+			if (e.getCreatedAt() == null) {
+				e.setCreatedAt(OffsetDateTime.now());
+			}
+			if (e.getUpdatedAt() == null) {
+				e.setUpdatedAt(OffsetDateTime.now());
+			}
 			return e;
 		});
 
@@ -118,9 +124,15 @@ class AppointmentServiceTest {
 				.thenThrow(new IOException("Google Calendar unavailable"));
 		when(appointmentRepository.save(any())).thenAnswer(inv -> {
 			AppointmentEntity e = inv.getArgument(0);
-			if (e.getId() == null) e.setId(UUID.randomUUID());
-			if (e.getCreatedAt() == null) e.setCreatedAt(OffsetDateTime.now());
-			if (e.getUpdatedAt() == null) e.setUpdatedAt(OffsetDateTime.now());
+			if (e.getId() == null) {
+				e.setId(UUID.randomUUID());
+			}
+			if (e.getCreatedAt() == null) {
+				e.setCreatedAt(OffsetDateTime.now());
+			}
+			if (e.getUpdatedAt() == null) {
+				e.setUpdatedAt(OffsetDateTime.now());
+			}
 			return e;
 		});
 
@@ -134,8 +146,7 @@ class AppointmentServiceTest {
 	void shouldFindAllActiveAppointments() {
 		AppointmentEntity entity = buildEntity(UUID.randomUUID());
 
-		when(appointmentRepository.findAllByCancelledAtIsNullOrderByStartDatetimeAsc())
-				.thenReturn(List.of(entity));
+		when(appointmentRepository.findAllByCancelledAtIsNullOrderByStartDatetimeAsc()).thenReturn(List.of(entity));
 
 		List<AppointmentDto> result = appointmentService.findAll();
 
@@ -149,8 +160,7 @@ class AppointmentServiceTest {
 		OffsetDateTime end = start.plusDays(7);
 		AppointmentEntity entity = buildEntity(UUID.randomUUID());
 
-		when(appointmentRepository
-				.findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(start, end))
+		when(appointmentRepository.findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(start, end))
 				.thenReturn(List.of(entity));
 
 		List<AppointmentDto> result = appointmentService.findByPeriod(start, end);
@@ -165,13 +175,8 @@ class AppointmentServiceTest {
 		entity.setExternalCalendarEventId("existing-event-id");
 		entity.setCalendarSyncStatus(syncedSync);
 
-		AppointmentUpdateDto request = new AppointmentUpdateDto(
-				scheduledStatus.getId(),
-				OffsetDateTime.now().plusDays(1),
-				OffsetDateTime.now().plusDays(1).plusHours(1),
-				"Updated notes",
-				true
-		);
+		AppointmentUpdateDto request = new AppointmentUpdateDto(scheduledStatus.getId(),
+				OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusHours(1), "Updated notes", true);
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
@@ -181,8 +186,7 @@ class AppointmentServiceTest {
 		AppointmentDto result = appointmentService.update(id, request);
 
 		assertThat(result.notes()).isEqualTo("Updated notes");
-		verify(googleCalendarService).updateEvent(
-				eq("existing-event-id"), eq("Consulta"), any(), any(), any());
+		verify(googleCalendarService).updateEvent(eq("existing-event-id"), eq("Consulta"), any(), any(), any());
 	}
 
 	@Test
@@ -191,13 +195,8 @@ class AppointmentServiceTest {
 		AppointmentEntity entity = buildEntity(id);
 		entity.setExternalCalendarEventId(null);
 
-		AppointmentUpdateDto request = new AppointmentUpdateDto(
-				scheduledStatus.getId(),
-				OffsetDateTime.now().plusDays(1),
-				OffsetDateTime.now().plusDays(1).plusHours(1),
-				"Updated notes",
-				true
-		);
+		AppointmentUpdateDto request = new AppointmentUpdateDto(scheduledStatus.getId(),
+				OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusHours(1), "Updated notes", true);
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
@@ -215,19 +214,14 @@ class AppointmentServiceTest {
 		entity.setExternalCalendarEventId("existing-event-id");
 		entity.setCalendarSyncStatus(syncedSync);
 
-		AppointmentUpdateDto request = new AppointmentUpdateDto(
-				scheduledStatus.getId(),
-				OffsetDateTime.now().plusDays(1),
-				OffsetDateTime.now().plusDays(1).plusHours(1),
-				"Updated notes",
-				true
-		);
+		AppointmentUpdateDto request = new AppointmentUpdateDto(scheduledStatus.getId(),
+				OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusHours(1), "Updated notes", true);
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
 		when(calendarSyncStatusRepository.findByCode("FAILED")).thenReturn(Optional.of(failedSync));
-		doThrow(new IOException("Google Calendar unavailable"))
-				.when(googleCalendarService).updateEvent(any(), any(), any(), any(), any());
+		doThrow(new IOException("Google Calendar unavailable")).when(googleCalendarService).updateEvent(any(), any(),
+				any(), any(), any());
 		when(appointmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
 		AppointmentDto result = appointmentService.update(id, request);
@@ -238,18 +232,12 @@ class AppointmentServiceTest {
 	@Test
 	void shouldThrowNotFoundWhenUpdatingNonExistentAppointment() {
 		UUID id = UUID.randomUUID();
-		AppointmentUpdateDto request = new AppointmentUpdateDto(
-				scheduledStatus.getId(),
-				OffsetDateTime.now(),
-				OffsetDateTime.now().plusHours(1),
-				null,
-				true
-		);
+		AppointmentUpdateDto request = new AppointmentUpdateDto(scheduledStatus.getId(), OffsetDateTime.now(),
+				OffsetDateTime.now().plusHours(1), null, true);
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.empty());
 
-		assertThatThrownBy(() -> appointmentService.update(id, request))
-				.isInstanceOf(ResponseStatusException.class)
+		assertThatThrownBy(() -> appointmentService.update(id, request)).isInstanceOf(ResponseStatusException.class)
 				.hasMessageContaining("Appointment not found");
 	}
 
@@ -283,8 +271,7 @@ class AppointmentServiceTest {
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
 		when(appointmentStatusRepository.findByCode("CANCELLED")).thenReturn(Optional.of(cancelledStatus));
 		when(calendarSyncStatusRepository.findByCode("FAILED")).thenReturn(Optional.of(failedSync));
-		doThrow(new IOException("Google Calendar unavailable"))
-				.when(googleCalendarService).deleteEvent(any());
+		doThrow(new IOException("Google Calendar unavailable")).when(googleCalendarService).deleteEvent(any());
 		when(appointmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
 		appointmentService.delete(id);
@@ -312,23 +299,14 @@ class AppointmentServiceTest {
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.empty());
 
-		assertThatThrownBy(() -> appointmentService.delete(id))
-				.isInstanceOf(ResponseStatusException.class)
+		assertThatThrownBy(() -> appointmentService.delete(id)).isInstanceOf(ResponseStatusException.class)
 				.hasMessageContaining("Appointment not found");
 	}
 
 	private AppointmentCreateDto buildCreateDto() {
-		return new AppointmentCreateDto(
-				UUID.randomUUID(),
-				UUID.randomUUID(),
-				null,
-				UUID.randomUUID(),
-				scheduledStatus.getId(),
-				OffsetDateTime.now().plusDays(1),
-				OffsetDateTime.now().plusDays(1).plusHours(1),
-				"Consulta de rotina",
-				true
-		);
+		return new AppointmentCreateDto(UUID.randomUUID(), UUID.randomUUID(), null, UUID.randomUUID(),
+				scheduledStatus.getId(), OffsetDateTime.now().plusDays(1),
+				OffsetDateTime.now().plusDays(1).plusHours(1), "Consulta de rotina", true);
 	}
 
 	private AppointmentEntity buildEntity(UUID id) {
