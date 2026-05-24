@@ -38,20 +38,16 @@ public class MedicalRecordController {
 	@PostMapping("/by-patient/{patientId}/notes")
 	@ResponseStatus(HttpStatus.CREATED)
 	@RolesAllowed({"ADMIN", "DOCTOR"})
-	public MedicalRecordNoteDto addNote(
-			@PathVariable UUID patientId,
-			@Valid @RequestBody MedicalRecordNoteCreateDto request
-	) {
+	public MedicalRecordNoteDto addNote(@PathVariable UUID patientId,
+			@Valid @RequestBody MedicalRecordNoteCreateDto request) {
 		return medicalRecordService.addNote(patientId, request);
 	}
 
 	@PostMapping("/by-patient/{patientId}/attachments")
 	@ResponseStatus(HttpStatus.CREATED)
 	@RolesAllowed({"ADMIN", "DOCTOR"})
-	public MedicalRecordAttachmentDto addAttachment(
-			@PathVariable UUID patientId,
-			@Valid @RequestBody MedicalRecordAttachmentCreateDto request
-	) {
+	public MedicalRecordAttachmentDto addAttachment(@PathVariable UUID patientId,
+			@Valid @RequestBody MedicalRecordAttachmentCreateDto request) {
 		return medicalRecordService.addAttachment(patientId, request);
 	}
 }

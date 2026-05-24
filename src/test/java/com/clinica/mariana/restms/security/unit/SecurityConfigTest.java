@@ -1,8 +1,5 @@
 package com.clinica.mariana.restms.security.config;
 
-import com.clinica.mariana.restms.security.config.RestAccessDeniedHandler;
-import com.clinica.mariana.restms.security.config.RestAuthenticationEntryPoint;
-import com.clinica.mariana.restms.security.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -14,10 +11,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class SecurityConfigTest {
 
-	private final SecurityConfig securityConfig = new SecurityConfig(
-			new RestAuthenticationEntryPoint(),
-			new RestAccessDeniedHandler()
-	);
+	private final SecurityConfig securityConfig = new SecurityConfig(new RestAuthenticationEntryPoint(),
+			new RestAccessDeniedHandler());
 
 	@Test
 	void shouldMapRealmRolesToSpringAuthorities() {
@@ -27,9 +22,8 @@ class SecurityConfigTest {
 
 		assertThat(authentication).isNotNull();
 		assertThat(authentication.getName()).isEqualTo("api-admin");
-		assertThat(authentication.getAuthorities())
-				.extracting("authority")
-				.containsExactlyInAnyOrder("ROLE_ADMIN", "ROLE_DOCTOR");
+		assertThat(authentication.getAuthorities()).extracting("authority").containsExactlyInAnyOrder("ROLE_ADMIN",
+				"ROLE_DOCTOR");
 	}
 
 	@Test
@@ -43,13 +37,8 @@ class SecurityConfigTest {
 	}
 
 	private Jwt jwt(Map<String, Object> extraClaims) {
-		return Jwt.withTokenValue("token")
-				.header("alg", "none")
-				.subject("keycloak-subject")
-				.claim("preferred_username", "api-admin")
-				.claims(claims -> claims.putAll(extraClaims))
-				.issuedAt(Instant.now())
-				.expiresAt(Instant.now().plusSeconds(300))
-				.build();
+		return Jwt.withTokenValue("token").header("alg", "none").subject("keycloak-subject")
+				.claim("preferred_username", "api-admin").claims(claims -> claims.putAll(extraClaims))
+				.issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(300)).build();
 	}
 }

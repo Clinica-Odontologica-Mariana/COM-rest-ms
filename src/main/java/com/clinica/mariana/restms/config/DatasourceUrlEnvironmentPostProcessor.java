@@ -67,8 +67,7 @@ public class DatasourceUrlEnvironmentPostProcessor implements EnvironmentPostPro
 			}
 		}
 
-		StringBuilder jdbcUrl = new StringBuilder("jdbc:postgresql://")
-				.append(uri.getHost());
+		StringBuilder jdbcUrl = new StringBuilder("jdbc:postgresql://").append(uri.getHost());
 		if (uri.getPort() > -1) {
 			jdbcUrl.append(':').append(uri.getPort());
 		}
@@ -107,10 +106,8 @@ public class DatasourceUrlEnvironmentPostProcessor implements EnvironmentPostPro
 	}
 
 	private String toQuery(Map<String, String> queryParams) {
-		return queryParams.entrySet().stream()
-				.map(entry -> encode(entry.getKey()) + "=" + encode(entry.getValue()))
-				.reduce((left, right) -> left + "&" + right)
-				.orElse("");
+		return queryParams.entrySet().stream().map(entry -> encode(entry.getKey()) + "=" + encode(entry.getValue()))
+				.reduce((left, right) -> left + "&" + right).orElse("");
 	}
 
 	private String decode(String value) {

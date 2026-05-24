@@ -5,9 +5,5 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
-public record WorkplaceCreateDto(
-        @NotNull UUID clinicId,
-        @NotBlank String name,
-        String description
-) {
+public record WorkplaceCreateDto(@NotNull UUID clinicId, @NotBlank String name, String description) {
 }

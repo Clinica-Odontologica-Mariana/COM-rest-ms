@@ -7,21 +7,11 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-public record AuthenticatedUser(
-		String subject,
-		String username,
-		String email,
-		Set<String> roles,
-		Map<String, Object> claims
-) {
+public record AuthenticatedUser(String subject, String username, String email, Set<String> roles,
+		Map<String, Object> claims) {
 	public static AuthenticatedUser fromJwt(Jwt jwt) {
-		return new AuthenticatedUser(
-				jwt.getSubject(),
-				jwt.getClaimAsString("preferred_username"),
-				jwt.getClaimAsString("email"),
-				extractRoles(jwt.getClaims()),
-				jwt.getClaims()
-		);
+		return new AuthenticatedUser(jwt.getSubject(), jwt.getClaimAsString("preferred_username"),
+				jwt.getClaimAsString("email"), extractRoles(jwt.getClaims()), jwt.getClaims());
 	}
 
 	private static Set<String> extractRoles(Map<String, Object> claims) {

@@ -11,6 +11,6 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
 
 	List<AppointmentEntity> findAllByCancelledAtIsNullOrderByStartDatetimeAsc();
 
-	List<AppointmentEntity> findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(
-			OffsetDateTime start, OffsetDateTime end);
+	List<AppointmentEntity> findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(OffsetDateTime start,
+			OffsetDateTime end);
 }

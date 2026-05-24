@@ -7,17 +7,13 @@ import java.util.UUID;
 
 public record AppointmentUpdateDto(
 
-		@NotNull(message = "statusId is required")
-		UUID statusId,
+		@NotNull(message = "statusId is required") UUID statusId,
 
-		@NotNull(message = "startDatetime is required")
-		OffsetDateTime startDatetime,
+		@NotNull(message = "startDatetime is required") OffsetDateTime startDatetime,
 
-		@NotNull(message = "endDatetime is required")
-		OffsetDateTime endDatetime,
+		@NotNull(message = "endDatetime is required") OffsetDateTime endDatetime,
 
 		String notes,
 
-		boolean blocksSchedule
-) {
+		boolean blocksSchedule) {
 }
