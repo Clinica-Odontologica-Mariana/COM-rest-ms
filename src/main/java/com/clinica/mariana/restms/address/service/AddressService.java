@@ -26,25 +26,15 @@ public class AddressService {
 
 	@Transactional
 	public AddressDto create(AddressCreateDto request) {
-		AddressModel model = AddressModel.create(
-				request.street(),
-				request.number(),
-				request.complement(),
-				request.neighborhood(),
-				request.city(),
-				request.state(),
-				request.zipCode()
-		);
+		AddressModel model = AddressModel.create(request.street(), request.number(), request.complement(),
+				request.neighborhood(), request.city(), request.state(), request.zipCode());
 
 		return toDto(toModel(addressRepository.save(toEntity(model))));
 	}
 
 	@Transactional(readOnly = true)
 	public List<AddressDto> findAll() {
-		return addressRepository.findAllByOrderByCityAscStreetAsc()
-				.stream()
-				.map(this::toModel)
-				.map(this::toDto)
+		return addressRepository.findAllByOrderByCityAscStreetAsc().stream().map(this::toModel).map(this::toDto)
 				.toList();
 	}
 
@@ -61,16 +51,8 @@ public class AddressService {
 		AddressEntity entity = addressRepository.findById(id)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Address not found"));
 
-		AddressModel model = new AddressModel(
-				id,
-				request.street(),
-				request.number(),
-				request.complement(),
-				request.neighborhood(),
-				request.city(),
-				request.state(),
-				request.zipCode()
-		);
+		AddressModel model = new AddressModel(id, request.street(), request.number(), request.complement(),
+				request.neighborhood(), request.city(), request.state(), request.zipCode());
 		apply(entity, model);
 
 		return toDto(toModel(addressRepository.save(entity)));
@@ -107,28 +89,12 @@ public class AddressService {
 	}
 
 	private AddressModel toModel(AddressEntity entity) {
-		return new AddressModel(
-				entity.getId(),
-				entity.getStreet(),
-				entity.getNumber(),
-				entity.getComplement(),
-				entity.getNeighborhood(),
-				entity.getCity(),
-				entity.getState(),
-				entity.getZipCode()
-		);
+		return new AddressModel(entity.getId(), entity.getStreet(), entity.getNumber(), entity.getComplement(),
+				entity.getNeighborhood(), entity.getCity(), entity.getState(), entity.getZipCode());
 	}
 
 	private AddressDto toDto(AddressModel model) {
-		return new AddressDto(
-				model.id(),
-				model.street(),
-				model.number(),
-				model.complement(),
-				model.neighborhood(),
-				model.city(),
-				model.state(),
-				model.zipCode()
-		);
+		return new AddressDto(model.id(), model.street(), model.number(), model.complement(), model.neighborhood(),
+				model.city(), model.state(), model.zipCode());
 	}
 }

@@ -18,7 +18,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -83,56 +82,38 @@ class ProfessionalControllerIntegrationTest {
 			assertThat(created.active()).isTrue();
 			assertThat(created.licenseNumber()).isEqualTo("CRO-DF-12345");
 
-			mockMvc.perform(get("/api/v1/professionals/{id}", created.id())
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("DOCTOR")))
-					.andExpect(status().isOk())
+			mockMvc.perform(get("/api/v1/professionals/{id}", created.id()).contextPath(CONTEXT_PATH)
+					.with(jwtWithRole("DOCTOR"))).andExpect(status().isOk())
 					.andExpect(jsonPath("$.data.id", is(created.id().toString())))
 					.andExpect(jsonPath("$.data.licenseNumber", is("CRO-DF-12345")));
 
-			mockMvc.perform(put("/api/v1/professionals/{id}", created.id())
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN"))
-							.contentType(MediaType.APPLICATION_JSON)
-							.content("""
-									{
-									  "userId": "%s",
-									  "clinicId": "%s",
-									  "specialtyId": "%s",
-									  "licenseNumber": "CRO-DF-54321"
-									}
-									""".formatted(OTHER_USER_ID, CLINIC_ID, SPECIALTY_ID)))
-					.andExpect(status().isOk())
+			mockMvc.perform(put("/api/v1/professionals/{id}", created.id()).contextPath(CONTEXT_PATH)
+					.with(jwtWithRole("ADMIN")).contentType(MediaType.APPLICATION_JSON).content("""
+							{
+							  "userId": "%s",
+							  "clinicId": "%s",
+							  "specialtyId": "%s",
+							  "licenseNumber": "CRO-DF-54321"
+							}
+							""".formatted(OTHER_USER_ID, CLINIC_ID, SPECIALTY_ID))).andExpect(status().isOk())
 					.andExpect(jsonPath("$.data.userId", is(OTHER_USER_ID.toString())))
 					.andExpect(jsonPath("$.data.licenseNumber", is("CRO-DF-54321")));
 
-			mockMvc.perform(get("/api/v1/professionals")
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("DOCTOR")))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.data", hasSize(1)));
+			mockMvc.perform(get("/api/v1/professionals").contextPath(CONTEXT_PATH).with(jwtWithRole("DOCTOR")))
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data", hasSize(1)));
 
-			mockMvc.perform(delete("/api/v1/professionals/{id}", created.id())
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN")))
-					.andExpect(status().isNoContent());
+			mockMvc.perform(delete("/api/v1/professionals/{id}", created.id()).contextPath(CONTEXT_PATH)
+					.with(jwtWithRole("ADMIN"))).andExpect(status().isNoContent());
 
-			mockMvc.perform(get("/api/v1/professionals/{id}", created.id())
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("DOCTOR")))
-					.andExpect(status().isOk())
+			mockMvc.perform(get("/api/v1/professionals/{id}", created.id()).contextPath(CONTEXT_PATH)
+					.with(jwtWithRole("DOCTOR"))).andExpect(status().isOk())
 					.andExpect(jsonPath("$.data.active", is(false)));
 
-			mockMvc.perform(get("/api/v1/professionals")
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("DOCTOR")))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.data", hasSize(0)));
+			mockMvc.perform(get("/api/v1/professionals").contextPath(CONTEXT_PATH).with(jwtWithRole("DOCTOR")))
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data", hasSize(0)));
 
-			mockMvc.perform(delete("/api/v1/professionals/{id}", created.id())
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN")))
-					.andExpect(status().isNoContent());
+			mockMvc.perform(delete("/api/v1/professionals/{id}", created.id()).contextPath(CONTEXT_PATH)
+					.with(jwtWithRole("ADMIN"))).andExpect(status().isNoContent());
 		}
 	}
 
@@ -152,19 +133,15 @@ class ProfessionalControllerIntegrationTest {
 					}
 					""".formatted(THIRD_USER_ID, CLINIC_ID, SPECIALTY_ID));
 
-			mockMvc.perform(post("/api/v1/professionals")
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN"))
-							.contentType(MediaType.APPLICATION_JSON)
-							.content("""
-									{
-									  "userId": "%s",
-									  "clinicId": "%s",
-									  "specialtyId": "%s",
-									  "licenseNumber": "CRO-DF-99999"
-									}
-									""".formatted(FOURTH_USER_ID, CLINIC_ID, SPECIALTY_ID)))
-					.andExpect(status().isConflict());
+			mockMvc.perform(post("/api/v1/professionals").contextPath(CONTEXT_PATH).with(jwtWithRole("ADMIN"))
+					.contentType(MediaType.APPLICATION_JSON).content("""
+							{
+							  "userId": "%s",
+							  "clinicId": "%s",
+							  "specialtyId": "%s",
+							  "licenseNumber": "CRO-DF-99999"
+							}
+							""".formatted(FOURTH_USER_ID, CLINIC_ID, SPECIALTY_ID))).andExpect(status().isConflict());
 		}
 
 		@Test
@@ -179,19 +156,15 @@ class ProfessionalControllerIntegrationTest {
 					}
 					""".formatted(VALID_USER_ID, CLINIC_ID, SPECIALTY_ID));
 
-			mockMvc.perform(post("/api/v1/professionals")
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN"))
-							.contentType(MediaType.APPLICATION_JSON)
-							.content("""
-									{
-									  "userId": "%s",
-									  "clinicId": "%s",
-									  "specialtyId": "%s",
-									  "licenseNumber": "CRO-DF-10002"
-									}
-									""".formatted(VALID_USER_ID, CLINIC_ID, SPECIALTY_ID)))
-					.andExpect(status().isConflict());
+			mockMvc.perform(post("/api/v1/professionals").contextPath(CONTEXT_PATH).with(jwtWithRole("ADMIN"))
+					.contentType(MediaType.APPLICATION_JSON).content("""
+							{
+							  "userId": "%s",
+							  "clinicId": "%s",
+							  "specialtyId": "%s",
+							  "licenseNumber": "CRO-DF-10002"
+							}
+							""".formatted(VALID_USER_ID, CLINIC_ID, SPECIALTY_ID))).andExpect(status().isConflict());
 		}
 
 		@Test
@@ -239,19 +212,15 @@ class ProfessionalControllerIntegrationTest {
 					}
 					""".formatted(OTHER_USER_ID, CLINIC_ID, SPECIALTY_ID));
 
-			mockMvc.perform(put("/api/v1/professionals/{id}", second.id())
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN"))
-							.contentType(MediaType.APPLICATION_JSON)
-							.content("""
-									{
-									  "userId": "%s",
-									  "clinicId": "%s",
-									  "specialtyId": "%s",
-									  "licenseNumber": "CRO-DF-30001"
-									}
-									""".formatted(OTHER_USER_ID, CLINIC_ID, SPECIALTY_ID)))
-					.andExpect(status().isConflict());
+			mockMvc.perform(put("/api/v1/professionals/{id}", second.id()).contextPath(CONTEXT_PATH)
+					.with(jwtWithRole("ADMIN")).contentType(MediaType.APPLICATION_JSON).content("""
+							{
+							  "userId": "%s",
+							  "clinicId": "%s",
+							  "specialtyId": "%s",
+							  "licenseNumber": "CRO-DF-30001"
+							}
+							""".formatted(OTHER_USER_ID, CLINIC_ID, SPECIALTY_ID))).andExpect(status().isConflict());
 		}
 	}
 
@@ -262,55 +231,43 @@ class ProfessionalControllerIntegrationTest {
 		@Test
 		@DisplayName("When user does not exist, then returns 404")
 		void shouldRejectMissingUser() throws Exception {
-			mockMvc.perform(post("/api/v1/professionals")
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN"))
-							.contentType(MediaType.APPLICATION_JSON)
-							.content("""
-									{
-									  "userId": "3589102e-afca-4759-a7aa-7ad077e2e4a1",
-									  "clinicId": "%s",
-									  "specialtyId": "%s",
-									  "licenseNumber": "CRO-DF-40001"
-									}
-									""".formatted(CLINIC_ID, SPECIALTY_ID)))
-					.andExpect(status().isNotFound());
+			mockMvc.perform(post("/api/v1/professionals").contextPath(CONTEXT_PATH).with(jwtWithRole("ADMIN"))
+					.contentType(MediaType.APPLICATION_JSON).content("""
+							{
+							  "userId": "3589102e-afca-4759-a7aa-7ad077e2e4a1",
+							  "clinicId": "%s",
+							  "specialtyId": "%s",
+							  "licenseNumber": "CRO-DF-40001"
+							}
+							""".formatted(CLINIC_ID, SPECIALTY_ID))).andExpect(status().isNotFound());
 		}
 
 		@Test
 		@DisplayName("When clinic does not exist, then returns 404")
 		void shouldRejectMissingClinic() throws Exception {
-			mockMvc.perform(post("/api/v1/professionals")
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN"))
-							.contentType(MediaType.APPLICATION_JSON)
-							.content("""
-									{
-									  "userId": "%s",
-									  "clinicId": "09c0a1a8-46c7-478e-b2d7-224c802889c6",
-									  "specialtyId": "%s",
-									  "licenseNumber": "CRO-DF-40002"
-									}
-									""".formatted(VALID_USER_ID, SPECIALTY_ID)))
-					.andExpect(status().isNotFound());
+			mockMvc.perform(post("/api/v1/professionals").contextPath(CONTEXT_PATH).with(jwtWithRole("ADMIN"))
+					.contentType(MediaType.APPLICATION_JSON).content("""
+							{
+							  "userId": "%s",
+							  "clinicId": "09c0a1a8-46c7-478e-b2d7-224c802889c6",
+							  "specialtyId": "%s",
+							  "licenseNumber": "CRO-DF-40002"
+							}
+							""".formatted(VALID_USER_ID, SPECIALTY_ID))).andExpect(status().isNotFound());
 		}
 
 		@Test
 		@DisplayName("When specialty does not exist, then returns 404")
 		void shouldRejectMissingSpecialty() throws Exception {
-			mockMvc.perform(post("/api/v1/professionals")
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN"))
-							.contentType(MediaType.APPLICATION_JSON)
-							.content("""
-									{
-									  "userId": "%s",
-									  "clinicId": "%s",
-									  "specialtyId": "ed73131b-39d3-4309-9839-a2dbe0b36763",
-									  "licenseNumber": "CRO-DF-40003"
-									}
-									""".formatted(VALID_USER_ID, CLINIC_ID)))
-					.andExpect(status().isNotFound());
+			mockMvc.perform(post("/api/v1/professionals").contextPath(CONTEXT_PATH).with(jwtWithRole("ADMIN"))
+					.contentType(MediaType.APPLICATION_JSON).content("""
+							{
+							  "userId": "%s",
+							  "clinicId": "%s",
+							  "specialtyId": "ed73131b-39d3-4309-9839-a2dbe0b36763",
+							  "licenseNumber": "CRO-DF-40003"
+							}
+							""".formatted(VALID_USER_ID, CLINIC_ID))).andExpect(status().isNotFound());
 		}
 	}
 
@@ -321,42 +278,31 @@ class ProfessionalControllerIntegrationTest {
 		@Test
 		@DisplayName("When called without token, then returns unauthorized")
 		void shouldRejectMissingToken() throws Exception {
-			mockMvc.perform(get("/api/v1/professionals")
-							.contextPath(CONTEXT_PATH))
-					.andExpect(status().isUnauthorized())
+			mockMvc.perform(get("/api/v1/professionals").contextPath(CONTEXT_PATH)).andExpect(status().isUnauthorized())
 					.andExpect(jsonPath("$.error.code", is("UNAUTHORIZED")));
 		}
 
 		@Test
 		@DisplayName("When create is called by DOCTOR, then returns forbidden")
 		void shouldRejectDoctorCreate() throws Exception {
-			mockMvc.perform(post("/api/v1/professionals")
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("DOCTOR"))
-							.contentType(MediaType.APPLICATION_JSON)
-							.content("""
-									{
-									  "userId": "%s",
-									  "clinicId": "%s",
-									  "specialtyId": "%s",
-									  "licenseNumber": "CRO-DF-50001"
-									}
-									""".formatted(VALID_USER_ID, CLINIC_ID, SPECIALTY_ID)))
-					.andExpect(status().isForbidden())
+			mockMvc.perform(post("/api/v1/professionals").contextPath(CONTEXT_PATH).with(jwtWithRole("DOCTOR"))
+					.contentType(MediaType.APPLICATION_JSON).content("""
+							{
+							  "userId": "%s",
+							  "clinicId": "%s",
+							  "specialtyId": "%s",
+							  "licenseNumber": "CRO-DF-50001"
+							}
+							""".formatted(VALID_USER_ID, CLINIC_ID, SPECIALTY_ID))).andExpect(status().isForbidden())
 					.andExpect(jsonPath("$.error.code", is("FORBIDDEN")));
 		}
 	}
 
 	private ProfessionalDto createProfessional(String payload) throws Exception {
-		String response = mockMvc.perform(post("/api/v1/professionals")
-						.contextPath(CONTEXT_PATH)
-						.with(jwtWithRole("ADMIN"))
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(payload))
-				.andExpect(status().isCreated())
-				.andReturn()
-				.getResponse()
-				.getContentAsString();
+		String response = mockMvc
+				.perform(post("/api/v1/professionals").contextPath(CONTEXT_PATH).with(jwtWithRole("ADMIN"))
+						.contentType(MediaType.APPLICATION_JSON).content(payload))
+				.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
 
 		JsonNode data = objectMapper.readTree(response).get("data");
 		return objectMapper.treeToValue(data, ProfessionalDto.class);

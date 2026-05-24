@@ -32,51 +32,43 @@ class PatientControllerParameterizedTest {
 	@MethodSource("invalidCreatePayloads")
 	@DisplayName("When creating, then validation rejects the command")
 	void shouldRejectInvalidCreatePayloads(String scenario, String payload) throws Exception {
-		mockMvc.perform(post("/api/v1/patients")
-					.contextPath(CONTEXT_PATH)
-					.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))
-					.contentType(MediaType.APPLICATION_JSON)
-					.content(payload))
-				.andExpect(status().isBadRequest());
+		mockMvc.perform(post("/api/v1/patients").contextPath(CONTEXT_PATH)
+				.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))
+				.contentType(MediaType.APPLICATION_JSON).content(payload)).andExpect(status().isBadRequest());
 	}
 
 	static Stream<Arguments> invalidCreatePayloads() {
-		return Stream.of(
-				Arguments.of("missing required birth date", """
-						{
-						  "fullName": "Sem Data",
-						  "cpf": "45678912300",
-						  "phone": "11666666666",
-						  "email": "sem.data@clinic.com"
-						}
-						"""),
-				Arguments.of("future birth date", """
-						{
-						  "fullName": "Data Futura",
-						  "cpf": "45678912301",
-						  "phone": "11666666666",
-						  "email": "data.futura@clinic.com",
-						  "birthDate": "%s"
-						}
-						""".formatted(LocalDate.now().plusDays(1))),
-				Arguments.of("invalid cpf format", """
-						{
-						  "fullName": "CPF Invalido",
-						  "cpf": "123",
-						  "phone": "11666666666",
-						  "email": "cpf.invalido@clinic.com",
-						  "birthDate": "1990-01-10"
-						}
-						"""),
-				Arguments.of("invalid email format", """
-						{
-						  "fullName": "Email Invalido",
-						  "cpf": "45678912302",
-						  "phone": "11666666666",
-						  "email": "email-invalido",
-						  "birthDate": "1990-01-10"
-						}
-						""")
-		);
+		return Stream.of(Arguments.of("missing required birth date", """
+				{
+				  "fullName": "Sem Data",
+				  "cpf": "45678912300",
+				  "phone": "11666666666",
+				  "email": "sem.data@clinic.com"
+				}
+				"""), Arguments.of("future birth date", """
+				{
+				  "fullName": "Data Futura",
+				  "cpf": "45678912301",
+				  "phone": "11666666666",
+				  "email": "data.futura@clinic.com",
+				  "birthDate": "%s"
+				}
+				""".formatted(LocalDate.now().plusDays(1))), Arguments.of("invalid cpf format", """
+				{
+				  "fullName": "CPF Invalido",
+				  "cpf": "123",
+				  "phone": "11666666666",
+				  "email": "cpf.invalido@clinic.com",
+				  "birthDate": "1990-01-10"
+				}
+				"""), Arguments.of("invalid email format", """
+				{
+				  "fullName": "Email Invalido",
+				  "cpf": "45678912302",
+				  "phone": "11666666666",
+				  "email": "email-invalido",
+				  "birthDate": "1990-01-10"
+				}
+				"""));
 	}
 }

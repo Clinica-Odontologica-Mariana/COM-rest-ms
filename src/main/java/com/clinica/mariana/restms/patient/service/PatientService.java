@@ -19,6 +19,8 @@ import java.util.UUID;
 @Service
 public class PatientService {
 
+	private static final String PATIENT_NOT_FOUND = "Patient not found";
+
 	private final PatientRepository patientRepository;
 	private final MedicalRecordService medicalRecordService;
 
@@ -54,17 +56,14 @@ public class PatientService {
 
 	@Transactional(readOnly = true)
 	public List<PatientDto> findAll() {
-		return patientRepository.findAllByActiveTrueOrderByFullNameAsc()
-				.stream()
-				.map(this::toModel)
-				.map(this::toDto)
+		return patientRepository.findAllByActiveTrueOrderByFullNameAsc().stream().map(this::toModel).map(this::toDto)
 				.toList();
 	}
 
 	@Transactional(readOnly = true)
 	public PatientDto findById(UUID id) {
 		PatientEntity entity = patientRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, PATIENT_NOT_FOUND));
 
 		return toDto(toModel(entity));
 	}
@@ -72,7 +71,7 @@ public class PatientService {
 	@Transactional(readOnly = true)
 	public PatientDto findByCpf(String cpf) {
 		PatientEntity entity = patientRepository.findByCpf(cpf)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, PATIENT_NOT_FOUND));
 
 		return toDto(toModel(entity));
 	}
@@ -80,7 +79,7 @@ public class PatientService {
 	@Transactional
 	public PatientDto update(UUID id, PatientUpdateDto request) {
 		PatientEntity entity = patientRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, PATIENT_NOT_FOUND));
 
 		if (patientRepository.existsByCpfAndIdNot(request.cpf(), id)) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Patient cpf already exists");
@@ -102,7 +101,7 @@ public class PatientService {
 	@Transactional
 	public void delete(UUID id) {
 		PatientEntity entity = patientRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, PATIENT_NOT_FOUND));
 
 		if (!entity.isActive()) {
 			return;
@@ -114,36 +113,15 @@ public class PatientService {
 	}
 
 	private PatientModel toModel(PatientEntity entity) {
-		return new PatientModel(
-				entity.getId(),
-				entity.getAddressId(),
-				entity.getCreatedByUserId(),
-				entity.getFullName(),
-				entity.getCpf(),
-				entity.getPhone(),
-				entity.getEmail(),
-				entity.getBirthDate(),
-				entity.getEmergencyContactName(),
-				entity.getEmergencyContactPhone(),
-				entity.getNotes(),
-				entity.isActive()
-		);
+		return new PatientModel(entity.getId(), entity.getAddressId(), entity.getCreatedByUserId(),
+				entity.getFullName(), entity.getCpf(), entity.getPhone(), entity.getEmail(), entity.getBirthDate(),
+				entity.getEmergencyContactName(), entity.getEmergencyContactPhone(), entity.getNotes(),
+				entity.isActive());
 	}
 
 	private PatientDto toDto(PatientModel model) {
-		return new PatientDto(
-				model.id(),
-				model.addressId(),
-				model.createdByUserId(),
-				model.fullName(),
-				model.cpf(),
-				model.phone(),
-				model.email(),
-				model.birthDate(),
-				model.emergencyContactName(),
-				model.emergencyContactPhone(),
-				model.notes(),
-				model.active()
-		);
+		return new PatientDto(model.id(), model.addressId(), model.createdByUserId(), model.fullName(), model.cpf(),
+				model.phone(), model.email(), model.birthDate(), model.emergencyContactName(),
+				model.emergencyContactPhone(), model.notes(), model.active());
 	}
 }

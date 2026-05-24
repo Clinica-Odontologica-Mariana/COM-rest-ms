@@ -42,11 +42,8 @@ class WorkplaceControllerIntegrationTest {
 	void shouldRunWorkplaceCrudFlow() {
 		UUID clinicId = UUID.randomUUID();
 
-		WorkplaceDto created = workplaceService.create(new WorkplaceCreateDto(
-				clinicId,
-				"Consultório 01",
-				"Primeiro consultório da clínica"
-		));
+		WorkplaceDto created = workplaceService
+				.create(new WorkplaceCreateDto(clinicId, "Consultório 01", "Primeiro consultório da clínica"));
 
 		assertThat(created.id()).isNotNull();
 		assertThat(created.active()).isTrue();
@@ -56,10 +53,8 @@ class WorkplaceControllerIntegrationTest {
 		assertThat(found.id()).isEqualTo(created.id());
 		assertThat(found.name()).isEqualTo("Consultório 01");
 
-		WorkplaceDto updated = workplaceService.update(created.id(), new WorkplaceUpdateDto(
-				"Consultório 01 - Reformado",
-				"Consultório reformado em 2026"
-		));
+		WorkplaceDto updated = workplaceService.update(created.id(),
+				new WorkplaceUpdateDto("Consultório 01 - Reformado", "Consultório reformado em 2026"));
 
 		assertThat(updated.name()).isEqualTo("Consultório 01 - Reformado");
 		assertThat(updated.description()).isEqualTo("Consultório reformado em 2026");
@@ -103,7 +98,8 @@ class WorkplaceControllerIntegrationTest {
 
 	@Test
 	void shouldValidateBeanPayloads() {
-		Set<ConstraintViolation<WorkplaceCreateDto>> violations = validator.validate(new WorkplaceCreateDto(null, "", null));
+		Set<ConstraintViolation<WorkplaceCreateDto>> violations = validator
+				.validate(new WorkplaceCreateDto(null, "", null));
 		assertFalse(violations.isEmpty());
 
 		Set<ConstraintViolation<WorkplaceUpdateDto>> violations2 = validator.validate(new WorkplaceUpdateDto("", null));

@@ -70,60 +70,44 @@ class AddressControllerIntegrationTest {
 			assertThat(created.state()).isEqualTo("DF");
 			assertThat(created.zipCode()).isEqualTo("70000000");
 
-			mockMvc.perform(get("/api/v1/addresses/{id}", created.id())
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("DOCTOR")))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.data.id", is(created.id().toString())))
+			mockMvc.perform(
+					get("/api/v1/addresses/{id}", created.id()).contextPath(CONTEXT_PATH).with(jwtWithRole("DOCTOR")))
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.id", is(created.id().toString())))
 					.andExpect(jsonPath("$.data.street", is("Rua das Flores")));
 
-			mockMvc.perform(put("/api/v1/addresses/{id}", created.id())
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN"))
-							.contentType(MediaType.APPLICATION_JSON)
-							.content("""
-									{
-									  "street": "Avenida Principal",
-									  "number": "456",
-									  "complement": "Conjunto 10",
-									  "neighborhood": "Asa Sul",
-									  "city": "Brasilia",
-									  "state": "DF",
-									  "zipCode": "70000001"
-									}
-									"""))
-					.andExpect(status().isOk())
+			mockMvc.perform(put("/api/v1/addresses/{id}", created.id()).contextPath(CONTEXT_PATH)
+					.with(jwtWithRole("ADMIN")).contentType(MediaType.APPLICATION_JSON).content("""
+							{
+							  "street": "Avenida Principal",
+							  "number": "456",
+							  "complement": "Conjunto 10",
+							  "neighborhood": "Asa Sul",
+							  "city": "Brasilia",
+							  "state": "DF",
+							  "zipCode": "70000001"
+							}
+							""")).andExpect(status().isOk())
 					.andExpect(jsonPath("$.data.street", is("Avenida Principal")))
 					.andExpect(jsonPath("$.data.zipCode", is("70000001")));
 
-			mockMvc.perform(get("/api/v1/addresses")
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("DOCTOR")))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.data", hasSize(1)));
+			mockMvc.perform(get("/api/v1/addresses").contextPath(CONTEXT_PATH).with(jwtWithRole("DOCTOR")))
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data", hasSize(1)));
 
-			mockMvc.perform(delete("/api/v1/addresses/{id}", created.id())
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN")))
+			mockMvc.perform(
+					delete("/api/v1/addresses/{id}", created.id()).contextPath(CONTEXT_PATH).with(jwtWithRole("ADMIN")))
 					.andExpect(status().isNoContent());
 
-			mockMvc.perform(get("/api/v1/addresses/{id}", created.id())
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("DOCTOR")))
+			mockMvc.perform(
+					get("/api/v1/addresses/{id}", created.id()).contextPath(CONTEXT_PATH).with(jwtWithRole("DOCTOR")))
 					.andExpect(status().isNotFound());
 		}
 	}
 
 	private AddressDto createAddress(String payload) throws Exception {
-		String response = mockMvc.perform(post("/api/v1/addresses")
-						.contextPath(CONTEXT_PATH)
-						.with(jwtWithRole("ADMIN"))
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(payload))
-				.andExpect(status().isCreated())
-				.andReturn()
-				.getResponse()
-				.getContentAsString();
+		String response = mockMvc
+				.perform(post("/api/v1/addresses").contextPath(CONTEXT_PATH).with(jwtWithRole("ADMIN"))
+						.contentType(MediaType.APPLICATION_JSON).content(payload))
+				.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
 
 		JsonNode data = objectMapper.readTree(response).get("data");
 		return objectMapper.treeToValue(data, AddressDto.class);

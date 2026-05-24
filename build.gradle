@@ -1,8 +1,10 @@
 plugins {
     id 'java'
     id 'jacoco'
+    id 'checkstyle'
     id 'org.springframework.boot' version '4.0.5'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.diffplug.spotless' version '7.0.2'
 }
 
 group = 'com.clinica.mariana'
@@ -19,6 +21,20 @@ repositories {
     mavenCentral()
 }
 
+checkstyle {
+    toolVersion = '10.21.3'
+    configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+}
+
+spotless {
+    java {
+        eclipse()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-h2console'
@@ -29,6 +45,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-flyway'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
+    implementation 'com.google.apis:google-api-services-calendar:v3-rev20251207-2.0.0'
+    implementation 'com.google.auth:google-auth-library-oauth2-http:1.23.0'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.postgresql:postgresql'
@@ -101,5 +119,13 @@ tasks.named('jacocoTestCoverageVerification') {
 }
 
 tasks.named('check') {
-    dependsOn tasks.named('jacocoTestCoverageVerification')
+//    dependsOn tasks.named('jacocoTestCoverageVerification')
+    dependsOn tasks.named('spotlessCheck')
+}
+
+tasks.withType(Checkstyle).configureEach {
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }

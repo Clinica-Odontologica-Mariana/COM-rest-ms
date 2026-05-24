@@ -32,8 +32,8 @@ src/test/java/com/clinica/mariana/restms
 - Usuario autenticado via `@AuthenticationPrincipal Jwt`
 - Interceptor HTTP para logging de request (`RequestLoggingInterceptor`)
 - Envelope global de resposta:
-  - sucesso: `{ "success": true, "data": ... }`
-  - erro: `{ "success": false, "error": ... }`
+    - sucesso: `{ "success": true, "data": ... }`
+    - erro: `{ "success": false, "error": ... }`
 - Keycloak como fonte unica de autenticacao/usuarios
 
 ## Estrutura simplificada
@@ -62,6 +62,65 @@ src/test/java/com/clinica/mariana/restms
 
 As respostas REST sao envelopadas em `{ "success": true, "data": ... }` para sucesso e
 `{ "success": false, "error": ... }` para erro.
+
+## CI/CD (base SDD)
+
+O projeto possui uma base inicial de CI/CD para validar PRs e branches principais sem deploy real.
+
+Workflow atual:
+
+- `cicd.yml` (workflow unico `CI-CD`):
+    - `pull_request` para `develop` e `main`
+    - `push` para `develop` e `main`
+    - `workflow_dispatch` para placeholder manual de deploy futuro
+    - job de Gradle: `chmod +x ./gradlew`, `./gradlew test --no-daemon`,
+      `./gradlew check --no-daemon`, `./gradlew build --no-daemon`
+    - step de Docker: `docker build -t com-rest-ms:ci .`, sem push de imagem
+    - step manual de notas para deploy futuro, sem deploy real
+
+Boas praticas aplicadas no CI/CD:
+
+- `permissions` minimas (`contents: read`)
+- `concurrency` para cancelar execucoes antigas por branch/workflow
+- `timeout-minutes` por job
+- nenhum deploy em PR
+- nenhuma exigencia de secret real para CI basico
+- imagem Docker validada com `push: false`
+
+Observacoes importantes para o pipeline atual:
+
+- Os testes automatizados usam H2 em memoria com modo PostgreSQL.
+- Flyway esta desabilitado nos testes (`spring.flyway.enabled=false` em perfil de teste/task Gradle); a migration principal roda no startup da aplicacao com PostgreSQL, como no ambiente Docker Compose.
+- Testes de seguranca usam JWT mockado (`spring-security-test`), sem necessidade de subir Keycloak no CI.
+- Nao ha dependencia ativa de MinIO nos testes atuais.
+- O pipeline nao sobe PostgreSQL, Keycloak ou MinIO porque os testes atuais nao dependem desses services externos.
+
+Comandos locais equivalentes ao CI:
+
+```bash
+./gradlew test --no-daemon
+./gradlew check --no-daemon
+./gradlew build --no-daemon
+docker build -t com-rest-ms:local .
+```
+
+### Secrets e variaveis para deploy futuro (placeholder)
+
+O deploy real ainda nao esta ativado. Quando a hospedagem for definida, os secrets abaixo devem ser configurados
+conforme estrategia final:
+
+- Registry: `REGISTRY_USERNAME`, `REGISTRY_PASSWORD`, `GHCR_TOKEN`
+- Host: `HOST`, `HOST_USER`, `HOST_SSH_KEY`, `HOST_PORT`
+- Banco: `PROD_ENV_FILE`, `PROD_DATABASE_URL`, `PROD_DATABASE_USERNAME`, `PROD_DATABASE_PASSWORD`
+- Keycloak: `KEYCLOAK_ISSUER_URI`, `KEYCLOAK_JWK_SET_URI`
+- MinIO: `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`
+
+Acoplamento futuro previsto:
+
+1. publicar imagem no registry definido;
+2. autenticar no host por SSH;
+3. atualizar stack/container com variaveis de producao;
+4. aplicar estrategia de healthcheck e rollback.
 
 ## Variaveis de ambiente
 
@@ -115,6 +174,7 @@ O schema inicial e aplicado pelo Flyway a partir de `src/main/resources/db/migra
 Para bancos ja inicializados antes do Flyway, `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` permite registrar uma baseline sem recriar as tabelas existentes.
 
 Arquivos de apoio:
+
 - `.env.example` para copiar e ajustar as variaveis locais
 - `.env` para desenvolvimento local com Docker Compose
 

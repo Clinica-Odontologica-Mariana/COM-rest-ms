@@ -21,21 +21,14 @@ public class RestAccessDeniedHandler implements AccessDeniedHandler {
 	private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
 	@Override
-	public void handle(
-			HttpServletRequest request,
-			HttpServletResponse response,
-			AccessDeniedException accessDeniedException
-	) throws IOException {
+	public void handle(HttpServletRequest request, HttpServletResponse response,
+			AccessDeniedException accessDeniedException) throws IOException {
 		response.setStatus(HttpStatus.FORBIDDEN.value());
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-		ApiResponse<Object> payload = ApiResponse.failure(new ApiError(
-				"FORBIDDEN",
-				"You do not have permission to access this resource",
-				List.of(),
-				Instant.now(),
-				request.getRequestURI()
-		));
+		ApiResponse<Object> payload = ApiResponse
+				.failure(new ApiError("FORBIDDEN", "You do not have permission to access this resource", List.of(),
+						Instant.now(), request.getRequestURI()));
 
 		objectMapper.writeValue(response.getOutputStream(), payload);
 	}

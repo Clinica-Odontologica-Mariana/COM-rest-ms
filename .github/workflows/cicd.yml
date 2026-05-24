@@ -39,6 +39,9 @@ jobs:
       - name: Run tests
         run: ./gradlew clean test --no-daemon
 
+      - name: Run checks
+        run: ./gradlew clean check --no-daemon
+
       - name: Generate JaCoCo XML report
         run: ./gradlew jacocoTestReport --no-daemon
 

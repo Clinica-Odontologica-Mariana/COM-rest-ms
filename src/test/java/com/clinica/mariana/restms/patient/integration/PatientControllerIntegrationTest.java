@@ -16,9 +16,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
-import java.time.LocalDate;
-import java.util.stream.Stream;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -36,6 +33,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PatientControllerIntegrationTest {
 
 	private static final String CONTEXT_PATH = "/api/v1";
+	private static final String PATIENTS_ENDPOINT = "/api/v1/patients";
+	private static final String PATIENT_BY_ID_ENDPOINT = "/api/v1/patients/{id}";
+	private static final String ROLE_ADMIN = "ADMIN";
+	private static final String ROLE_DOCTOR = "DOCTOR";
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -74,55 +75,39 @@ class PatientControllerIntegrationTest {
 			assertThat(created.active()).isTrue();
 			assertThat(created.emergencyContactName()).isEqualTo("Contato Maria");
 
-			mockMvc.perform(get("/api/v1/patients/{id}", created.id())
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("DOCTOR")))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.data.id", is(created.id().toString())))
+			mockMvc.perform(
+					get(PATIENT_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.id", is(created.id().toString())))
 					.andExpect(jsonPath("$.data.cpf", is("12345678901")));
 
-			mockMvc.perform(put("/api/v1/patients/{id}", created.id())
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN"))
-							.contentType(MediaType.APPLICATION_JSON)
-							.content("""
-									{
-									  "fullName": "Maria Silva Atualizada",
-									  "cpf": "12345678901",
-									  "phone": "11888888888",
-									  "email": "maria.atualizada@clinic.com",
-									  "birthDate": "1990-01-10",
-									  "emergencyContactName": "Contato Atualizado",
-									  "emergencyContactPhone": "1144444444",
-									  "notes": "Observacao atualizada"
-									}
-									"""))
-					.andExpect(status().isOk())
+			mockMvc.perform(put(PATIENT_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH)
+					.with(jwtWithRole(ROLE_ADMIN)).contentType(MediaType.APPLICATION_JSON).content("""
+							{
+							  "fullName": "Maria Silva Atualizada",
+							  "cpf": "12345678901",
+							  "phone": "11888888888",
+							  "email": "maria.atualizada@clinic.com",
+							  "birthDate": "1990-01-10",
+							  "emergencyContactName": "Contato Atualizado",
+							  "emergencyContactPhone": "1144444444",
+							  "notes": "Observacao atualizada"
+							}
+							""")).andExpect(status().isOk())
 					.andExpect(jsonPath("$.data.fullName", is("Maria Silva Atualizada")))
 					.andExpect(jsonPath("$.data.notes", is("Observacao atualizada")));
 
-			mockMvc.perform(get("/api/v1/patients")
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("DOCTOR")))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.data", hasSize(1)));
+			mockMvc.perform(get(PATIENTS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data", hasSize(1)));
 
-			mockMvc.perform(delete("/api/v1/patients/{id}", created.id())
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN")))
-					.andExpect(status().isNoContent());
+			mockMvc.perform(delete(PATIENT_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH)
+					.with(jwtWithRole(ROLE_ADMIN))).andExpect(status().isNoContent());
 
-			mockMvc.perform(get("/api/v1/patients/{id}", created.id())
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("DOCTOR")))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.data.active", is(false)));
+			mockMvc.perform(
+					get(PATIENT_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.active", is(false)));
 
-			mockMvc.perform(get("/api/v1/patients")
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("DOCTOR")))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.data", hasSize(0)));
+			mockMvc.perform(get(PATIENTS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data", hasSize(0)));
 		}
 	}
 
@@ -143,33 +128,24 @@ class PatientControllerIntegrationTest {
 					}
 					""");
 
-			mockMvc.perform(post("/api/v1/patients")
-							.contextPath(CONTEXT_PATH)
-							.with(jwtWithRole("ADMIN"))
-							.contentType(MediaType.APPLICATION_JSON)
-							.content("""
-									{
-									  "fullName": "Paciente Duplicado",
-									  "cpf": "11122233344",
-									  "phone": "11666666666",
-									  "email": "duplicado@clinic.com",
-									  "birthDate": "1991-04-05"
-									}
-									"""))
-					.andExpect(status().isConflict());
+			mockMvc.perform(post(PATIENTS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_ADMIN))
+					.contentType(MediaType.APPLICATION_JSON).content("""
+							{
+							  "fullName": "Paciente Duplicado",
+							  "cpf": "11122233344",
+							  "phone": "11666666666",
+							  "email": "duplicado@clinic.com",
+							  "birthDate": "1991-04-05"
+							}
+							""")).andExpect(status().isConflict());
 		}
 	}
 
 	private PatientDto createPatient(String payload) throws Exception {
-		String response = mockMvc.perform(post("/api/v1/patients")
-						.contextPath(CONTEXT_PATH)
-						.with(jwtWithRole("ADMIN"))
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(payload))
-				.andExpect(status().isCreated())
-				.andReturn()
-				.getResponse()
-				.getContentAsString();
+		String response = mockMvc
+				.perform(post(PATIENTS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_ADMIN))
+						.contentType(MediaType.APPLICATION_JSON).content(payload))
+				.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
 
 		JsonNode data = objectMapper.readTree(response).get("data");
 		return objectMapper.treeToValue(data, PatientDto.class);
