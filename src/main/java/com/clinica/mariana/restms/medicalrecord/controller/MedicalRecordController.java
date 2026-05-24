@@ -80,11 +80,8 @@ public class MedicalRecordController {
 	@PostMapping("/by-patient/{patientId}/notes")
 	@ResponseStatus(HttpStatus.CREATED)
 	@RolesAllowed({"ADMIN", "DOCTOR"})
-	public MedicalRecordNoteDto addNote(
-			@PathVariable UUID patientId,
-			@Valid @RequestBody MedicalRecordNoteCreateDto request,
-			@AuthenticationPrincipal Jwt jwt
-	) {
+	public MedicalRecordNoteDto addNote(@PathVariable UUID patientId,
+			@Valid @RequestBody MedicalRecordNoteCreateDto request, @AuthenticationPrincipal Jwt jwt) {
 		return medicalRecordService.addNote(patientId, currentUserId(jwt).orElse(null), request);
 	}
 
@@ -102,11 +99,8 @@ public class MedicalRecordController {
 
 	@PutMapping("/by-patient/{patientId}/notes/{noteId}")
 	@RolesAllowed({"ADMIN", "DOCTOR"})
-	public MedicalRecordNoteDto updateNote(
-			@PathVariable UUID patientId,
-			@PathVariable UUID noteId,
-			@Valid @RequestBody MedicalRecordNoteUpdateDto request
-	) {
+	public MedicalRecordNoteDto updateNote(@PathVariable UUID patientId, @PathVariable UUID noteId,
+			@Valid @RequestBody MedicalRecordNoteUpdateDto request) {
 		return medicalRecordService.updateNote(patientId, noteId, request);
 	}
 
@@ -120,10 +114,8 @@ public class MedicalRecordController {
 	@PostMapping("/by-patient/{patientId}/attachments")
 	@ResponseStatus(HttpStatus.CREATED)
 	@RolesAllowed({"ADMIN", "DOCTOR"})
-	public MedicalRecordAttachmentDto addAttachment(
-			@PathVariable UUID patientId,
-			@Valid @RequestBody MedicalRecordAttachmentCreateDto request
-	) {
+	public MedicalRecordAttachmentDto addAttachment(@PathVariable UUID patientId,
+			@Valid @RequestBody MedicalRecordAttachmentCreateDto request) {
 		return medicalRecordService.addAttachment(patientId, request);
 	}
 
@@ -135,20 +127,15 @@ public class MedicalRecordController {
 
 	@GetMapping("/by-patient/{patientId}/attachments/{attachmentId}")
 	@RolesAllowed({"ADMIN", "DOCTOR"})
-	public MedicalRecordAttachmentDto findAttachmentById(
-			@PathVariable UUID patientId,
-			@PathVariable UUID attachmentId
-	) {
+	public MedicalRecordAttachmentDto findAttachmentById(@PathVariable UUID patientId,
+			@PathVariable UUID attachmentId) {
 		return medicalRecordService.findAttachmentById(patientId, attachmentId);
 	}
 
 	@PutMapping("/by-patient/{patientId}/attachments/{attachmentId}")
 	@RolesAllowed({"ADMIN", "DOCTOR"})
-	public MedicalRecordAttachmentDto updateAttachment(
-			@PathVariable UUID patientId,
-			@PathVariable UUID attachmentId,
-			@Valid @RequestBody MedicalRecordAttachmentUpdateDto request
-	) {
+	public MedicalRecordAttachmentDto updateAttachment(@PathVariable UUID patientId, @PathVariable UUID attachmentId,
+			@Valid @RequestBody MedicalRecordAttachmentUpdateDto request) {
 		return medicalRecordService.updateAttachment(patientId, attachmentId, request);
 	}
 

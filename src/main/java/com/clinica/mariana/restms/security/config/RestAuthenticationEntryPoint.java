@@ -21,21 +21,13 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 	private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
 	@Override
-	public void commence(
-			HttpServletRequest request,
-			HttpServletResponse response,
-			AuthenticationException authException
-	) throws IOException {
+	public void commence(HttpServletRequest request, HttpServletResponse response,
+			AuthenticationException authException) throws IOException {
 		response.setStatus(HttpStatus.UNAUTHORIZED.value());
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-		ApiResponse<Object> payload = ApiResponse.failure(new ApiError(
-				"UNAUTHORIZED",
-				"Authentication is required",
-				List.of(),
-				Instant.now(),
-				request.getRequestURI()
-		));
+		ApiResponse<Object> payload = ApiResponse.failure(new ApiError("UNAUTHORIZED", "Authentication is required",
+				List.of(), Instant.now(), request.getRequestURI()));
 
 		objectMapper.writeValue(response.getOutputStream(), payload);
 	}

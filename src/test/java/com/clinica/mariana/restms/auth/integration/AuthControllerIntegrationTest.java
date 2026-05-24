@@ -16,13 +16,11 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -51,27 +49,17 @@ class AuthControllerIntegrationTest {
 		@DisplayName("When login is requested, then token payload is returned")
 		void shouldReturnTokenPayload() throws Exception {
 			LoginRequestDto request = new LoginRequestDto("api-admin", "api-admin123");
-			LoginResponseDto response = new LoginResponseDto(
-					"access-token",
-					86400L,
-					"refresh-token",
-					1800L,
-					"Bearer",
-					"openid profile email"
-			);
+			LoginResponseDto response = new LoginResponseDto("access-token", 86400L, "refresh-token", 1800L, "Bearer",
+					"openid profile email");
 			when(authService.login(eq(request))).thenReturn(response);
 
-			mockMvc.perform(post("/api/v1/auth/login")
-							.contextPath(CONTEXT_PATH)
-							.contentType(MediaType.APPLICATION_JSON)
-							.content("""
-									{
-									  "username": "api-admin",
-									  "password": "api-admin123"
-									}
-									"""))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.success", is(true)))
+			mockMvc.perform(post("/api/v1/auth/login").contextPath(CONTEXT_PATH).contentType(MediaType.APPLICATION_JSON)
+					.content("""
+							{
+							  "username": "api-admin",
+							  "password": "api-admin123"
+							}
+							""")).andExpect(status().isOk()).andExpect(jsonPath("$.success", is(true)))
 					.andExpect(jsonPath("$.data.accessToken", is("access-token")))
 					.andExpect(jsonPath("$.data.expiresIn", is(86400)))
 					.andExpect(jsonPath("$.data.refreshToken", is("refresh-token")))
@@ -82,7 +70,6 @@ class AuthControllerIntegrationTest {
 		}
 	}
 
-
 	@Nested
 	@DisplayName("Given the authenticated user endpoint")
 	class AuthenticatedUserEndpoint {
@@ -90,19 +77,12 @@ class AuthControllerIntegrationTest {
 		@Test
 		@DisplayName("When called with a JWT, then principal claims are returned")
 		void shouldReturnAuthenticatedUser() throws Exception {
-			mockMvc.perform(get("/api/v1/auth/me")
-							.contextPath(CONTEXT_PATH)
-							.with(jwt().jwt(jwt -> jwt
-											.subject("subject-123")
-											.claim("preferred_username", "api-admin")
-											.claim("email", "api-admin@rest-ms.local")
-											.claim("realm_access", Map.of("roles", List.of("ADMIN", "DOCTOR"))))
-									.authorities(
-											new SimpleGrantedAuthority("ROLE_ADMIN"),
-											new SimpleGrantedAuthority("ROLE_DOCTOR")
-									)))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.success", is(true)))
+			mockMvc.perform(get("/api/v1/auth/me").contextPath(CONTEXT_PATH).with(jwt()
+					.jwt(jwt -> jwt.subject("subject-123").claim("preferred_username", "api-admin")
+							.claim("email", "api-admin@rest-ms.local")
+							.claim("realm_access", Map.of("roles", List.of("ADMIN", "DOCTOR"))))
+					.authorities(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_DOCTOR"))))
+					.andExpect(status().isOk()).andExpect(jsonPath("$.success", is(true)))
 					.andExpect(jsonPath("$.data.subject", is("subject-123")))
 					.andExpect(jsonPath("$.data.username", is("api-admin")))
 					.andExpect(jsonPath("$.data.email", is("api-admin@rest-ms.local")))
@@ -112,9 +92,7 @@ class AuthControllerIntegrationTest {
 		@Test
 		@DisplayName("When called without token, then request is unauthorized")
 		void shouldRejectWhenMissingToken() throws Exception {
-			mockMvc.perform(get("/api/v1/auth/me")
-							.contextPath(CONTEXT_PATH))
-					.andExpect(status().isUnauthorized())
+			mockMvc.perform(get("/api/v1/auth/me").contextPath(CONTEXT_PATH)).andExpect(status().isUnauthorized())
 					.andExpect(jsonPath("$.success", is(false)))
 					.andExpect(jsonPath("$.error.code", is("UNAUTHORIZED")));
 		}

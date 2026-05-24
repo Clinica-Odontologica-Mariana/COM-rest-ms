@@ -36,13 +36,9 @@ public class MedicalRecordService {
 	private final PatientRepository patientRepository;
 	private final StoredFileRepository storedFileRepository;
 
-	public MedicalRecordService(
-			MedicalRecordRepository medicalRecordRepository,
-			MedicalRecordNoteRepository noteRepository,
-			MedicalRecordAttachmentRepository attachmentRepository,
-			PatientRepository patientRepository,
-			StoredFileRepository storedFileRepository
-	) {
+	public MedicalRecordService(MedicalRecordRepository medicalRecordRepository,
+			MedicalRecordNoteRepository noteRepository, MedicalRecordAttachmentRepository attachmentRepository,
+			PatientRepository patientRepository, StoredFileRepository storedFileRepository) {
 		this.medicalRecordRepository = medicalRecordRepository;
 		this.noteRepository = noteRepository;
 		this.attachmentRepository = attachmentRepository;
@@ -72,23 +68,17 @@ public class MedicalRecordService {
 
 	@Transactional
 	public MedicalRecordDto createForPatientIfMissing(UUID patientId, UUID createdByUserId) {
-		return medicalRecordRepository.findByPatientId(patientId)
-				.map(this::toModel)
-				.map(this::toDto)
-				.orElseGet(() -> {
-					MedicalRecordEntity entity = new MedicalRecordEntity();
-					entity.setPatientId(patientId);
-					entity.setCreatedByUserId(createdByUserId);
-					return toDto(toModel(medicalRecordRepository.save(entity)));
-				});
+		return medicalRecordRepository.findByPatientId(patientId).map(this::toModel).map(this::toDto).orElseGet(() -> {
+			MedicalRecordEntity entity = new MedicalRecordEntity();
+			entity.setPatientId(patientId);
+			entity.setCreatedByUserId(createdByUserId);
+			return toDto(toModel(medicalRecordRepository.save(entity)));
+		});
 	}
 
 	@Transactional(readOnly = true)
 	public List<MedicalRecordDto> findAll() {
-		return medicalRecordRepository.findAllByOrderByUpdatedAtDesc()
-				.stream()
-				.map(this::toModel)
-				.map(this::toDto)
+		return medicalRecordRepository.findAllByOrderByUpdatedAtDesc().stream().map(this::toModel).map(this::toDto)
 				.toList();
 	}
 
@@ -149,9 +139,7 @@ public class MedicalRecordService {
 	public List<MedicalRecordNoteDto> findNotesByPatientId(UUID patientId) {
 		MedicalRecordEntity record = findEntityByPatientId(patientId);
 
-		return noteRepository.findAllByMedicalRecordIdOrderByCreatedAtDesc(record.getId())
-				.stream()
-				.map(this::toDto)
+		return noteRepository.findAllByMedicalRecordIdOrderByCreatedAtDesc(record.getId()).stream().map(this::toDto)
 				.toList();
 	}
 
@@ -194,10 +182,8 @@ public class MedicalRecordService {
 	public List<MedicalRecordAttachmentDto> findAttachmentsByPatientId(UUID patientId) {
 		MedicalRecordEntity record = findEntityByPatientId(patientId);
 
-		return attachmentRepository.findAllByMedicalRecordIdOrderByCreatedAtDesc(record.getId())
-				.stream()
-				.map(this::toDto)
-				.toList();
+		return attachmentRepository.findAllByMedicalRecordIdOrderByCreatedAtDesc(record.getId()).stream()
+				.map(this::toDto).toList();
 	}
 
 	@Transactional(readOnly = true)
@@ -206,12 +192,10 @@ public class MedicalRecordService {
 	}
 
 	@Transactional
-	public MedicalRecordAttachmentDto updateAttachment(
-			UUID patientId,
-			UUID attachmentId,
-			MedicalRecordAttachmentUpdateDto request
-	) {
-		MedicalRecordAttachmentEntity attachment = findAttachmentEntityByPatientIdAndAttachmentId(patientId, attachmentId);
+	public MedicalRecordAttachmentDto updateAttachment(UUID patientId, UUID attachmentId,
+			MedicalRecordAttachmentUpdateDto request) {
+		MedicalRecordAttachmentEntity attachment = findAttachmentEntityByPatientIdAndAttachmentId(patientId,
+				attachmentId);
 		attachment.setDescription(request.description());
 
 		return toDto(attachmentRepository.save(attachment));
@@ -219,7 +203,8 @@ public class MedicalRecordService {
 
 	@Transactional
 	public void deleteAttachment(UUID patientId, UUID attachmentId) {
-		MedicalRecordAttachmentEntity attachment = findAttachmentEntityByPatientIdAndAttachmentId(patientId, attachmentId);
+		MedicalRecordAttachmentEntity attachment = findAttachmentEntityByPatientIdAndAttachmentId(patientId,
+				attachmentId);
 		attachmentRepository.delete(attachment);
 	}
 
@@ -239,14 +224,12 @@ public class MedicalRecordService {
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record note not found"));
 	}
 
-	private MedicalRecordAttachmentEntity findAttachmentEntityByPatientIdAndAttachmentId(
-			UUID patientId,
-			UUID attachmentId
-	) {
+	private MedicalRecordAttachmentEntity findAttachmentEntityByPatientIdAndAttachmentId(UUID patientId,
+			UUID attachmentId) {
 		MedicalRecordEntity record = findEntityByPatientId(patientId);
 
-		return attachmentRepository.findByIdAndMedicalRecordId(attachmentId, record.getId())
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record attachment not found"));
+		return attachmentRepository.findByIdAndMedicalRecordId(attachmentId, record.getId()).orElseThrow(
+				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record attachment not found"));
 	}
 
 	private StoredFileEntity findStoredFile(UUID storedFileId) {
@@ -255,41 +238,20 @@ public class MedicalRecordService {
 	}
 
 	private MedicalRecordModel toModel(MedicalRecordEntity entity) {
-		return new MedicalRecordModel(
-				entity.getId(),
-				entity.getPatientId(),
-				entity.getCreatedByUserId(),
-				entity.getAllergies(),
-				entity.getChronicConditions(),
-				entity.getContinuousMedications(),
-				entity.getGeneralObservations(),
-				entity.getCreatedAt(),
-				entity.getUpdatedAt()
-		);
+		return new MedicalRecordModel(entity.getId(), entity.getPatientId(), entity.getCreatedByUserId(),
+				entity.getAllergies(), entity.getChronicConditions(), entity.getContinuousMedications(),
+				entity.getGeneralObservations(), entity.getCreatedAt(), entity.getUpdatedAt());
 	}
 
 	private MedicalRecordDto toDto(MedicalRecordModel model) {
-		return new MedicalRecordDto(
-				model.id(),
-				model.patientId(),
-				model.createdByUserId(),
-				model.allergies(),
-				model.chronicConditions(),
-				model.continuousMedications(),
-				model.generalObservations(),
-				model.createdAt(),
-				model.updatedAt()
-		);
+		return new MedicalRecordDto(model.id(), model.patientId(), model.createdByUserId(), model.allergies(),
+				model.chronicConditions(), model.continuousMedications(), model.generalObservations(),
+				model.createdAt(), model.updatedAt());
 	}
 
 	private MedicalRecordNoteDto toDto(MedicalRecordNoteEntity entity) {
-		return new MedicalRecordNoteDto(
-				entity.getId(),
-				entity.getMedicalRecordId(),
-				entity.getCreatedByUserId(),
-				entity.getNote(),
-				entity.getCreatedAt()
-		);
+		return new MedicalRecordNoteDto(entity.getId(), entity.getMedicalRecordId(), entity.getCreatedByUserId(),
+				entity.getNote(), entity.getCreatedAt());
 	}
 
 	private MedicalRecordAttachmentDto toDto(MedicalRecordAttachmentEntity entity) {
@@ -297,15 +259,8 @@ public class MedicalRecordService {
 	}
 
 	private MedicalRecordAttachmentDto toDto(MedicalRecordAttachmentEntity entity, StoredFileEntity storedFile) {
-		return new MedicalRecordAttachmentDto(
-				entity.getId(),
-				entity.getMedicalRecordId(),
-				entity.getStoredFileId(),
-				storedFile.getOriginalFileName(),
-				storedFile.getMimeType(),
-				storedFile.getSizeBytes(),
-				entity.getDescription(),
-				entity.getCreatedAt()
-		);
+		return new MedicalRecordAttachmentDto(entity.getId(), entity.getMedicalRecordId(), entity.getStoredFileId(),
+				storedFile.getOriginalFileName(), storedFile.getMimeType(), storedFile.getSizeBytes(),
+				entity.getDescription(), entity.getCreatedAt());
 	}
 }

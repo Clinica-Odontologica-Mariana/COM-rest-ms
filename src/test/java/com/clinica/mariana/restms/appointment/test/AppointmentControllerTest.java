@@ -34,26 +34,15 @@ class AppointmentControllerTest {
 
 	@Test
 	void shouldRunAppointmentCrudFlow() throws IOException {
-		when(googleCalendarService.createEvent(any(), any(), any(), any()))
-				.thenReturn("google-event-integration-test");
+		when(googleCalendarService.createEvent(any(), any(), any(), any())).thenReturn("google-event-integration-test");
 
-		UUID scheduledStatusId = appointmentStatusRepository.findByCode("SCHEDULED")
-				.orElseThrow().getId();
+		UUID scheduledStatusId = appointmentStatusRepository.findByCode("SCHEDULED").orElseThrow().getId();
 
 		OffsetDateTime start = OffsetDateTime.now().plusDays(1).withNano(0);
 		OffsetDateTime end = start.plusHours(1);
 
-		AppointmentDto created = appointmentService.create(new AppointmentCreateDto(
-				UUID.randomUUID(),
-				UUID.randomUUID(),
-				null,
-				UUID.randomUUID(),
-				scheduledStatusId,
-				start,
-				end,
-				"Consulta de rotina",
-				true
-		));
+		AppointmentDto created = appointmentService.create(new AppointmentCreateDto(UUID.randomUUID(),
+				UUID.randomUUID(), null, UUID.randomUUID(), scheduledStatusId, start, end, "Consulta de rotina", true));
 
 		assertThat(created.id()).isNotNull();
 		assertThat(created.statusCode()).isEqualTo("SCHEDULED");
@@ -68,16 +57,10 @@ class AppointmentControllerTest {
 		List<AppointmentDto> byPeriod = appointmentService.findByPeriod(periodStart, periodEnd);
 		assertThat(byPeriod).anyMatch(a -> a.id().equals(created.id()));
 
-		UUID confirmedStatusId = appointmentStatusRepository.findByCode("CONFIRMED")
-				.orElseThrow().getId();
+		UUID confirmedStatusId = appointmentStatusRepository.findByCode("CONFIRMED").orElseThrow().getId();
 
-		AppointmentDto updated = appointmentService.update(created.id(), new AppointmentUpdateDto(
-				confirmedStatusId,
-				start.plusMinutes(15),
-				end.plusMinutes(15),
-				"Consulta confirmada",
-				true
-		));
+		AppointmentDto updated = appointmentService.update(created.id(), new AppointmentUpdateDto(confirmedStatusId,
+				start.plusMinutes(15), end.plusMinutes(15), "Consulta confirmada", true));
 
 		assertThat(updated.statusCode()).isEqualTo("CONFIRMED");
 		assertThat(updated.notes()).isEqualTo("Consulta confirmada");

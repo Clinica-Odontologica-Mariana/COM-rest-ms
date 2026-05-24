@@ -48,30 +48,20 @@ class AppointmentSecurityTest {
 		@MethodSource("protectedEndpoints")
 		@DisplayName("When accessing any endpoint, then 401 is returned")
 		void shouldReturn401(String label, MockHttpServletRequestBuilder request) throws Exception {
-			mockMvc.perform(request)
-					.andExpect(status().isUnauthorized());
+			mockMvc.perform(request).andExpect(status().isUnauthorized());
 		}
 
 		static Stream<Arguments> protectedEndpoints() {
 			UUID id = RANDOM_ID;
-			return Stream.of(
-					Arguments.of("GET /appointments",
-							get(BASE)),
+			return Stream.of(Arguments.of("GET /appointments", get(BASE)),
 					Arguments.of("GET /appointments/period",
-							get(BASE + "/period")
-									.param("start", "2026-05-22T09:00:00Z")
-									.param("end", "2026-05-22T18:00:00Z")),
+							get(BASE + "/period").param("start", "2026-05-22T09:00:00Z").param("end",
+									"2026-05-22T18:00:00Z")),
 					Arguments.of("POST /appointments",
-							post(BASE)
-									.contentType(MediaType.APPLICATION_JSON)
-									.content("{}")),
+							post(BASE).contentType(MediaType.APPLICATION_JSON).content("{}")),
 					Arguments.of("PUT /appointments/{id}",
-							put(BASE + "/" + id)
-									.contentType(MediaType.APPLICATION_JSON)
-									.content("{}")),
-					Arguments.of("DELETE /appointments/{id}",
-							delete(BASE + "/" + id))
-			);
+							put(BASE + "/" + id).contentType(MediaType.APPLICATION_JSON).content("{}")),
+					Arguments.of("DELETE /appointments/{id}", delete(BASE + "/" + id)));
 		}
 	}
 
@@ -82,8 +72,7 @@ class AppointmentSecurityTest {
 		@Test
 		@DisplayName("When listing appointments, then 200 is returned")
 		void shouldReturn200OnGetAll() throws Exception {
-			mockMvc.perform(get(BASE).with(jwt()))
-					.andExpect(status().isOk());
+			mockMvc.perform(get(BASE).with(jwt())).andExpect(status().isOk());
 		}
 
 		@Nested
@@ -94,11 +83,8 @@ class AppointmentSecurityTest {
 			@MethodSource("invalidCreatePayloads")
 			@DisplayName("When creating, then validation rejects the command")
 			void shouldReturn400(String scenario, String payload) throws Exception {
-				mockMvc.perform(post(BASE)
-								.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST")))
-								.contentType(MediaType.APPLICATION_JSON)
-								.content(payload))
-						.andExpect(status().isBadRequest());
+				mockMvc.perform(post(BASE).with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST")))
+						.contentType(MediaType.APPLICATION_JSON).content(payload)).andExpect(status().isBadRequest());
 			}
 
 			static Stream<Arguments> invalidCreatePayloads() {
@@ -124,9 +110,8 @@ class AppointmentSecurityTest {
 								validBase.replace("\"statusId\": \"dddddddd-0000-0000-0000-000000000001\",", "")),
 						Arguments.of("missing startDatetime",
 								validBase.replace("\"startDatetime\": \"2026-06-01T09:00:00Z\",", "")),
-						Arguments.of("missing endDatetime",
-								validBase.replace("\"endDatetime\": \"2026-06-01T10:00:00Z\"", "\"endDatetime\": null"))
-				);
+						Arguments.of("missing endDatetime", validBase
+								.replace("\"endDatetime\": \"2026-06-01T10:00:00Z\"", "\"endDatetime\": null")));
 			}
 		}
 	}

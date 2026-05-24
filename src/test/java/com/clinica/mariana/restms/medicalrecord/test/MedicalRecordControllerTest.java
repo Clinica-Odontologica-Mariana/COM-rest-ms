@@ -45,13 +45,10 @@ class MedicalRecordControllerTest {
 		MedicalRecordUpdateDto updateDto = new MedicalRecordUpdateDto("Nenhuma", null, null, null);
 		MedicalRecordNoteCreateDto noteCreateDto = new MedicalRecordNoteCreateDto("Nota inicial");
 		MedicalRecordNoteUpdateDto noteUpdateDto = new MedicalRecordNoteUpdateDto("Nota atualizada");
-		MedicalRecordAttachmentCreateDto attachmentCreateDto = new MedicalRecordAttachmentCreateDto(
-				storedFileId,
-				"Radiografia inicial"
-		);
+		MedicalRecordAttachmentCreateDto attachmentCreateDto = new MedicalRecordAttachmentCreateDto(storedFileId,
+				"Radiografia inicial");
 		MedicalRecordAttachmentUpdateDto attachmentUpdateDto = new MedicalRecordAttachmentUpdateDto(
-				"Radiografia revisada"
-		);
+				"Radiografia revisada");
 
 		when(medicalRecordService.create(createDto)).thenReturn(dto);
 		when(medicalRecordService.findAll()).thenReturn(List.of(dto));
@@ -65,7 +62,8 @@ class MedicalRecordControllerTest {
 		when(medicalRecordService.addAttachment(patientId, attachmentCreateDto)).thenReturn(attachmentDto);
 		when(medicalRecordService.findAttachmentsByPatientId(patientId)).thenReturn(List.of(attachmentDto));
 		when(medicalRecordService.findAttachmentById(patientId, attachmentId)).thenReturn(attachmentDto);
-		when(medicalRecordService.updateAttachment(patientId, attachmentId, attachmentUpdateDto)).thenReturn(attachmentDto);
+		when(medicalRecordService.updateAttachment(patientId, attachmentId, attachmentUpdateDto))
+				.thenReturn(attachmentDto);
 
 		assertThat(controller.create(createDto)).isEqualTo(dto);
 		assertThat(controller.findAll()).containsExactly(dto);
@@ -92,49 +90,22 @@ class MedicalRecordControllerTest {
 	}
 
 	private MedicalRecordDto dto(UUID id, UUID patientId) {
-		return new MedicalRecordDto(
-				id,
-				patientId,
-				UUID.randomUUID(),
-				"Alergia",
-				"Condicao",
-				"Medicacao",
-				"Observacao",
-				OffsetDateTime.now(),
-				OffsetDateTime.now()
-		);
+		return new MedicalRecordDto(id, patientId, UUID.randomUUID(), "Alergia", "Condicao", "Medicacao", "Observacao",
+				OffsetDateTime.now(), OffsetDateTime.now());
 	}
 
 	private Jwt jwt(UUID appUserId) {
-		return Jwt.withTokenValue("token")
-				.header("alg", "none")
-				.subject("keycloak-subject")
-				.issuedAt(Instant.now())
+		return Jwt.withTokenValue("token").header("alg", "none").subject("keycloak-subject").issuedAt(Instant.now())
 				.expiresAt(Instant.now().plusSeconds(60))
-				.claims(claims -> claims.putAll(Map.of("app_user_id", appUserId.toString())))
-				.build();
+				.claims(claims -> claims.putAll(Map.of("app_user_id", appUserId.toString()))).build();
 	}
 
 	private MedicalRecordNoteDto noteDto(UUID id, UUID medicalRecordId) {
-		return new MedicalRecordNoteDto(
-				id,
-				medicalRecordId,
-				UUID.randomUUID(),
-				"Nota inicial",
-				OffsetDateTime.now()
-		);
+		return new MedicalRecordNoteDto(id, medicalRecordId, UUID.randomUUID(), "Nota inicial", OffsetDateTime.now());
 	}
 
 	private MedicalRecordAttachmentDto attachmentDto(UUID id, UUID medicalRecordId, UUID storedFileId) {
-		return new MedicalRecordAttachmentDto(
-				id,
-				medicalRecordId,
-				storedFileId,
-				"radiografia.png",
-				"image/png",
-				2048L,
-				"Radiografia inicial",
-				OffsetDateTime.now()
-		);
+		return new MedicalRecordAttachmentDto(id, medicalRecordId, storedFileId, "radiografia.png", "image/png", 2048L,
+				"Radiografia inicial", OffsetDateTime.now());
 	}
 }

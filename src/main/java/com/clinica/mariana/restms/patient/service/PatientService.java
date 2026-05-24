@@ -54,10 +54,7 @@ public class PatientService {
 
 	@Transactional(readOnly = true)
 	public List<PatientDto> findAll() {
-		return patientRepository.findAllByActiveTrueOrderByFullNameAsc()
-				.stream()
-				.map(this::toModel)
-				.map(this::toDto)
+		return patientRepository.findAllByActiveTrueOrderByFullNameAsc().stream().map(this::toModel).map(this::toDto)
 				.toList();
 	}
 
@@ -114,36 +111,15 @@ public class PatientService {
 	}
 
 	private PatientModel toModel(PatientEntity entity) {
-		return new PatientModel(
-				entity.getId(),
-				entity.getAddressId(),
-				entity.getCreatedByUserId(),
-				entity.getFullName(),
-				entity.getCpf(),
-				entity.getPhone(),
-				entity.getEmail(),
-				entity.getBirthDate(),
-				entity.getEmergencyContactName(),
-				entity.getEmergencyContactPhone(),
-				entity.getNotes(),
-				entity.isActive()
-		);
+		return new PatientModel(entity.getId(), entity.getAddressId(), entity.getCreatedByUserId(),
+				entity.getFullName(), entity.getCpf(), entity.getPhone(), entity.getEmail(), entity.getBirthDate(),
+				entity.getEmergencyContactName(), entity.getEmergencyContactPhone(), entity.getNotes(),
+				entity.isActive());
 	}
 
 	private PatientDto toDto(PatientModel model) {
-		return new PatientDto(
-				model.id(),
-				model.addressId(),
-				model.createdByUserId(),
-				model.fullName(),
-				model.cpf(),
-				model.phone(),
-				model.email(),
-				model.birthDate(),
-				model.emergencyContactName(),
-				model.emergencyContactPhone(),
-				model.notes(),
-				model.active()
-		);
+		return new PatientDto(model.id(), model.addressId(), model.createdByUserId(), model.fullName(), model.cpf(),
+				model.phone(), model.email(), model.birthDate(), model.emergencyContactName(),
+				model.emergencyContactPhone(), model.notes(), model.active());
 	}
 }

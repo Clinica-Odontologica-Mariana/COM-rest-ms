@@ -41,25 +41,15 @@ class MedicalRecordServiceTest {
 
 	@Test
 	void shouldRunMedicalRecordFlowAndValidateErrors() {
-		PatientEntity patient = patientRepository.save(patient(
-				"Joao Prontuario",
-				"98765432100"
-		));
+		PatientEntity patient = patientRepository.save(patient("Joao Prontuario", "98765432100"));
 
-		MedicalRecordDto created = medicalRecordService.create(new MedicalRecordCreateDto(
-				patient.getId(),
-				"Penicilina",
-				"Hipertensao",
-				"Losartana",
-				"Paciente em acompanhamento odontologico"
-		));
+		MedicalRecordDto created = medicalRecordService.create(new MedicalRecordCreateDto(patient.getId(), "Penicilina",
+				"Hipertensao", "Losartana", "Paciente em acompanhamento odontologico"));
 
 		assertThat(created.id()).isNotNull();
 		assertThat(created.patientId()).isEqualTo(patient.getId());
 
-		assertThat(medicalRecordService.findAll())
-				.extracting(MedicalRecordDto::id)
-				.contains(created.id());
+		assertThat(medicalRecordService.findAll()).extracting(MedicalRecordDto::id).contains(created.id());
 
 		MedicalRecordDto foundById = medicalRecordService.findById(created.id());
 		assertThat(foundById.allergies()).isEqualTo("Penicilina");
@@ -68,63 +58,42 @@ class MedicalRecordServiceTest {
 		assertThat(foundByPatient.id()).isEqualTo(created.id());
 
 		MedicalRecordDto updated = medicalRecordService.update(created.id(), new MedicalRecordUpdateDto(
-				"Nenhuma alergia conhecida",
-				"Hipertensao controlada",
-				"Losartana 50mg",
-				"Retorno em seis meses"
-		));
+				"Nenhuma alergia conhecida", "Hipertensao controlada", "Losartana 50mg", "Retorno em seis meses"));
 
 		assertThat(updated.allergies()).isEqualTo("Nenhuma alergia conhecida");
 		assertThat(updated.generalObservations()).isEqualTo("Retorno em seis meses");
 
 		UUID createdByUserId = UUID.randomUUID();
-		MedicalRecordNoteDto note = medicalRecordService.addNote(
-				patient.getId(),
-				createdByUserId,
-				new MedicalRecordNoteCreateDto("Evolucao inicial")
-		);
+		MedicalRecordNoteDto note = medicalRecordService.addNote(patient.getId(), createdByUserId,
+				new MedicalRecordNoteCreateDto("Evolucao inicial"));
 
 		assertThat(note.id()).isNotNull();
 		assertThat(note.medicalRecordId()).isEqualTo(created.id());
 		assertThat(note.createdByUserId()).isEqualTo(createdByUserId);
 		assertThat(note.note()).isEqualTo("Evolucao inicial");
 
-		assertThat(medicalRecordService.findNotesByPatientId(patient.getId()))
-				.extracting(MedicalRecordNoteDto::id)
+		assertThat(medicalRecordService.findNotesByPatientId(patient.getId())).extracting(MedicalRecordNoteDto::id)
 				.contains(note.id());
 
 		MedicalRecordNoteDto foundNote = medicalRecordService.findNoteById(patient.getId(), note.id());
 		assertThat(foundNote.note()).isEqualTo("Evolucao inicial");
 
-		MedicalRecordNoteDto updatedNote = medicalRecordService.updateNote(
-				patient.getId(),
-				note.id(),
-				new MedicalRecordNoteUpdateDto("Evolucao atualizada")
-		);
+		MedicalRecordNoteDto updatedNote = medicalRecordService.updateNote(patient.getId(), note.id(),
+				new MedicalRecordNoteUpdateDto("Evolucao atualizada"));
 		assertThat(updatedNote.note()).isEqualTo("Evolucao atualizada");
 
 		PatientEntity otherPatient = patientRepository.save(patient("Outro Prontuario", "98765432101"));
-		medicalRecordService.create(new MedicalRecordCreateDto(
-				otherPatient.getId(),
-				null,
-				null,
-				null,
-				null
-		));
+		medicalRecordService.create(new MedicalRecordCreateDto(otherPatient.getId(), null, null, null, null));
 
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findNoteById(otherPatient.getId(), note.id()));
-		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.updateNote(
-				otherPatient.getId(),
-				note.id(),
-				new MedicalRecordNoteUpdateDto("Nao deve atualizar")
-		));
+		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.updateNote(otherPatient.getId(), note.id(),
+				new MedicalRecordNoteUpdateDto("Nao deve atualizar")));
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.deleteNote(otherPatient.getId(), note.id()));
 
-		StoredFileEntity storedFile = storedFileRepository.save(storedFile("radiografia-inicial.png", "image/png", 2048L));
-		MedicalRecordAttachmentDto attachment = medicalRecordService.addAttachment(
-				patient.getId(),
-				new MedicalRecordAttachmentCreateDto(storedFile.getId(), "Radiografia inicial")
-		);
+		StoredFileEntity storedFile = storedFileRepository
+				.save(storedFile("radiografia-inicial.png", "image/png", 2048L));
+		MedicalRecordAttachmentDto attachment = medicalRecordService.addAttachment(patient.getId(),
+				new MedicalRecordAttachmentCreateDto(storedFile.getId(), "Radiografia inicial"));
 
 		assertThat(attachment.id()).isNotNull();
 		assertThat(attachment.medicalRecordId()).isEqualTo(created.id());
@@ -135,90 +104,54 @@ class MedicalRecordServiceTest {
 		assertThat(attachment.description()).isEqualTo("Radiografia inicial");
 
 		assertThat(medicalRecordService.findAttachmentsByPatientId(patient.getId()))
-				.extracting(MedicalRecordAttachmentDto::id)
-				.contains(attachment.id());
+				.extracting(MedicalRecordAttachmentDto::id).contains(attachment.id());
 
-		MedicalRecordAttachmentDto foundAttachment = medicalRecordService.findAttachmentById(
-				patient.getId(),
-				attachment.id()
-		);
+		MedicalRecordAttachmentDto foundAttachment = medicalRecordService.findAttachmentById(patient.getId(),
+				attachment.id());
 		assertThat(foundAttachment.originalFileName()).isEqualTo("radiografia-inicial.png");
 
-		MedicalRecordAttachmentDto updatedAttachment = medicalRecordService.updateAttachment(
-				patient.getId(),
-				attachment.id(),
-				new MedicalRecordAttachmentUpdateDto("Radiografia revisada")
-		);
+		MedicalRecordAttachmentDto updatedAttachment = medicalRecordService.updateAttachment(patient.getId(),
+				attachment.id(), new MedicalRecordAttachmentUpdateDto("Radiografia revisada"));
 		assertThat(updatedAttachment.description()).isEqualTo("Radiografia revisada");
 
-		assertStatus(HttpStatus.CONFLICT, () -> medicalRecordService.addAttachment(
-				patient.getId(),
-				new MedicalRecordAttachmentCreateDto(storedFile.getId(), "Duplicado")
-		));
-		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findAttachmentById(
-				otherPatient.getId(),
-				attachment.id()
-		));
-		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.updateAttachment(
-				otherPatient.getId(),
-				attachment.id(),
-				new MedicalRecordAttachmentUpdateDto("Nao deve atualizar")
-		));
-		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.deleteAttachment(
-				otherPatient.getId(),
-				attachment.id()
-		));
+		assertStatus(HttpStatus.CONFLICT, () -> medicalRecordService.addAttachment(patient.getId(),
+				new MedicalRecordAttachmentCreateDto(storedFile.getId(), "Duplicado")));
+		assertStatus(HttpStatus.NOT_FOUND,
+				() -> medicalRecordService.findAttachmentById(otherPatient.getId(), attachment.id()));
+		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.updateAttachment(otherPatient.getId(),
+				attachment.id(), new MedicalRecordAttachmentUpdateDto("Nao deve atualizar")));
+		assertStatus(HttpStatus.NOT_FOUND,
+				() -> medicalRecordService.deleteAttachment(otherPatient.getId(), attachment.id()));
 
-		assertStatus(HttpStatus.CONFLICT, () -> medicalRecordService.create(new MedicalRecordCreateDto(
-				patient.getId(),
-				null,
-				null,
-				null,
-				null
-		)));
+		assertStatus(HttpStatus.CONFLICT,
+				() -> medicalRecordService.create(new MedicalRecordCreateDto(patient.getId(), null, null, null, null)));
 
 		UUID unknownId = UUID.randomUUID();
-		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.create(new MedicalRecordCreateDto(
-				unknownId,
-				null,
-				null,
-				null,
-				null
-		)));
+		assertStatus(HttpStatus.NOT_FOUND,
+				() -> medicalRecordService.create(new MedicalRecordCreateDto(unknownId, null, null, null, null)));
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findById(unknownId));
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findByPatientId(unknownId));
-		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.update(unknownId, new MedicalRecordUpdateDto(
-				null,
-				null,
-				null,
-				null
-		)));
+		assertStatus(HttpStatus.NOT_FOUND,
+				() -> medicalRecordService.update(unknownId, new MedicalRecordUpdateDto(null, null, null, null)));
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findNotesByPatientId(unknownId));
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findAttachmentsByPatientId(unknownId));
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findNoteById(patient.getId(), unknownId));
-		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.updateNote(
-				patient.getId(),
-				unknownId,
-				new MedicalRecordNoteUpdateDto("Nota inexistente")
-		));
+		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.updateNote(patient.getId(), unknownId,
+				new MedicalRecordNoteUpdateDto("Nota inexistente")));
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.deleteNote(patient.getId(), unknownId));
-		assertStatus(HttpStatus.BAD_REQUEST, () -> medicalRecordService.addAttachment(
-				patient.getId(),
-				new MedicalRecordAttachmentCreateDto(unknownId, "Arquivo inexistente")
-		));
+		assertStatus(HttpStatus.BAD_REQUEST, () -> medicalRecordService.addAttachment(patient.getId(),
+				new MedicalRecordAttachmentCreateDto(unknownId, "Arquivo inexistente")));
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findAttachmentById(patient.getId(), unknownId));
-		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.updateAttachment(
-				patient.getId(),
-				unknownId,
-				new MedicalRecordAttachmentUpdateDto("Anexo inexistente")
-		));
+		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.updateAttachment(patient.getId(), unknownId,
+				new MedicalRecordAttachmentUpdateDto("Anexo inexistente")));
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.deleteAttachment(patient.getId(), unknownId));
 
 		medicalRecordService.deleteNote(patient.getId(), note.id());
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findNoteById(patient.getId(), note.id()));
 
 		medicalRecordService.deleteAttachment(patient.getId(), attachment.id());
-		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findAttachmentById(patient.getId(), attachment.id()));
+		assertStatus(HttpStatus.NOT_FOUND,
+				() -> medicalRecordService.findAttachmentById(patient.getId(), attachment.id()));
 
 		medicalRecordService.delete(created.id());
 		assertStatus(HttpStatus.NOT_FOUND, () -> medicalRecordService.findById(created.id()));
@@ -226,9 +159,7 @@ class MedicalRecordServiceTest {
 	}
 
 	private void assertStatus(HttpStatus status, Runnable action) {
-		assertThatThrownBy(action::run)
-				.isInstanceOf(ResponseStatusException.class)
-				.extracting("statusCode")
+		assertThatThrownBy(action::run).isInstanceOf(ResponseStatusException.class).extracting("statusCode")
 				.isEqualTo(status);
 	}
 

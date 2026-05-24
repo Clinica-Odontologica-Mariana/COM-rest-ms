@@ -23,14 +23,16 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
 	}
 
 	@Override
-	public String createEvent(String summary, String description, OffsetDateTime start, OffsetDateTime end) throws IOException {
+	public String createEvent(String summary, String description, OffsetDateTime start, OffsetDateTime end)
+			throws IOException {
 		Event event = buildEvent(summary, description, start, end);
 		Event created = calendar.events().insert(calendarId, event).execute();
 		return created.getId();
 	}
 
 	@Override
-	public void updateEvent(String eventId, String summary, String description, OffsetDateTime start, OffsetDateTime end) throws IOException {
+	public void updateEvent(String eventId, String summary, String description, OffsetDateTime start,
+			OffsetDateTime end) throws IOException {
 		Event event = buildEvent(summary, description, start, end);
 		calendar.events().update(calendarId, eventId, event).execute();
 	}
@@ -41,18 +43,12 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
 	}
 
 	private Event buildEvent(String summary, String description, OffsetDateTime start, OffsetDateTime end) {
-		EventDateTime startDt = new EventDateTime()
-				.setDateTime(new DateTime(start.toInstant().toEpochMilli()))
+		EventDateTime startDt = new EventDateTime().setDateTime(new DateTime(start.toInstant().toEpochMilli()))
 				.setTimeZone("UTC");
 
-		EventDateTime endDt = new EventDateTime()
-				.setDateTime(new DateTime(end.toInstant().toEpochMilli()))
+		EventDateTime endDt = new EventDateTime().setDateTime(new DateTime(end.toInstant().toEpochMilli()))
 				.setTimeZone("UTC");
 
-		return new Event()
-				.setSummary(summary)
-				.setDescription(description)
-				.setStart(startDt)
-				.setEnd(endDt);
+		return new Event().setSummary(summary).setDescription(description).setStart(startDt).setEnd(endDt);
 	}
 }

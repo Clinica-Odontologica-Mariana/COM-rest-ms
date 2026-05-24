@@ -31,47 +31,39 @@ class AddressControllerParameterizedTest {
 	@MethodSource("invalidCreatePayloads")
 	@DisplayName("When creating, then validation rejects the command")
 	void shouldRejectInvalidCreatePayloads(String scenario, String payload) throws Exception {
-		mockMvc.perform(post("/api/v1/addresses")
-					.contextPath(CONTEXT_PATH)
-					.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))
-					.contentType(MediaType.APPLICATION_JSON)
-					.content(payload))
-				.andExpect(status().isBadRequest());
+		mockMvc.perform(post("/api/v1/addresses").contextPath(CONTEXT_PATH)
+				.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))
+				.contentType(MediaType.APPLICATION_JSON).content(payload)).andExpect(status().isBadRequest());
 	}
 
 	static Stream<Arguments> invalidCreatePayloads() {
-		return Stream.of(
-				Arguments.of("missing street", """
-						{
-						  "city": "Brasilia",
-						  "state": "DF",
-						  "zipCode": "70000000"
-						}
-						"""),
-				Arguments.of("invalid lowercase state", """
-						{
-						  "street": "Rua das Flores",
-						  "city": "Brasilia",
-						  "state": "df",
-						  "zipCode": "70000000"
-						}
-						"""),
-				Arguments.of("invalid long state", """
-						{
-						  "street": "Rua das Flores",
-						  "city": "Brasilia",
-						  "state": "DFF",
-						  "zipCode": "70000000"
-						}
-						"""),
-				Arguments.of("invalid zip code", """
-						{
-						  "street": "Rua das Flores",
-						  "city": "Brasilia",
-						  "state": "DF",
-						  "zipCode": "70000-000"
-						}
-						""")
-		);
+		return Stream.of(Arguments.of("missing street", """
+				{
+				  "city": "Brasilia",
+				  "state": "DF",
+				  "zipCode": "70000000"
+				}
+				"""), Arguments.of("invalid lowercase state", """
+				{
+				  "street": "Rua das Flores",
+				  "city": "Brasilia",
+				  "state": "df",
+				  "zipCode": "70000000"
+				}
+				"""), Arguments.of("invalid long state", """
+				{
+				  "street": "Rua das Flores",
+				  "city": "Brasilia",
+				  "state": "DFF",
+				  "zipCode": "70000000"
+				}
+				"""), Arguments.of("invalid zip code", """
+				{
+				  "street": "Rua das Flores",
+				  "city": "Brasilia",
+				  "state": "DF",
+				  "zipCode": "70000-000"
+				}
+				"""));
 	}
 }
