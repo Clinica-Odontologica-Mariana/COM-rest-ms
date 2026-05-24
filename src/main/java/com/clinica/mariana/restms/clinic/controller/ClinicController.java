@@ -49,14 +49,6 @@ public class ClinicController {
         return ResponseEntity.ok(ApiResponse.success(clinics));
     }
 
-    @GetMapping("/paged")
-    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
-    public ResponseEntity<ApiResponse<Page<ClinicDto>>> findAllPaged(
-            @PageableDefault(size = 20, sort = "name") Pageable pageable) {
-        Page<ClinicDto> page = clinicService.findAllPaged(pageable);
-        return ResponseEntity.ok(ApiResponse.success(page));
-    }
-
     @GetMapping("/{id}")
     @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
     public ResponseEntity<ApiResponse<ClinicDto>> findById(@PathVariable UUID id) {
@@ -84,13 +76,6 @@ public class ClinicController {
     @RolesAllowed("ADMIN")
     public ResponseEntity<ApiResponse<Void>> inactivate(@PathVariable UUID id) {
         clinicService.inactivate(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    @DeleteMapping("/{id}")
-    @RolesAllowed("ADMIN")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
-        clinicService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

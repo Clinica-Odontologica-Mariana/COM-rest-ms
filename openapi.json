@@ -1,6 +1,9 @@
 {
   "openapi": "3.1.0",
-  "info": { "title": "OpenAPI definition", "version": "v0" },
+  "info": {
+    "title": "OpenAPI definition",
+    "version": "v0"
+  },
   "servers": [
     {
       "url": "http://localhost:8080/api/v1",
@@ -8,42 +11,58 @@
     }
   ],
   "paths": {
-    "/patients/{id}": {
+    "/workplaces/{id}": {
       "get": {
-        "tags": ["patient-controller"],
+        "tags": [
+          "workplace-controller"
+        ],
         "operationId": "findById",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/PatientDto" } }
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkplaceDto"
+                }
+              }
             }
           }
         }
       },
       "put": {
-        "tags": ["patient-controller"],
+        "tags": [
+          "workplace-controller"
+        ],
         "operationId": "update",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/PatientUpdateDto" }
+              "schema": {
+                "$ref": "#/components/schemas/WorkplaceUpdateDto"
+              }
             }
           },
           "required": true
@@ -52,20 +71,53 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/PatientDto" } }
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkplaceDto"
+                }
+              }
             }
           }
         }
       },
       "delete": {
-        "tags": ["patient-controller"],
+        "tags": [
+          "workplace-controller"
+        ],
         "operationId": "delete",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/working-hours/{id}": {
+      "get": {
+        "tags": [
+          "working-hours-controller"
+        ],
+        "operationId": "findById_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
@@ -73,7 +125,713 @@
             "description": "OK",
             "content": {
               "*/*": {
-                "schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseWorkingHoursDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "working-hours-controller"
+        ],
+        "operationId": "update_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkingHoursUpdateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseWorkingHoursDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "working-hours-controller"
+        ],
+        "operationId": "delete_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/social-links/{id}": {
+      "get": {
+        "tags": [
+          "social-link-controller"
+        ],
+        "operationId": "findById_2",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSocialLinkDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "social-link-controller"
+        ],
+        "operationId": "update_2",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialLinkUpdateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSocialLinkDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "social-link-controller"
+        ],
+        "operationId": "delete_2",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/professionals/{id}": {
+      "get": {
+        "tags": [
+          "professional-controller"
+        ],
+        "operationId": "findById_3",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfessionalDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "professional-controller"
+        ],
+        "operationId": "update_3",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfessionalUpdateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfessionalDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "professional-controller"
+        ],
+        "operationId": "delete_3",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/patients/{id}": {
+      "get": {
+        "tags": [
+          "patient-controller"
+        ],
+        "operationId": "findById_4",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "patient-controller"
+        ],
+        "operationId": "update_4",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatientUpdateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "patient-controller"
+        ],
+        "operationId": "delete_4",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/equipments/{id}": {
+      "get": {
+        "tags": [
+          "equipment-controller"
+        ],
+        "operationId": "findById_5",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseEquipmentDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "equipment-controller"
+        ],
+        "operationId": "update_5",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EquipmentUpdateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseEquipmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clinics/{id}": {
+      "get": {
+        "tags": [
+          "clinic-controller"
+        ],
+        "operationId": "findById_6",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseClinicDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "clinic-controller"
+        ],
+        "operationId": "update_6",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClinicUpdateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseClinicDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/addresses/{id}": {
+      "get": {
+        "tags": [
+          "address-controller"
+        ],
+        "operationId": "findById_7",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddressDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "address-controller"
+        ],
+        "operationId": "update_7",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddressUpdateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddressDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "address-controller"
+        ],
+        "operationId": "delete_5",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/workplaces": {
+      "get": {
+        "tags": [
+          "workplace-controller"
+        ],
+        "operationId": "list",
+        "parameters": [
+          {
+            "name": "clinicId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkplaceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "workplace-controller"
+        ],
+        "operationId": "create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkplaceCreateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkplaceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/working-hours": {
+      "get": {
+        "tags": [
+          "working-hours-controller"
+        ],
+        "operationId": "findByClinicId",
+        "parameters": [
+          {
+            "name": "clinicId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListWorkingHoursDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "working-hours-controller"
+        ],
+        "operationId": "create_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkingHoursCreateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseWorkingHoursDto"
+                }
               }
             }
           }
@@ -82,12 +840,16 @@
     },
     "/users": {
       "post": {
-        "tags": ["user-controller"],
+        "tags": [
+          "user-controller"
+        ],
         "operationId": "createUser",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateUserRequestDto" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserRequestDto"
+              }
             }
           },
           "required": true
@@ -106,9 +868,70 @@
         }
       }
     },
-    "/patients": {
+    "/social-links": {
       "get": {
-        "tags": ["patient-controller"],
+        "tags": [
+          "social-link-controller"
+        ],
+        "operationId": "findByClinicId_1",
+        "parameters": [
+          {
+            "name": "clinicId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListSocialLinkDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "social-link-controller"
+        ],
+        "operationId": "create_2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialLinkCreateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSocialLinkDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/professionals": {
+      "get": {
+        "tags": [
+          "professional-controller"
+        ],
         "operationId": "findAll",
         "responses": {
           "200": {
@@ -117,7 +940,9 @@
               "*/*": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/PatientDto" }
+                  "items": {
+                    "$ref": "#/components/schemas/ProfessionalDto"
+                  }
                 }
               }
             }
@@ -125,12 +950,16 @@
         }
       },
       "post": {
-        "tags": ["patient-controller"],
-        "operationId": "create",
+        "tags": [
+          "professional-controller"
+        ],
+        "operationId": "create_3",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/PatientCreateDto" }
+              "schema": {
+                "$ref": "#/components/schemas/ProfessionalCreateDto"
+              }
             }
           },
           "required": true
@@ -139,56 +968,22 @@
           "201": {
             "description": "Created",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/PatientDto" } }
-            }
-          }
-        }
-      }
-    },
-    "/auth/login": {
-      "post": {
-        "tags": ["auth-controller"],
-        "operationId": "login",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/LoginRequestDto" }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
               "*/*": {
-                "schema": { "$ref": "#/components/schemas/LoginResponseDto" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProfessionalDto"
+                }
               }
             }
           }
         }
       }
     },
-    "/auth/me": {
+    "/patients": {
       "get": {
-        "tags": ["auth-controller"],
-        "operationId": "me",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": { "$ref": "#/components/schemas/AuthenticatedUser" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/addresses": {
-      "get": {
-        "tags": ["address-controller"],
-        "operationId": "findAllAddresses",
+        "tags": [
+          "patient-controller"
+        ],
+        "operationId": "findAll_1",
         "responses": {
           "200": {
             "description": "OK",
@@ -196,7 +991,9 @@
               "*/*": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/AddressDto" }
+                  "items": {
+                    "$ref": "#/components/schemas/PatientDto"
+                  }
                 }
               }
             }
@@ -204,12 +1001,16 @@
         }
       },
       "post": {
-        "tags": ["address-controller"],
-        "operationId": "createAddress",
+        "tags": [
+          "patient-controller"
+        ],
+        "operationId": "create_4",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/AddressCreateDto" }
+              "schema": {
+                "$ref": "#/components/schemas/PatientCreateDto"
+              }
             }
           },
           "required": true
@@ -218,102 +1019,10 @@
           "201": {
             "description": "Created",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/AddressDto" } }
-            }
-          }
-        }
-      }
-    },
-    "/addresses/{id}": {
-      "get": {
-        "tags": ["address-controller"],
-        "operationId": "findAddressById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/AddressDto" } }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": ["address-controller"],
-        "operationId": "updateAddress",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/AddressUpdateDto" }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/AddressDto" } }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": ["address-controller"],
-        "operationId": "deleteAddress",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
               "*/*": {
-                "schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/medical-records/by-patient/{patientId}": {
-      "get": {
-        "tags": ["medical-record-controller"],
-        "operationId": "findMedicalRecordByPatient",
-        "parameters": [
-          {
-            "name": "patientId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": { "$ref": "#/components/schemas/MedicalRecordDto" }
+                "schema": {
+                  "$ref": "#/components/schemas/PatientDto"
+                }
               }
             }
           }
@@ -322,14 +1031,19 @@
     },
     "/medical-records/by-patient/{patientId}/notes": {
       "post": {
-        "tags": ["medical-record-controller"],
-        "operationId": "addMedicalRecordNote",
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "addNote",
         "parameters": [
           {
             "name": "patientId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "requestBody": {
@@ -358,14 +1072,19 @@
     },
     "/medical-records/by-patient/{patientId}/attachments": {
       "post": {
-        "tags": ["medical-record-controller"],
-        "operationId": "addMedicalRecordAttachment",
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "addAttachment",
         "parameters": [
           {
             "name": "patientId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "requestBody": {
@@ -392,11 +1111,158 @@
         }
       }
     },
-    "/professionals": {
+    "/equipments": {
       "get": {
-        "tags": ["professional-controller"],
-        "operationId": "findAllProfessionals",
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "equipment-controller"
+        ],
+        "operationId": "findByClinicId_2",
+        "parameters": [
+          {
+            "name": "clinicId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "activeOnly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListEquipmentDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "equipment-controller"
+        ],
+        "operationId": "create_5",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EquipmentCreateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseEquipmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clinics": {
+      "get": {
+        "tags": [
+          "clinic-controller"
+        ],
+        "operationId": "findAll_2",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListClinicDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "clinic-controller"
+        ],
+        "operationId": "create_6",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClinicCreateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseClinicDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "auth-controller"
+        ],
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/addresses": {
+      "get": {
+        "tags": [
+          "address-controller"
+        ],
+        "operationId": "findAll_3",
         "responses": {
           "200": {
             "description": "OK",
@@ -404,23 +1270,26 @@
               "*/*": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/ProfessionalDto" }
+                  "items": {
+                    "$ref": "#/components/schemas/AddressDto"
+                  }
                 }
               }
             }
-          },
-          "401": { "description": "Unauthorized", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
-          "403": { "description": "Forbidden", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } }
+          }
         }
       },
       "post": {
-        "tags": ["professional-controller"],
-        "operationId": "createProfessional",
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "address-controller"
+        ],
+        "operationId": "create_7",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/ProfessionalCreateDto" }
+              "schema": {
+                "$ref": "#/components/schemas/AddressCreateDto"
+              }
             }
           },
           "required": true
@@ -430,29 +1299,92 @@
             "description": "Created",
             "content": {
               "*/*": {
-                "schema": { "$ref": "#/components/schemas/ProfessionalDto" }
+                "schema": {
+                  "$ref": "#/components/schemas/AddressDto"
+                }
               }
             }
-          },
-          "400": { "description": "Bad Request", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
-          "401": { "description": "Unauthorized", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
-          "403": { "description": "Forbidden", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
-          "404": { "description": "Referenced resource not found", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
-          "409": { "description": "Conflict", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } }
+          }
         }
       }
     },
-    "/professionals/{id}": {
+    "/equipments/{id}/inactivate": {
+      "patch": {
+        "tags": [
+          "equipment-controller"
+        ],
+        "operationId": "inactivate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clinics/{id}/inactivate": {
+      "patch": {
+        "tags": [
+          "clinic-controller"
+        ],
+        "operationId": "inactivate_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workplaces/clinic/{clinicId}": {
       "get": {
-        "tags": ["professional-controller"],
-        "operationId": "findProfessionalById",
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "workplace-controller"
+        ],
+        "operationId": "findAllByClinic",
         "parameters": [
           {
-            "name": "id",
+            "name": "clinicId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
@@ -460,84 +1392,419 @@
             "description": "OK",
             "content": {
               "*/*": {
-                "schema": { "$ref": "#/components/schemas/ProfessionalDto" }
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkplaceDto"
+                  }
+                }
               }
             }
-          },
-          "401": { "description": "Unauthorized", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
-          "403": { "description": "Forbidden", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
-          "404": { "description": "Not Found", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } }
-        }
-      },
-      "put": {
-        "tags": ["professional-controller"],
-        "operationId": "updateProfessional",
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
           }
+        }
+      }
+    },
+    "/social-platforms": {
+      "get": {
+        "tags": [
+          "social-platform-controller"
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ProfessionalUpdateDto" }
-            }
-          },
-          "required": true
-        },
+        "operationId": "findAll_4",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "*/*": {
-                "schema": { "$ref": "#/components/schemas/ProfessionalDto" }
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListSocialPlatformDto"
+                }
               }
             }
-          },
-          "400": { "description": "Bad Request", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
-          "401": { "description": "Unauthorized", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
-          "403": { "description": "Forbidden", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
-          "404": { "description": "Not Found", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
-          "409": { "description": "Conflict", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } }
+          }
         }
-      },
-      "delete": {
-        "tags": ["professional-controller"],
-        "operationId": "deleteProfessional",
-        "security": [{ "bearerAuth": [] }],
+      }
+    },
+    "/social-platforms/{id}": {
+      "get": {
+        "tags": [
+          "social-platform-controller"
+        ],
+        "operationId": "findById_8",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
-          "204": { "description": "No Content" },
-          "401": { "description": "Unauthorized", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
-          "403": { "description": "Forbidden", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } },
-          "404": { "description": "Not Found", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseVoid" } } } }
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSocialPlatformDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/social-platforms/code/{code}": {
+      "get": {
+        "tags": [
+          "social-platform-controller"
+        ],
+        "operationId": "findByCode",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSocialPlatformDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/medical-records/by-patient/{patientId}": {
+      "get": {
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "findByPatient",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalRecordDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clinics/document/{document}": {
+      "get": {
+        "tags": [
+          "clinic-controller"
+        ],
+        "operationId": "findByDocument",
+        "parameters": [
+          {
+            "name": "document",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseClinicDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "auth-controller"
+        ],
+        "operationId": "me",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticatedUser"
+                }
+              }
+            }
+          }
         }
       }
     }
   },
   "components": {
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
-      }
-    },
     "schemas": {
+      "WorkplaceUpdateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "WorkplaceDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "WorkingHoursUpdateDto": {
+        "type": "object",
+        "properties": {
+          "dayOfWeek": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 6,
+            "minimum": 0
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          },
+          "endTimeAfterStartTime": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "endTime",
+          "startTime"
+        ]
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "path": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiResponseWorkingHoursDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/WorkingHoursDto"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          }
+        }
+      },
+      "WorkingHoursDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayOfWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialLinkUpdateDto": {
+        "type": "object",
+        "properties": {
+          "platformId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "(?i)^https?://.*"
+          }
+        },
+        "required": [
+          "platformId",
+          "url"
+        ]
+      },
+      "ApiResponseSocialLinkDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SocialLinkDto"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          }
+        }
+      },
+      "SocialLinkDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "platformId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "ProfessionalUpdateDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "specialtyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "licenseNumber": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "clinicId",
+          "licenseNumber",
+          "specialtyId",
+          "userId"
+        ]
+      },
+      "ProfessionalDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "specialtyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "licenseNumber": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
       "PatientUpdateDto": {
         "type": "object",
         "properties": {
+          "addressId": {
+            "type": "string",
+            "format": "uuid"
+          },
           "fullName": {
             "type": "string",
             "example": "Mariana Alves Atualizada",
@@ -558,29 +1825,350 @@
           },
           "email": {
             "type": "string",
+            "format": "email",
             "example": "mariana.alves.atualizada@exemplo.com",
             "maxLength": 150,
             "minLength": 0
           },
           "birthDate": {
             "type": "string",
-            "format": "date",
-            "example": "1998-08-22"
+            "format": "date"
+          },
+          "emergencyContactName": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "emergencyContactPhone": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "notes": {
+            "type": "string"
           }
         },
-        "required": ["cpf", "fullName", "phone"]
+        "required": [
+          "birthDate",
+          "cpf",
+          "fullName",
+          "phone"
+        ]
       },
       "PatientDto": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "fullName": { "type": "string" },
-          "cpf": { "type": "string" },
-          "phone": { "type": "string" },
-          "email": { "type": "string" },
-          "birthDate": { "type": "string", "format": "date" },
-          "active": { "type": "boolean" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "addressId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdByUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "cpf": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "emergencyContactName": {
+            "type": "string"
+          },
+          "emergencyContactPhone": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
         }
+      },
+      "EquipmentUpdateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "description": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "ApiResponseEquipmentDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/EquipmentDto"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          }
+        }
+      },
+      "EquipmentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ClinicUpdateDto": {
+        "type": "object",
+        "properties": {
+          "addressId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "document": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[0-9]{14}$"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "document",
+          "name",
+          "phone"
+        ]
+      },
+      "ApiResponseClinicDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ClinicDto"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          }
+        }
+      },
+      "ClinicDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "addressId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AddressUpdateDto": {
+        "type": "object",
+        "properties": {
+          "street": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "number": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "complement": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "neighborhood": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "state": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Z]{2}$"
+          },
+          "zipCode": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[0-9]{8}$"
+          }
+        },
+        "required": [
+          "city",
+          "state",
+          "street",
+          "zipCode"
+        ]
+      },
+      "AddressDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "street": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "complement": {
+            "type": "string"
+          },
+          "neighborhood": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "zipCode": {
+            "type": "string"
+          }
+        }
+      },
+      "WorkplaceCreateDto": {
+        "type": "object",
+        "properties": {
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clinicId",
+          "name"
+        ]
+      },
+      "WorkingHoursCreateDto": {
+        "type": "object",
+        "properties": {
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayOfWeek": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 6,
+            "minimum": 0
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          },
+          "endTimeAfterStartTime": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "clinicId",
+          "endTime",
+          "startTime"
+        ]
       },
       "CreateUserRequestDto": {
         "type": "object",
@@ -618,26 +2206,98 @@
           },
           "role": {
             "type": "string",
-            "enum": ["ADMIN", "RECEPTIONIST", "DOCTOR"],
+            "enum": [
+              "ADMIN",
+              "RECEPTIONIST",
+              "DOCTOR"
+            ],
             "example": "DOCTOR",
             "minLength": 1,
             "pattern": "^[A-Z_]+$"
           }
         },
-        "required": ["email", "password", "role", "username"]
+        "required": [
+          "email",
+          "password",
+          "role",
+          "username"
+        ]
       },
       "CreateUserResponseDto": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "username": { "type": "string" },
-          "email": { "type": "string" },
-          "role": { "type": "string" }
+          "id": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
         }
+      },
+      "SocialLinkCreateDto": {
+        "type": "object",
+        "properties": {
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "platformId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "(?i)^https?://.*"
+          }
+        },
+        "required": [
+          "clinicId",
+          "platformId",
+          "url"
+        ]
+      },
+      "ProfessionalCreateDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "specialtyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "licenseNumber": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "clinicId",
+          "licenseNumber",
+          "specialtyId",
+          "userId"
+        ]
       },
       "PatientCreateDto": {
         "type": "object",
         "properties": {
+          "addressId": {
+            "type": "string",
+            "format": "uuid"
+          },
           "fullName": {
             "type": "string",
             "example": "Mariana Alves",
@@ -658,17 +2318,176 @@
           },
           "email": {
             "type": "string",
+            "format": "email",
             "example": "mariana.alves@exemplo.com",
             "maxLength": 150,
             "minLength": 0
           },
           "birthDate": {
             "type": "string",
-            "format": "date",
-            "example": "1998-08-22"
+            "format": "date"
+          },
+          "emergencyContactName": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "emergencyContactPhone": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "notes": {
+            "type": "string"
           }
         },
-        "required": ["cpf", "fullName", "phone"]
+        "required": [
+          "birthDate",
+          "cpf",
+          "fullName",
+          "phone"
+        ]
+      },
+      "MedicalRecordNoteCreateDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "note"
+        ]
+      },
+      "MedicalRecordNoteDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "medicalRecordId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdByUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "note": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MedicalRecordAttachmentCreateDto": {
+        "type": "object",
+        "properties": {
+          "storedFileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "storedFileId"
+        ]
+      },
+      "MedicalRecordAttachmentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "medicalRecordId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "storedFileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "EquipmentCreateDto": {
+        "type": "object",
+        "properties": {
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "description": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "clinicId",
+          "name"
+        ]
+      },
+      "ClinicCreateDto": {
+        "type": "object",
+        "properties": {
+          "addressId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "document": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[0-9]{14}$"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "document",
+          "name",
+          "phone"
+        ]
       },
       "LoginRequestDto": {
         "type": "object",
@@ -686,166 +2505,260 @@
             "minLength": 1
           }
         },
-        "required": ["password", "username"]
+        "required": [
+          "password",
+          "username"
+        ]
       },
       "LoginResponseDto": {
         "type": "object",
         "properties": {
-          "accessToken": { "type": "string" },
-          "expiresIn": { "type": "integer", "format": "int64" },
-          "refreshToken": { "type": "string" },
-          "refreshExpiresIn": { "type": "integer", "format": "int64" },
-          "tokenType": { "type": "string" },
-          "scope": { "type": "string" }
-        }
-      },
-      "AuthenticatedUser": {
-        "type": "object",
-        "properties": {
-          "subject": { "type": "string" },
-          "username": { "type": "string" },
-          "email": { "type": "string" },
-          "roles": {
-            "type": "array",
-            "items": { "type": "string" },
-            "uniqueItems": true
+          "accessToken": {
+            "type": "string"
           },
-          "claims": { "type": "object", "additionalProperties": {} }
-        }
-      },
-      "ApiError": {
-        "type": "object",
-        "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" },
-          "details": { "type": "array", "items": { "type": "string" } },
-          "timestamp": { "type": "string", "format": "date-time" },
-          "path": { "type": "string" }
-        }
-      },
-      "ApiResponseVoid": {
-        "type": "object",
-        "properties": {
-          "success": { "type": "boolean" },
-          "data": {},
-          "error": { "$ref": "#/components/schemas/ApiError" }
-        }
-      },
-      "AddressDto": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "street": { "type": "string" },
-          "number": { "type": "string" },
-          "complement": { "type": "string" },
-          "neighborhood": { "type": "string" },
-          "city": { "type": "string" },
-          "state": { "type": "string" },
-          "zipCode": { "type": "string" }
+          "expiresIn": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "refreshExpiresIn": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tokenType": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          }
         }
       },
       "AddressCreateDto": {
         "type": "object",
         "properties": {
-          "street": { "type": "string", "maxLength": 150 },
-          "number": { "type": "string", "maxLength": 20 },
-          "complement": { "type": "string", "maxLength": 100 },
-          "neighborhood": { "type": "string", "maxLength": 100 },
-          "city": { "type": "string", "maxLength": 100 },
-          "state": { "type": "string", "pattern": "^[A-Z]{2}$" },
-          "zipCode": { "type": "string", "pattern": "^[0-9]{8}$" }
+          "street": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "number": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          },
+          "complement": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "neighborhood": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "state": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Z]{2}$"
+          },
+          "zipCode": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[0-9]{8}$"
+          }
         },
-        "required": ["street", "city", "state", "zipCode"]
+        "required": [
+          "city",
+          "state",
+          "street",
+          "zipCode"
+        ]
       },
-      "AddressUpdateDto": {
+      "ApiResponseVoid": {
         "type": "object",
         "properties": {
-          "street": { "type": "string", "maxLength": 150 },
-          "number": { "type": "string", "maxLength": 20 },
-          "complement": { "type": "string", "maxLength": 100 },
-          "neighborhood": { "type": "string", "maxLength": 100 },
-          "city": { "type": "string", "maxLength": 100 },
-          "state": { "type": "string", "pattern": "^[A-Z]{2}$" },
-          "zipCode": { "type": "string", "pattern": "^[0-9]{8}$" }
-        },
-        "required": ["street", "city", "state", "zipCode"]
-      },
-      "ProfessionalDto": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "userId": { "type": "string", "format": "uuid" },
-          "clinicId": { "type": "string", "format": "uuid" },
-          "specialtyId": { "type": "string", "format": "uuid" },
-          "licenseNumber": { "type": "string" },
-          "active": { "type": "boolean" }
+          "success": {
+            "type": "boolean"
+          },
+          "data": {},
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          }
         }
       },
-      "ProfessionalCreateDto": {
+      "ApiResponseListWorkingHoursDto": {
         "type": "object",
         "properties": {
-          "userId": { "type": "string", "format": "uuid" },
-          "clinicId": { "type": "string", "format": "uuid" },
-          "specialtyId": { "type": "string", "format": "uuid" },
-          "licenseNumber": { "type": "string", "maxLength": 50, "minLength": 1 }
-        },
-        "required": ["userId", "clinicId", "specialtyId", "licenseNumber"]
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkingHoursDto"
+            }
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          }
+        }
       },
-      "ProfessionalUpdateDto": {
+      "ApiResponseListSocialPlatformDto": {
         "type": "object",
         "properties": {
-          "userId": { "type": "string", "format": "uuid" },
-          "clinicId": { "type": "string", "format": "uuid" },
-          "specialtyId": { "type": "string", "format": "uuid" },
-          "licenseNumber": { "type": "string", "maxLength": 50, "minLength": 1 }
-        },
-        "required": ["userId", "clinicId", "specialtyId", "licenseNumber"]
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocialPlatformDto"
+            }
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          }
+        }
+      },
+      "SocialPlatformDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiResponseSocialPlatformDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SocialPlatformDto"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          }
+        }
+      },
+      "ApiResponseListSocialLinkDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocialLinkDto"
+            }
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          }
+        }
       },
       "MedicalRecordDto": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "patientId": { "type": "string", "format": "uuid" },
-          "createdByUserId": { "type": "string", "format": "uuid" },
-          "allergies": { "type": "string" },
-          "chronicConditions": { "type": "string" },
-          "continuousMedications": { "type": "string" },
-          "generalObservations": { "type": "string" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdByUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "allergies": {
+            "type": "string"
+          },
+          "chronicConditions": {
+            "type": "string"
+          },
+          "continuousMedications": {
+            "type": "string"
+          },
+          "generalObservations": {
+            "type": "string"
+          }
         }
       },
-      "MedicalRecordNoteCreateDto": {
+      "ApiResponseListEquipmentDto": {
         "type": "object",
         "properties": {
-          "note": { "type": "string" }
-        },
-        "required": ["note"]
-      },
-      "MedicalRecordNoteDto": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "medicalRecordId": { "type": "string", "format": "uuid" },
-          "createdByUserId": { "type": "string", "format": "uuid" },
-          "note": { "type": "string" },
-          "createdAt": { "type": "string", "format": "date-time" }
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EquipmentDto"
+            }
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          }
         }
       },
-      "MedicalRecordAttachmentCreateDto": {
+      "ApiResponseListClinicDto": {
         "type": "object",
         "properties": {
-          "storedFileId": { "type": "string", "format": "uuid" },
-          "description": { "type": "string" }
-        },
-        "required": ["storedFileId"]
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClinicDto"
+            }
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          }
+        }
       },
-      "MedicalRecordAttachmentDto": {
+      "AuthenticatedUser": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "medicalRecordId": { "type": "string", "format": "uuid" },
-          "storedFileId": { "type": "string", "format": "uuid" },
-          "description": { "type": "string" },
-          "createdAt": { "type": "string", "format": "date-time" }
+          "subject": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "claims": {
+            "type": "object",
+            "additionalProperties": {}
+          }
         }
       }
     }

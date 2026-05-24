@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/equipment")
+@RequestMapping("/equipments")
 public class EquipmentController {
 
     private final EquipmentService equipmentService;
@@ -69,13 +69,6 @@ public class EquipmentController {
     @RolesAllowed("ADMIN")
     public ResponseEntity<ApiResponse<Void>> inactivate(@PathVariable UUID id) {
         equipmentService.inactivate(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    @DeleteMapping("/{id}")
-    @RolesAllowed("ADMIN")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
-        equipmentService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

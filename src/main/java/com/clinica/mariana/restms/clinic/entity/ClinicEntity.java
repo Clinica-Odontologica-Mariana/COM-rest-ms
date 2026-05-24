@@ -88,16 +88,13 @@ public class ClinicEntity {
         this.phone = phone;
     }
 
-    public String getEmail() {
-        return email;
-    }
-    
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public String getEmail() {return email;}
+
+    public void setEmail(String email) {this.email = email;}
 
     public String getTimezone() {
-        return timezone; }
+        return timezone;
+    }
 
     public void setTimezone(String timezone) {
         this.timezone = timezone;

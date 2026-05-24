@@ -17,7 +17,7 @@ public record EquipmentCreateDto(
 
         String description,
 
-        @Size(max = 150, message = "location must have at most 150 characters")
+        @Size(max = 100, message = "location must have at most 100 characters")
         String location
 ) {
 }

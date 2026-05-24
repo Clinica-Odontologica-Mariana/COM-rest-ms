@@ -1,7 +1,7 @@
-package com.clinica.mariana.restms.clinic.test;
+package com.clinica.mariana.restms.clinic;
 
-import com.clinica.mariana.restms.clinic.dto.SocialLinkDto;
-import com.clinica.mariana.restms.clinic.repository.SocialLinkRepository;
+import com.clinica.mariana.restms.clinic.dto.ClinicDto;
+import com.clinica.mariana.restms.clinic.repository.ClinicRepository;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,19 +17,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
-import java.util.UUID;
 import java.util.stream.Stream;
 
+import org.springframework.test.context.TestPropertySource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -38,10 +38,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:h2:mem:rest_ms_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;NON_KEYWORDS=TIMEZONE;INIT=CREATE DOMAIN IF NOT EXISTS CITEXT AS VARCHAR"
+        "spring.datasource.url=jdbc:h2:mem:rest_ms_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;NON_KEYWORDS=TIMEZONE",
+        "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect"
 })
-@DisplayName("SocialLink integration")
-class SocialLinkControllerTest {
+@DisplayName("Clinic integration")
+class ClinicControllerTest {
 
     private static final String CONTEXT_PATH = "/api/v1";
 
@@ -51,86 +52,97 @@ class SocialLinkControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @Autowired
-    private SocialLinkRepository socialLinkRepository;
+    private ClinicRepository clinicRepository;
 
     @BeforeEach
     void cleanDatabase() {
-        socialLinkRepository.deleteAll();
+        clinicRepository.deleteAll();
     }
 
     @Nested
-    @DisplayName("Given a valid social link")
-    class ValidSocialLink {
+    @DisplayName("Given a valid clinic")
+    class ValidClinic {
 
         @Test
-        @DisplayName("When created, found by id, updated, listed by clinic and deleted, then the lifecycle is persisted")
-        void shouldRunSocialLinkLifecycle() throws Exception {
-            UUID clinicId = UUID.randomUUID();
-            UUID platformId = UUID.randomUUID();
-
-            SocialLinkDto created = createSocialLink("""
+        @DisplayName("When created, found by id and document(CNPJ), updated, inactivated, listed and deleted, then the lifecycle is persisted")
+        void shouldRunClinicLifecycle() throws Exception {
+            ClinicDto created = createClinic("""
                     {
-                      "clinicId": "%s",
-                      "platformId": "%s",
-                      "url": "https://instagram.com/clinicamariana"
+                      "name": "Clinica Mariana Matriz",
+                      "document": "12345678901234",
+                      "phone": "11999999999",
+                      "email": "matriz@clinic.com",
+                      "timezone": "America/Sao_Paulo"
                     }
-                    """.formatted(clinicId.toString(), platformId.toString()));
+                    """);
 
             assertThat(created.id()).isNotNull();
-            assertThat(created.clinicId()).isEqualTo(clinicId);
-            assertThat(created.platformId()).isEqualTo(platformId);
-            assertThat(created.url()).isEqualTo("https://instagram.com/clinicamariana");
+            assertThat(created.active()).isTrue();
+            assertThat(created.name()).isEqualTo("Clinica Mariana Matriz");
 
-            mockMvc.perform(get("/api/v1/social-links/{id}", created.id())
+            mockMvc.perform(get("/api/v1/clinics/{id}", created.id())
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("ADMIN")))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.id", is(created.id().toString())))
-                    .andExpect(jsonPath("$.data.url", is("https://instagram.com/clinicamariana")));
+                    .andExpect(jsonPath("$.data.document", is("12345678901234")));
 
-            mockMvc.perform(put("/api/v1/social-links/{id}", created.id())
+            mockMvc.perform(get("/api/v1/clinics/document/{document}", "12345678901234")
+                            .contextPath(CONTEXT_PATH)
+                            .with(jwtWithRole("RECEPTIONIST")))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.id", is(created.id().toString())));
+
+            mockMvc.perform(put("/api/v1/clinics/{id}", created.id())
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("ADMIN"))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("""
                                     {
-                                      "platformId": "%s",
-                                      "url": "https://facebook.com/clinicamariana"
+                                      "name": "Clinica Mariana Matriz Atualizada",
+                                      "document": "12345678901234",
+                                      "phone": "11888888888",
+                                      "email": "matriz.atualizada@clinic.com",
+                                      "timezone": "America/Sao_Paulo"
                                     }
-                                    """.formatted(platformId.toString())))
+                                    """))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.url", is("https://facebook.com/clinicamariana")));
+                    .andExpect(jsonPath("$.data.name", is("Clinica Mariana Matriz Atualizada")))
+                    .andExpect(jsonPath("$.data.phone", is("11888888888")));
 
-            mockMvc.perform(get("/api/v1/social-links")
-                            .param("clinicId", clinicId.toString())
+            mockMvc.perform(get("/api/v1/clinics")
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("DOCTOR")))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data", hasSize(1)));
 
-            mockMvc.perform(delete("/api/v1/social-links/{id}", created.id())
+            mockMvc.perform(patch("/api/v1/clinics/{id}/inactivate", created.id())
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("ADMIN")))
                     .andExpect(status().isOk());
 
-            mockMvc.perform(get("/api/v1/social-links")
-                            .param("clinicId", clinicId.toString())
+            mockMvc.perform(get("/api/v1/clinics")
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("DOCTOR")))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data", hasSize(0)));
+
+            mockMvc.perform(delete("/api/v1/clinics/{id}", created.id())
+                            .contextPath(CONTEXT_PATH)
+                            .with(jwtWithRole("ADMIN")))
+                    .andExpect(status().isOk());
         }
     }
 
     @Nested
-    @DisplayName("Given invalid social link commands")
-    class InvalidSocialLinkCommands {
+    @DisplayName("Given invalid clinic commands")
+    class InvalidClinicCommands {
 
         @ParameterizedTest(name = "{0}")
         @MethodSource("invalidCreatePayloads")
         @DisplayName("When creating, then validation rejects the command")
         void shouldRejectInvalidCreatePayloads(String scenario, String payload) throws Exception {
-            mockMvc.perform(post("/api/v1/social-links")
+            mockMvc.perform(post("/api/v1/clinics")
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("ADMIN"))
                             .contentType(MediaType.APPLICATION_JSON)
@@ -139,66 +151,68 @@ class SocialLinkControllerTest {
         }
 
         static Stream<Arguments> invalidCreatePayloads() {
-            String randomId = UUID.randomUUID().toString();
             return Stream.of(
-                    Arguments.of("missing required url", """
+                    Arguments.of("missing required name", """
                             {
-                              "clinicId": "%s",
-                              "platformId": "%s"
+                              "document": "45678912300000",
+                              "phone": "11666666666",
+                              "email": "sem.nome@clinic.com"
                             }
-                            """.formatted(randomId, randomId)),
-                    Arguments.of("missing required platformId", """
+                            """),
+                    Arguments.of("invalid document format", """
                             {
-                              "clinicId": "%s",
-                              "url": "https://link.com"
+                              "name": "Clinica Documento Invalido",
+                              "document": "123",
+                              "phone": "11666666666",
+                              "email": "doc.invalido@clinic.com"
                             }
-                            """.formatted(randomId)),
-                    Arguments.of("invalid url format", """
+                            """),
+                    Arguments.of("invalid email format", """
                             {
-                              "clinicId": "%s",
-                              "platformId": "%s",
-                              "url": "www.instagram.com/clinicamariana"
+                              "name": "Clinica Email Invalido",
+                              "document": "45678912300001",
+                              "phone": "11666666666",
+                              "email": "email-invalido"
                             }
-                            """.formatted(randomId, randomId))
+                            """)
             );
         }
     }
 
     @Nested
-    @DisplayName("Given an existing social link")
-    class ExistingSocialLink {
+    @DisplayName("Given an existing clinic")
+    class ExistingClinic {
 
         @Test
-        @DisplayName("When another link uses the same platform for the same clinic, then the command is rejected")
-        void shouldRejectDuplicatePlatformForClinic() throws Exception {
-            UUID clinicId = UUID.randomUUID();
-            UUID platformId = UUID.randomUUID();
-
-            createSocialLink("""
+        @DisplayName("When another clinic uses the same document(CNPJ), then the command is rejected")
+        void shouldRejectDuplicateDocument() throws Exception {
+            createClinic("""
                     {
-                      "clinicId": "%s",
-                      "platformId": "%s",
-                      "url": "https://instagram.com/original"
+                      "name": "Clinica Original",
+                      "document": "11122233344455",
+                      "phone": "1155555555",
+                      "email": "original@clinic.com"
                     }
-                    """.formatted(clinicId.toString(), platformId.toString()));
+                    """);
 
-            mockMvc.perform(post("/api/v1/social-links")
+            mockMvc.perform(post("/api/v1/clinics")
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("ADMIN"))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("""
                                     {
-                                      "clinicId": "%s",
-                                      "platformId": "%s",
-                                      "url": "https://instagram.com/duplicado"
+                                      "name": "Clinica Duplicada",
+                                      "document": "11122233344455",
+                                      "phone": "11666666666",
+                                      "email": "duplicado@clinic.com"
                                     }
-                                    """.formatted(clinicId.toString(), platformId.toString())))
+                                    """))
                     .andExpect(status().isConflict());
         }
     }
 
-    private SocialLinkDto createSocialLink(String payload) throws Exception {
-        String response = mockMvc.perform(post("/api/v1/social-links")
+    private ClinicDto createClinic(String payload) throws Exception {
+        String response = mockMvc.perform(post("/api/v1/clinics")
                         .contextPath(CONTEXT_PATH)
                         .with(jwtWithRole("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -209,7 +223,7 @@ class SocialLinkControllerTest {
                 .getContentAsString();
 
         JsonNode data = objectMapper.readTree(response).get("data");
-        return objectMapper.treeToValue(data, SocialLinkDto.class);
+        return objectMapper.treeToValue(data, ClinicDto.class);
     }
 
     private RequestPostProcessor jwtWithRole(String role) {

@@ -11,4 +11,8 @@ public interface EquipmentRepository extends JpaRepository<EquipmentEntity, UUID
     List<EquipmentEntity> findAllByClinicIdAndActiveTrueOrderByNameAsc(UUID clinicId);
 
     List<EquipmentEntity> findAllByClinicIdOrderByNameAsc(UUID clinicId);
+
+    boolean existsByClinicIdAndName(UUID clinicId, String name);
+
+    boolean existsByClinicIdAndNameAndIdNot(UUID clinicId, String name, UUID id);
 }

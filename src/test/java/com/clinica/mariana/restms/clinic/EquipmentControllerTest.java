@@ -1,4 +1,4 @@
-package com.clinica.mariana.restms.clinic.test;
+package com.clinica.mariana.restms.clinic;
 
 import com.clinica.mariana.restms.clinic.dto.EquipmentDto;
 import com.clinica.mariana.restms.clinic.repository.EquipmentRepository;

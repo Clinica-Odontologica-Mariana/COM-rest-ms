@@ -1,4 +1,4 @@
-package com.clinica.mariana.restms.clinic.test;
+package com.clinica.mariana.restms.clinic;
 
 import com.clinica.mariana.restms.clinic.entity.SocialPlatformEntity;
 import com.clinica.mariana.restms.clinic.repository.SocialPlatformRepository;

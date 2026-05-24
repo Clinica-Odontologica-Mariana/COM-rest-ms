@@ -1,7 +1,8 @@
-package com.clinica.mariana.restms.clinic.test;
+package com.clinica.mariana.restms.clinic;
 
-import com.clinica.mariana.restms.clinic.dto.WorkingHoursDto;
-import com.clinica.mariana.restms.clinic.repository.WorkingHoursRepository;
+import com.clinica.mariana.restms.clinic.dto.SocialLinkDto;
+import com.clinica.mariana.restms.clinic.repository.SocialLinkRepository;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,8 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
         "spring.datasource.url=jdbc:h2:mem:rest_ms_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;NON_KEYWORDS=TIMEZONE;INIT=CREATE DOMAIN IF NOT EXISTS CITEXT AS VARCHAR"
 })
-@DisplayName("WorkingHours integration")
-class WorkingHoursControllerTest {
+@DisplayName("SocialLink integration")
+class SocialLinkControllerTest {
 
     private static final String CONTEXT_PATH = "/api/v1";
 
@@ -50,71 +51,69 @@ class WorkingHoursControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @Autowired
-    private WorkingHoursRepository workingHoursRepository;
+    private SocialLinkRepository socialLinkRepository;
 
     @BeforeEach
     void cleanDatabase() {
-        workingHoursRepository.deleteAll();
+        socialLinkRepository.deleteAll();
     }
 
     @Nested
-    @DisplayName("Given valid working hours")
-    class ValidWorkingHours {
+    @DisplayName("Given a valid social link")
+    class ValidSocialLink {
 
         @Test
         @DisplayName("When created, found by id, updated, listed by clinic and deleted, then the lifecycle is persisted")
-        void shouldRunWorkingHoursLifecycle() throws Exception {
+        void shouldRunSocialLinkLifecycle() throws Exception {
             UUID clinicId = UUID.randomUUID();
+            UUID platformId = UUID.randomUUID();
 
-            WorkingHoursDto created = createWorkingHours("""
+            SocialLinkDto created = createSocialLink("""
                     {
                       "clinicId": "%s",
-                      "dayOfWeek": 1,
-                      "startTime": "08:00:00",
-                      "endTime": "18:00:00"
+                      "platformId": "%s",
+                      "url": "https://instagram.com/clinicamariana"
                     }
-                    """.formatted(clinicId.toString()));
+                    """.formatted(clinicId.toString(), platformId.toString()));
 
             assertThat(created.id()).isNotNull();
             assertThat(created.clinicId()).isEqualTo(clinicId);
-            assertThat(created.dayOfWeek()).isEqualTo(1);
+            assertThat(created.platformId()).isEqualTo(platformId);
+            assertThat(created.url()).isEqualTo("https://instagram.com/clinicamariana");
 
-            mockMvc.perform(get("/api/v1/working-hours/{id}", created.id())
+            mockMvc.perform(get("/api/v1/social-links/{id}", created.id())
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("ADMIN")))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.id", is(created.id().toString())))
-                    .andExpect(jsonPath("$.data.dayOfWeek", is(1)))
-                    .andExpect(jsonPath("$.data.startTime", is("08:00:00")));
+                    .andExpect(jsonPath("$.data.url", is("https://instagram.com/clinicamariana")));
 
-            mockMvc.perform(put("/api/v1/working-hours/{id}", created.id())
+            mockMvc.perform(put("/api/v1/social-links/{id}", created.id())
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("ADMIN"))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("""
                                     {
-                                      "dayOfWeek": 2,
-                                      "startTime": "09:00:00",
-                                      "endTime": "17:00:00"
+                                      "platformId": "%s",
+                                      "url": "https://facebook.com/clinicamariana"
                                     }
-                                    """))
+                                    """.formatted(platformId.toString())))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.dayOfWeek", is(2)))
-                    .andExpect(jsonPath("$.data.startTime", is("09:00:00")));
+                    .andExpect(jsonPath("$.data.url", is("https://facebook.com/clinicamariana")));
 
-            mockMvc.perform(get("/api/v1/working-hours")
+            mockMvc.perform(get("/api/v1/social-links")
                             .param("clinicId", clinicId.toString())
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("DOCTOR")))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data", hasSize(1)));
 
-            mockMvc.perform(delete("/api/v1/working-hours/{id}", created.id())
+            mockMvc.perform(delete("/api/v1/social-links/{id}", created.id())
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("ADMIN")))
                     .andExpect(status().isOk());
 
-            mockMvc.perform(get("/api/v1/working-hours")
+            mockMvc.perform(get("/api/v1/social-links")
                             .param("clinicId", clinicId.toString())
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("DOCTOR")))
@@ -124,14 +123,14 @@ class WorkingHoursControllerTest {
     }
 
     @Nested
-    @DisplayName("Given invalid working hours commands")
-    class InvalidWorkingHoursCommands {
+    @DisplayName("Given invalid social link commands")
+    class InvalidSocialLinkCommands {
 
         @ParameterizedTest(name = "{0}")
         @MethodSource("invalidCreatePayloads")
         @DisplayName("When creating, then validation rejects the command")
         void shouldRejectInvalidCreatePayloads(String scenario, String payload) throws Exception {
-            mockMvc.perform(post("/api/v1/working-hours")
+            mockMvc.perform(post("/api/v1/social-links")
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("ADMIN"))
                             .contentType(MediaType.APPLICATION_JSON)
@@ -142,76 +141,64 @@ class WorkingHoursControllerTest {
         static Stream<Arguments> invalidCreatePayloads() {
             String randomId = UUID.randomUUID().toString();
             return Stream.of(
-                    Arguments.of("missing required clinicId", """
-                            {
-                              "dayOfWeek": 1,
-                              "startTime": "08:00:00",
-                              "endTime": "18:00:00"
-                            }
-                            """),
-                    Arguments.of("dayOfWeek less than 0", """
+                    Arguments.of("missing required url", """
                             {
                               "clinicId": "%s",
-                              "dayOfWeek": -1,
-                              "startTime": "08:00:00",
-                              "endTime": "18:00:00"
+                              "platformId": "%s"
+                            }
+                            """.formatted(randomId, randomId)),
+                    Arguments.of("missing required platformId", """
+                            {
+                              "clinicId": "%s",
+                              "url": "https://link.com"
                             }
                             """.formatted(randomId)),
-                    Arguments.of("dayOfWeek greater than 6", """
+                    Arguments.of("invalid url format", """
                             {
                               "clinicId": "%s",
-                              "dayOfWeek": 7,
-                              "startTime": "08:00:00",
-                              "endTime": "18:00:00"
+                              "platformId": "%s",
+                              "url": "www.instagram.com/clinicamariana"
                             }
-                            """.formatted(randomId)),
-                    Arguments.of("missing startTime", """
-                            {
-                              "clinicId": "%s",
-                              "dayOfWeek": 1,
-                              "endTime": "18:00:00"
-                            }
-                            """.formatted(randomId))
+                            """.formatted(randomId, randomId))
             );
         }
     }
 
     @Nested
-    @DisplayName("Given existing working hours")
-    class ExistingWorkingHours {
+    @DisplayName("Given an existing social link")
+    class ExistingSocialLink {
 
         @Test
-        @DisplayName("When registering the same day of week for a clinic, then the command is rejected")
-        void shouldRejectDuplicateDayOfWeekForClinic() throws Exception {
+        @DisplayName("When another link uses the same platform for the same clinic, then the command is rejected")
+        void shouldRejectDuplicatePlatformForClinic() throws Exception {
             UUID clinicId = UUID.randomUUID();
+            UUID platformId = UUID.randomUUID();
 
-            createWorkingHours("""
+            createSocialLink("""
                     {
                       "clinicId": "%s",
-                      "dayOfWeek": 3,
-                      "startTime": "08:00:00",
-                      "endTime": "18:00:00"
+                      "platformId": "%s",
+                      "url": "https://instagram.com/original"
                     }
-                    """.formatted(clinicId.toString()));
+                    """.formatted(clinicId.toString(), platformId.toString()));
 
-            mockMvc.perform(post("/api/v1/working-hours")
+            mockMvc.perform(post("/api/v1/social-links")
                             .contextPath(CONTEXT_PATH)
                             .with(jwtWithRole("ADMIN"))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("""
                                     {
                                       "clinicId": "%s",
-                                      "dayOfWeek": 3,
-                                      "startTime": "09:00:00",
-                                      "endTime": "12:00:00"
+                                      "platformId": "%s",
+                                      "url": "https://instagram.com/duplicado"
                                     }
-                                    """.formatted(clinicId.toString())))
+                                    """.formatted(clinicId.toString(), platformId.toString())))
                     .andExpect(status().isConflict());
         }
     }
 
-    private WorkingHoursDto createWorkingHours(String payload) throws Exception {
-        String response = mockMvc.perform(post("/api/v1/working-hours")
+    private SocialLinkDto createSocialLink(String payload) throws Exception {
+        String response = mockMvc.perform(post("/api/v1/social-links")
                         .contextPath(CONTEXT_PATH)
                         .with(jwtWithRole("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -222,7 +209,7 @@ class WorkingHoursControllerTest {
                 .getContentAsString();
 
         JsonNode data = objectMapper.readTree(response).get("data");
-        return objectMapper.treeToValue(data, WorkingHoursDto.class);
+        return objectMapper.treeToValue(data, SocialLinkDto.class);
     }
 
     private RequestPostProcessor jwtWithRole(String role) {

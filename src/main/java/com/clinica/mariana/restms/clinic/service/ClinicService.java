@@ -7,6 +7,7 @@ import com.clinica.mariana.restms.clinic.entity.ClinicEntity;
 import com.clinica.mariana.restms.clinic.model.ClinicModel;
 import com.clinica.mariana.restms.clinic.repository.ClinicRepository;
 import com.clinica.mariana.restms.common.exception.AppException;
+import com.clinica.mariana.restms.address.repository.AddressRepository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,13 +24,19 @@ import java.util.UUID;
 public class ClinicService {
 
     private final ClinicRepository clinicRepository;
+    private final AddressRepository addressRepository;
 
-    public ClinicService(ClinicRepository clinicRepository) {
+    public ClinicService(ClinicRepository clinicRepository, AddressRepository addressRepository) {
         this.clinicRepository = clinicRepository;
+        this.addressRepository = addressRepository;
     }
 
     @Transactional
     public ClinicDto create(ClinicCreateDto request) {
+        if (!addressRepository.existsById(request.addressId())) {
+            throw new AppException(HttpStatus.NOT_FOUND, "ADDRESS_NOT_FOUND", "Address not found");
+        }
+
         if (clinicRepository.existsByDocument(request.document())) {
             throw new AppException(HttpStatus.CONFLICT,  "CLINIC_DOCUMENT_CONFLICT", "Clinic document already exists");
         }
@@ -53,13 +60,6 @@ public class ClinicService {
                 .map(this::toModel)
                 .map(this::toDto)
                 .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public Page<ClinicDto> findAllPaged(Pageable pageable) {
-        return clinicRepository.findAll(pageable)
-                .map(this::toModel)
-                .map(this::toDto);
     }
 
     @Transactional(readOnly = true)
@@ -114,14 +114,6 @@ public class ClinicService {
         entity.setActive(false);
         entity.setInactivatedAt(OffsetDateTime.now());
         clinicRepository.save(entity);
-    }
-
-    @Transactional
-    public void delete(UUID id) {
-        if (!clinicRepository.existsById(id)) {
-            throw new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found");
-        }
-        clinicRepository.deleteById(id);
     }
 
     private ClinicEntity toEntity(ClinicModel model) {

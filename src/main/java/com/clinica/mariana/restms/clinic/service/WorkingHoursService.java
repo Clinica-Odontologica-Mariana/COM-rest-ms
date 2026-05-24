@@ -7,11 +7,13 @@ import com.clinica.mariana.restms.clinic.entity.WorkingHoursEntity;
 import com.clinica.mariana.restms.clinic.model.WorkingHoursModel;
 import com.clinica.mariana.restms.clinic.repository.WorkingHoursRepository;
 import com.clinica.mariana.restms.common.exception.AppException;
+import com.clinica.mariana.restms.clinic.repository.ClinicRepository;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,17 +21,21 @@ import java.util.UUID;
 public class WorkingHoursService {
 
     private final WorkingHoursRepository workingHoursRepository;
+    private final ClinicRepository clinicRepository;
 
-    public WorkingHoursService(WorkingHoursRepository workingHoursRepository) {
+    public WorkingHoursService(WorkingHoursRepository workingHoursRepository, ClinicRepository clinicRepository) {
         this.workingHoursRepository = workingHoursRepository;
+        this.clinicRepository = clinicRepository;
     }
 
     @Transactional
     public WorkingHoursDto create(WorkingHoursCreateDto request) {
-        if (workingHoursRepository.existsByClinicIdAndDayOfWeek(request.clinicId(), request.dayOfWeek())) {
-            throw new AppException(HttpStatus.CONFLICT, "WORKING_HOURS_DAY_CONFLICT",
-                    "Working hours for this clinic and day of week already exist");
+        if (!clinicRepository.existsById(request.clinicId())) {
+            throw new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found");
         }
+
+        validateNoOverlap(request.clinicId(), request.dayOfWeek(),
+                request.startTime(), request.endTime(), null);
 
         WorkingHoursModel model = WorkingHoursModel.create(
                 request.clinicId(),
@@ -63,11 +69,8 @@ public class WorkingHoursService {
         WorkingHoursEntity entity = workingHoursRepository.findById(id)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "WORKING_HOURS_NOT_FOUND", "Working hours not found"));
 
-        if (workingHoursRepository.existsByClinicIdAndDayOfWeekAndIdNot(
-                entity.getClinicId(), request.dayOfWeek(), id)) {
-            throw new AppException(HttpStatus.CONFLICT, "WORKING_HOURS_DAY_CONFLICT",
-                    "Working hours for this clinic and day of week already exist");
-        }
+        validateNoOverlap(entity.getClinicId(), request.dayOfWeek(),
+                request.startTime(), request.endTime(), id);
 
         WorkingHoursModel model = new WorkingHoursModel(
                 id,
@@ -87,6 +90,18 @@ public class WorkingHoursService {
             throw new AppException(HttpStatus.NOT_FOUND, "WORKING_HOURS_NOT_FOUND", "Working hours not found");
         }
         workingHoursRepository.deleteById(id);
+    }
+
+    private void validateNoOverlap(UUID clinicId, int dayOfWeek,
+                                   LocalTime startTime, LocalTime endTime, UUID excludeId) {
+        boolean overlaps = excludeId == null
+                ? workingHoursRepository.existsOverlap(clinicId, dayOfWeek, startTime, endTime)
+                : workingHoursRepository.existsOverlapExcluding(clinicId, dayOfWeek, startTime, endTime, excludeId);
+
+        if (overlaps) {
+            throw new AppException(HttpStatus.CONFLICT, "WORKING_HOURS_OVERLAP",
+                    "Working hours overlap with an existing interval for this clinic and day");
+        }
     }
 
     private WorkingHoursEntity toEntity(WorkingHoursModel model) {

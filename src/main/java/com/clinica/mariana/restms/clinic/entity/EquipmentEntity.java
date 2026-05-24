@@ -27,7 +27,7 @@ public class EquipmentEntity {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "location", length = 150)
+    @Column(name = "location", length = 100)
     private String location;
 
     @Column(name = "active", nullable = false)
