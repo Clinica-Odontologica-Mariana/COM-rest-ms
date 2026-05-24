@@ -2,6 +2,9 @@
 
 Aplicacao Spring Boot com PostgreSQL e Keycloak (RBAC com JWT).
 
+![CI-CD](https://github.com/Clinica-Odontologica-Mariana/COM-rest-ms/actions/workflows/cicd.yml/badge.svg)
+![Coverage](https://codecov.io/gh/Clinica-Odontologica-Mariana/COM-rest-ms/graph/badge.svg)
+
 ## Stack e padroes implementados
 
 Aplicacao Spring Boot com PostgreSQL (Supabase ou local) e Flyway para migrations de banco.
@@ -41,6 +44,7 @@ src/test/java/com/clinica/mariana/restms
 - `auth`: login e usuario autenticado (`/auth/login`, `/auth/me`)
 - `users`: criacao de usuarios no Keycloak (`/users`)
 - `patient`: dominio da clinica (CRUD de pacientes)
+- `professional`: profissionais vinculados a usuarios, clinicas e especialidades
 - `security`: configuracao de autenticacao/autorizacao
 - `common`: padrao de resposta e tratamento global de erros
 
@@ -60,8 +64,73 @@ src/test/java/com/clinica/mariana/restms
 - `PUT /api/v1/patients/{id}` (`ADMIN`, `RECEPTIONIST`)
 - `DELETE /api/v1/patients/{id}` (`ADMIN`)
 
+### Professionals
+
+- `POST /api/v1/professionals` (`ADMIN`, `RECEPTIONIST`)
+- `GET /api/v1/professionals` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
+- `GET /api/v1/professionals/{id}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
+- `PUT /api/v1/professionals/{id}` (`ADMIN`, `RECEPTIONIST`)
+- `DELETE /api/v1/professionals/{id}` (`ADMIN`)
+
 As respostas REST sao envelopadas em `{ "success": true, "data": ... }` para sucesso e
 `{ "success": false, "error": ... }` para erro.
+
+## CI/CD (base SDD)
+
+O projeto possui uma base inicial de CI/CD para validar PRs e branches principais sem deploy real.
+
+Workflow atual:
+
+- `cicd.yml` (workflow unico `CI-CD`):
+  - `pull_request` para `develop` e `main`
+  - `push` para `develop` e `main`
+  - `workflow_dispatch` para placeholder manual de deploy futuro
+  - job de Gradle: `chmod +x ./gradlew`, `./gradlew clean test --no-daemon`, `./gradlew build -x test --no-daemon`
+  - job de cobertura: `./gradlew jacocoTestReport --no-daemon`, artifact JaCoCo e upload para Codecov
+  - job de Docker: build da imagem com `push: false`
+  - job `publish-placeholder`: somente documenta futura publicacao em push
+  - job `release-placeholder`: somente documenta futuro deploy em execucao manual
+
+Boas praticas aplicadas no CI/CD:
+
+- `permissions` minimas (`contents: read`)
+- `concurrency` para cancelar execucoes antigas por branch/workflow
+- `timeout-minutes` por job
+- nenhum deploy em PR
+- nenhuma exigencia de secret real para CI basico
+
+Observacoes importantes para o pipeline atual:
+
+- Os testes automatizados usam H2 em memoria com modo PostgreSQL.
+- Flyway esta desabilitado nos testes (`spring.flyway.enabled=false` em perfil de teste/task Gradle).
+- Testes de seguranca usam JWT mockado (`spring-security-test`), sem necessidade de subir Keycloak no CI.
+- Nao ha dependencia ativa de MinIO nos testes atuais.
+
+Comandos locais equivalentes ao CI:
+
+```bash
+./gradlew clean test
+./gradlew build
+docker build -t com-rest-ms:local .
+```
+
+### Secrets e variaveis para deploy futuro (placeholder)
+
+O deploy real ainda nao esta ativado. Quando a hospedagem for definida, os secrets abaixo devem ser configurados conforme estrategia final:
+
+- Registry: `REGISTRY_USERNAME`, `REGISTRY_PASSWORD`, `GHCR_TOKEN`
+- Host: `HOST`, `HOST_USER`, `HOST_SSH_KEY`, `HOST_PORT`
+- Banco: `PROD_DATABASE_URL`, `PROD_DATABASE_USERNAME`, `PROD_DATABASE_PASSWORD`
+- Keycloak: `KEYCLOAK_ISSUER_URI`, `KEYCLOAK_JWK_SET_URI`
+- MinIO: `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`
+- Opcional: `PROD_ENV_FILE`
+
+Acoplamento futuro previsto:
+
+1. publicar imagem no registry definido;
+2. autenticar no host por SSH;
+3. atualizar stack/container com variaveis de producao;
+4. aplicar estrategia de healthcheck e rollback.
 
 ## Variaveis de ambiente
 
@@ -112,7 +181,19 @@ Servicos:
 - PostgreSQL: `localhost:5432`
 
 O schema inicial e aplicado pelo Flyway a partir de `src/main/resources/db/migration`.
-Para bancos ja inicializados antes do Flyway, `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` permite registrar uma baseline sem recriar as tabelas existentes.
+O container do PostgreSQL nao executa scripts em `docker-entrypoint-initdb.d`; ele sobe
+apenas o banco vazio e a aplicacao aplica as migrations ao iniciar.
+
+Se voce ja possui um volume local antigo criado a partir de SQL de bootstrap, recrie o
+volume uma vez para alinhar com Flyway:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+Evite `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` no desenvolvimento comum, pois isso pode
+registrar uma baseline em um schema legado e pular a migration inicial.
 
 Arquivos de apoio:
 - `.env.example` para copiar e ajustar as variaveis locais
@@ -133,6 +214,10 @@ Roles preconfiguradas no realm:
 - `ADMIN`
 - `RECEPTIONIST`
 - `DOCTOR`
+
+O realm local versionado define `accessTokenLifespan=86400` e
+`ssoSessionMaxLifespan=86400` para desenvolvimento, ou seja, sessoes e access tokens
+de ate 24 horas. Revise essa duracao antes de usar em homologacao ou producao.
 
 Usuario admin de API (local):
 

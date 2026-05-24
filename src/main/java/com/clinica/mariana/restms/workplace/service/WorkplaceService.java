@@ -30,8 +30,6 @@ public class WorkplaceService {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Workplace name already exists for this clinic");
 		}
 
-		// Validate clinic exists via FK constraint (enhanced validation can be added with ClinicRepository)
-
 		WorkplaceModel model = WorkplaceModel.create(
 				request.clinicId(),
 				request.name(),

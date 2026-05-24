@@ -1,5 +1,7 @@
 package com.clinica.mariana.restms.security.config;
 
+import com.clinica.mariana.restms.security.config.RestAccessDeniedHandler;
+import com.clinica.mariana.restms.security.config.RestAuthenticationEntryPoint;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
