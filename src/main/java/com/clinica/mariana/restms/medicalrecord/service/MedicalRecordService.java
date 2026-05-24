@@ -30,6 +30,8 @@ import java.util.UUID;
 @Service
 public class MedicalRecordService {
 
+	private static final String MEDICAL_RECORD_NOT_FOUND = "Medical record not found";
+
 	private final MedicalRecordRepository medicalRecordRepository;
 	private final MedicalRecordNoteRepository noteRepository;
 	private final MedicalRecordAttachmentRepository attachmentRepository;
@@ -85,7 +87,7 @@ public class MedicalRecordService {
 	@Transactional(readOnly = true)
 	public MedicalRecordDto findById(UUID id) {
 		MedicalRecordEntity entity = medicalRecordRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record not found"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, MEDICAL_RECORD_NOT_FOUND));
 
 		return toDto(toModel(entity));
 	}
@@ -100,7 +102,7 @@ public class MedicalRecordService {
 	@Transactional
 	public MedicalRecordDto update(UUID id, MedicalRecordUpdateDto request) {
 		MedicalRecordEntity entity = medicalRecordRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record not found"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, MEDICAL_RECORD_NOT_FOUND));
 
 		entity.setAllergies(request.allergies());
 		entity.setChronicConditions(request.chronicConditions());
@@ -113,7 +115,7 @@ public class MedicalRecordService {
 	@Transactional
 	public void delete(UUID id) {
 		MedicalRecordEntity entity = medicalRecordRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record not found"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, MEDICAL_RECORD_NOT_FOUND));
 
 		medicalRecordRepository.delete(entity);
 	}
@@ -125,10 +127,10 @@ public class MedicalRecordService {
 
 	@Transactional
 	public MedicalRecordNoteDto addNote(UUID patientId, UUID createdByUserId, MedicalRecordNoteCreateDto request) {
-		MedicalRecordEntity record = findEntityByPatientId(patientId);
+		MedicalRecordEntity medicalRecord = findEntityByPatientId(patientId);
 
 		MedicalRecordNoteEntity note = new MedicalRecordNoteEntity();
-		note.setMedicalRecordId(record.getId());
+		note.setMedicalRecordId(medicalRecord.getId());
 		note.setCreatedByUserId(createdByUserId);
 		note.setNote(request.note());
 
@@ -137,10 +139,10 @@ public class MedicalRecordService {
 
 	@Transactional(readOnly = true)
 	public List<MedicalRecordNoteDto> findNotesByPatientId(UUID patientId) {
-		MedicalRecordEntity record = findEntityByPatientId(patientId);
+		MedicalRecordEntity medicalRecord = findEntityByPatientId(patientId);
 
-		return noteRepository.findAllByMedicalRecordIdOrderByCreatedAtDesc(record.getId()).stream().map(this::toDto)
-				.toList();
+		return noteRepository.findAllByMedicalRecordIdOrderByCreatedAtDesc(medicalRecord.getId()).stream()
+				.map(this::toDto).toList();
 	}
 
 	@Transactional(readOnly = true)
@@ -168,15 +170,16 @@ public class MedicalRecordService {
 	}
 
 	@Transactional
-	public MedicalRecordAttachmentDto addAttachment(UUID patientId, UUID createdByUserId, MedicalRecordAttachmentCreateDto request) {
-		MedicalRecordEntity record = findEntityByPatientId(patientId);
+	public MedicalRecordAttachmentDto addAttachment(UUID patientId, UUID createdByUserId,
+			MedicalRecordAttachmentCreateDto request) {
+		MedicalRecordEntity medicalRecord = findEntityByPatientId(patientId);
 		StoredFileEntity storedFile = findStoredFile(request.storedFileId());
 		if (attachmentRepository.existsByStoredFileId(request.storedFileId())) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Stored file already attached to a medical record");
 		}
 
 		MedicalRecordAttachmentEntity attachment = new MedicalRecordAttachmentEntity();
-		attachment.setMedicalRecordId(record.getId());
+		attachment.setMedicalRecordId(medicalRecord.getId());
 		attachment.setStoredFileId(request.storedFileId());
 		attachment.setDescription(request.description());
 
@@ -185,9 +188,9 @@ public class MedicalRecordService {
 
 	@Transactional(readOnly = true)
 	public List<MedicalRecordAttachmentDto> findAttachmentsByPatientId(UUID patientId) {
-		MedicalRecordEntity record = findEntityByPatientId(patientId);
+		MedicalRecordEntity medicalRecord = findEntityByPatientId(patientId);
 
-		return attachmentRepository.findAllByMedicalRecordIdOrderByCreatedAtDesc(record.getId()).stream()
+		return attachmentRepository.findAllByMedicalRecordIdOrderByCreatedAtDesc(medicalRecord.getId()).stream()
 				.map(this::toDto).toList();
 	}
 
@@ -219,21 +222,21 @@ public class MedicalRecordService {
 		}
 
 		return medicalRecordRepository.findByPatientId(patientId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record not found"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, MEDICAL_RECORD_NOT_FOUND));
 	}
 
 	private MedicalRecordNoteEntity findNoteEntityByPatientIdAndNoteId(UUID patientId, UUID noteId) {
-		MedicalRecordEntity record = findEntityByPatientId(patientId);
+		MedicalRecordEntity medicalRecord = findEntityByPatientId(patientId);
 
-		return noteRepository.findByIdAndMedicalRecordId(noteId, record.getId())
+		return noteRepository.findByIdAndMedicalRecordId(noteId, medicalRecord.getId())
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record note not found"));
 	}
 
 	private MedicalRecordAttachmentEntity findAttachmentEntityByPatientIdAndAttachmentId(UUID patientId,
 			UUID attachmentId) {
-		MedicalRecordEntity record = findEntityByPatientId(patientId);
+		MedicalRecordEntity medicalRecord = findEntityByPatientId(patientId);
 
-		return attachmentRepository.findByIdAndMedicalRecordId(attachmentId, record.getId()).orElseThrow(
+		return attachmentRepository.findByIdAndMedicalRecordId(attachmentId, medicalRecord.getId()).orElseThrow(
 				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record attachment not found"));
 	}
 
