@@ -98,13 +98,15 @@ Boas praticas aplicadas no CI/CD:
 - `timeout-minutes` por job
 - nenhum deploy em PR
 - nenhuma exigencia de secret real para CI basico
+- imagem Docker validada com `push: false`
 
 Observacoes importantes para o pipeline atual:
 
 - Os testes automatizados usam H2 em memoria com modo PostgreSQL.
-- Flyway esta desabilitado nos testes (`spring.flyway.enabled=false` em perfil de teste/task Gradle).
+- Flyway esta desabilitado nos testes (`spring.flyway.enabled=false` em perfil de teste/task Gradle); a migration principal roda no startup da aplicacao com PostgreSQL, como no ambiente Docker Compose.
 - Testes de seguranca usam JWT mockado (`spring-security-test`), sem necessidade de subir Keycloak no CI.
 - Nao ha dependencia ativa de MinIO nos testes atuais.
+- O pipeline nao sobe PostgreSQL, Keycloak ou MinIO porque os testes atuais nao dependem desses services externos.
 
 Comandos locais equivalentes ao CI:
 
@@ -120,10 +122,9 @@ O deploy real ainda nao esta ativado. Quando a hospedagem for definida, os secre
 
 - Registry: `REGISTRY_USERNAME`, `REGISTRY_PASSWORD`, `GHCR_TOKEN`
 - Host: `HOST`, `HOST_USER`, `HOST_SSH_KEY`, `HOST_PORT`
-- Banco: `PROD_DATABASE_URL`, `PROD_DATABASE_USERNAME`, `PROD_DATABASE_PASSWORD`
+- Banco: `PROD_ENV_FILE`, `PROD_DATABASE_URL`, `PROD_DATABASE_USERNAME`, `PROD_DATABASE_PASSWORD`
 - Keycloak: `KEYCLOAK_ISSUER_URI`, `KEYCLOAK_JWK_SET_URI`
 - MinIO: `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`
-- Opcional: `PROD_ENV_FILE`
 
 Acoplamento futuro previsto:
 
