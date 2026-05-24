@@ -164,6 +164,11 @@ public class MedicalRecordService {
 
 	@Transactional
 	public MedicalRecordAttachmentDto addAttachment(UUID patientId, MedicalRecordAttachmentCreateDto request) {
+		return addAttachment(patientId, null, request);
+	}
+
+	@Transactional
+	public MedicalRecordAttachmentDto addAttachment(UUID patientId, UUID createdByUserId, MedicalRecordAttachmentCreateDto request) {
 		MedicalRecordEntity record = findEntityByPatientId(patientId);
 		StoredFileEntity storedFile = findStoredFile(request.storedFileId());
 		if (attachmentRepository.existsByStoredFileId(request.storedFileId())) {

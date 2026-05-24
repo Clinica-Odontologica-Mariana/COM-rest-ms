@@ -16,7 +16,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.time.OffsetDateTime;
 import java.time.Instant;
-import java.util.Map;
 import java.util.List;
 import java.util.UUID;
 
@@ -89,15 +88,57 @@ class MedicalRecordControllerTest {
 		verify(medicalRecordService).deleteAttachment(patientId, attachmentId);
 	}
 
+	@Test
+	void shouldHandleNullJwtInAddNote() {
+		UUID patientId = UUID.randomUUID();
+		MedicalRecordNoteCreateDto noteCreateDto = new MedicalRecordNoteCreateDto("Nota");
+		MedicalRecordNoteDto noteDto = noteDto(UUID.randomUUID(), UUID.randomUUID());
+
+		when(medicalRecordService.addNote(patientId, null, noteCreateDto))
+			.thenReturn(noteDto);
+
+		assertThat(controller.addNote(patientId, noteCreateDto, null))
+			.isEqualTo(noteDto);
+
+		verify(medicalRecordService).addNote(patientId, null, noteCreateDto);
+	}
+
+	@Test
+	void shouldHandleInvalidUuidInSubject() {
+		UUID patientId = UUID.randomUUID();
+		MedicalRecordNoteCreateDto noteCreateDto = new MedicalRecordNoteCreateDto("Nota");
+		MedicalRecordNoteDto noteDto = noteDto(UUID.randomUUID(), UUID.randomUUID());
+
+		when(medicalRecordService.addNote(patientId, null, noteCreateDto))
+			.thenReturn(noteDto);
+
+		assertThat(controller.addNote(patientId, noteCreateDto, jwtWithInvalidSubject()))
+			.isEqualTo(noteDto);
+
+		verify(medicalRecordService).addNote(patientId, null, noteCreateDto);
+	}
+
 	private MedicalRecordDto dto(UUID id, UUID patientId) {
 		return new MedicalRecordDto(id, patientId, UUID.randomUUID(), "Alergia", "Condicao", "Medicacao", "Observacao",
 				OffsetDateTime.now(), OffsetDateTime.now());
 	}
 
 	private Jwt jwt(UUID appUserId) {
-		return Jwt.withTokenValue("token").header("alg", "none").subject("keycloak-subject").issuedAt(Instant.now())
+		return Jwt.withTokenValue("token")
+				.header("alg", "none")
+				.subject(appUserId.toString())
+				.issuedAt(Instant.now())
 				.expiresAt(Instant.now().plusSeconds(60))
-				.claims(claims -> claims.putAll(Map.of("app_user_id", appUserId.toString()))).build();
+				.build();
+	}
+
+	private Jwt jwtWithInvalidSubject() {
+		return Jwt.withTokenValue("token")
+				.header("alg", "none")
+				.subject("not-a-valid-uuid")
+				.issuedAt(Instant.now())
+				.expiresAt(Instant.now().plusSeconds(60))
+				.build();
 	}
 
 	private MedicalRecordNoteDto noteDto(UUID id, UUID medicalRecordId) {
