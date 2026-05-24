@@ -12,7 +12,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 class WorkplaceControllerTest {
@@ -24,11 +25,8 @@ class WorkplaceControllerTest {
 	void shouldRunWorkplaceCrudFlow() {
 		UUID clinicId = UUID.randomUUID();
 
-		WorkplaceDto created = workplaceService.create(new WorkplaceCreateDto(
-				clinicId,
-				"Consultório 01",
-				"Primeiro consultório da clínica"
-		));
+		WorkplaceDto created = workplaceService
+				.create(new WorkplaceCreateDto(clinicId, "Consultório 01", "Primeiro consultório da clínica"));
 
 		assertThat(created.id()).isNotNull();
 		assertThat(created.active()).isTrue();
@@ -38,10 +36,8 @@ class WorkplaceControllerTest {
 		assertThat(found.id()).isEqualTo(created.id());
 		assertThat(found.name()).isEqualTo("Consultório 01");
 
-		WorkplaceDto updated = workplaceService.update(created.id(), new WorkplaceUpdateDto(
-				"Consultório 01 - Reformado",
-				"Consultório reformado em 2026"
-		));
+		WorkplaceDto updated = workplaceService.update(created.id(),
+				new WorkplaceUpdateDto("Consultório 01 - Reformado", "Consultório reformado em 2026"));
 
 		assertThat(updated.name()).isEqualTo("Consultório 01 - Reformado");
 		assertThat(updated.description()).isEqualTo("Consultório reformado em 2026");
@@ -57,31 +53,19 @@ class WorkplaceControllerTest {
 		UUID clinicId = UUID.randomUUID();
 		String duplicateName = "Consultório Duplicado";
 
-		workplaceService.create(new WorkplaceCreateDto(
-				clinicId,
-				duplicateName,
-				"Primeiro"
-		));
+		workplaceService.create(new WorkplaceCreateDto(clinicId, duplicateName, "Primeiro"));
 
-		assertThatThrownBy(() -> workplaceService.create(new WorkplaceCreateDto(
-				clinicId,
-				duplicateName,
-				"Segundo"
-		)))
-		.isInstanceOf(ResponseStatusException.class)
-		.hasMessageContaining("409")
-		.hasMessageContaining("already exists");
+		assertThatThrownBy(() -> workplaceService.create(new WorkplaceCreateDto(clinicId, duplicateName, "Segundo")))
+				.isInstanceOf(ResponseStatusException.class).hasMessageContaining("409")
+				.hasMessageContaining("already exists");
 	}
 
 	@Test
 	void shouldNotListInactivatedWorkplace() {
 		UUID clinicId = UUID.randomUUID();
 
-		WorkplaceDto created = workplaceService.create(new WorkplaceCreateDto(
-				clinicId,
-				"Consultório Inativo",
-				"Será inativado"
-		));
+		WorkplaceDto created = workplaceService
+				.create(new WorkplaceCreateDto(clinicId, "Consultório Inativo", "Será inativado"));
 
 		workplaceService.delete(created.id());
 
@@ -93,22 +77,17 @@ class WorkplaceControllerTest {
 	void shouldFailWhenWorkplaceNotFound() {
 		UUID nonExistentId = UUID.randomUUID();
 
-		assertThatThrownBy(() -> workplaceService.findById(nonExistentId))
-		.isInstanceOf(ResponseStatusException.class)
-		.hasMessageContaining("404")
-		.hasMessageContaining("not found");
+		assertThatThrownBy(() -> workplaceService.findById(nonExistentId)).isInstanceOf(ResponseStatusException.class)
+				.hasMessageContaining("404").hasMessageContaining("not found");
 	}
 
 	@Test
 	void shouldFailWhenUpdateNonExistentWorkplace() {
 		UUID nonExistentId = UUID.randomUUID();
 
-		assertThatThrownBy(() -> workplaceService.update(nonExistentId, new WorkplaceUpdateDto(
-				"New Name",
-				"New Description"
-		)))
-		.isInstanceOf(ResponseStatusException.class)
-		.hasMessageContaining("404");
+		assertThatThrownBy(
+				() -> workplaceService.update(nonExistentId, new WorkplaceUpdateDto("New Name", "New Description")))
+				.isInstanceOf(ResponseStatusException.class).hasMessageContaining("404");
 	}
 
 	@Test
@@ -117,17 +96,9 @@ class WorkplaceControllerTest {
 		UUID clinic2 = UUID.randomUUID();
 		String sameName = "Consultório";
 
-		WorkplaceDto wp1 = workplaceService.create(new WorkplaceCreateDto(
-				clinic1,
-				sameName,
-				"Clínica 1"
-		));
+		WorkplaceDto wp1 = workplaceService.create(new WorkplaceCreateDto(clinic1, sameName, "Clínica 1"));
 
-		WorkplaceDto wp2 = workplaceService.create(new WorkplaceCreateDto(
-				clinic2,
-				sameName,
-				"Clínica 2"
-		));
+		WorkplaceDto wp2 = workplaceService.create(new WorkplaceCreateDto(clinic2, sameName, "Clínica 2"));
 
 		assertThat(wp1.id()).isNotEqualTo(wp2.id());
 		assertThat(wp1.clinicId()).isNotEqualTo(wp2.clinicId());

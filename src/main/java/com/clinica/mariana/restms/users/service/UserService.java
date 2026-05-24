@@ -70,8 +70,7 @@ public class UserService {
 		payload.put("enabled", true);
 		payload.put("email", request.email());
 		payload.put("emailVerified", true);
-		payload.put("credentials",
-				List.of(Map.of("type", PASSWORD, "value", request.password(), "temporary", false)));
+		payload.put("credentials", List.of(Map.of("type", PASSWORD, "value", request.password(), "temporary", false)));
 		if (request.firstName() != null && !request.firstName().isBlank()) {
 			payload.put("firstName", request.firstName());
 		}
