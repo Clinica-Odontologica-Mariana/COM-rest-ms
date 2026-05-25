@@ -1,7 +1,8 @@
 package com.clinica.mariana.restms.storedfile.model;
 
 public enum FileCategory {
-	ODONTOGRAM("odontograms"), USER_PROFILE_PHOTO("profile-photos");
+	ODONTOGRAM("odontograms"), USER_PROFILE_PHOTO("profile-photos"), MEDICAL_RECORD_ATTACHMENT(
+			"medical-record-attachments"), LEGACY("legacy");
 
 	private final String objectKeyPrefix;
 

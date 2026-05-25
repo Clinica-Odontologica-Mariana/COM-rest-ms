@@ -13,6 +13,7 @@ import com.clinica.mariana.restms.medicalrecord.service.MedicalRecordService;
 import com.clinica.mariana.restms.patient.entity.PatientEntity;
 import com.clinica.mariana.restms.patient.repository.PatientRepository;
 import com.clinica.mariana.restms.storedfile.entity.StoredFileEntity;
+import com.clinica.mariana.restms.storedfile.model.FileCategory;
 import com.clinica.mariana.restms.storedfile.repository.StoredFileRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -181,6 +182,7 @@ class MedicalRecordServiceTest {
 		ReflectionTestUtils.setField(entity, "originalFileName", originalFileName);
 		ReflectionTestUtils.setField(entity, "mimeType", mimeType);
 		ReflectionTestUtils.setField(entity, "sizeBytes", sizeBytes);
+		ReflectionTestUtils.setField(entity, "fileCategory", FileCategory.MEDICAL_RECORD_ATTACHMENT);
 		return entity;
 	}
 }

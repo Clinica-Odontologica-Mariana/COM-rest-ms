@@ -109,9 +109,9 @@ class StoredFileControllerIntegrationTest {
 	@Test
 	void shouldUploadOdontogramAndHardDeleteIt() throws Exception {
 		String response = mockMvc
-				.perform(multipart("/api/v1/stored-files/odontograms/{patientId}", patient.getId()).file(odontogramPdf())
-						.param("description", "Odontograma inicial")
-						.contextPath(CONTEXT_PATH).with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"))))
+				.perform(multipart("/api/v1/stored-files/odontograms/{patientId}", patient.getId())
+						.file(odontogramPdf()).param("description", "Odontograma inicial").contextPath(CONTEXT_PATH)
+						.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"))))
 				.andExpect(status().isCreated()).andExpect(jsonPath("$.data.patientId", is(patient.getId().toString())))
 				.andExpect(jsonPath("$.data.file.category", is("ODONTOGRAM"))).andReturn().getResponse()
 				.getContentAsString();
@@ -124,8 +124,7 @@ class StoredFileControllerIntegrationTest {
 	@Test
 	void shouldReturn401WhenUploadingOdontogramWithoutJwt() throws Exception {
 		mockMvc.perform(multipart("/api/v1/stored-files/odontograms/{patientId}", patient.getId()).file(odontogramPdf())
-				.contextPath(CONTEXT_PATH))
-				.andExpect(status().isUnauthorized());
+				.contextPath(CONTEXT_PATH)).andExpect(status().isUnauthorized());
 	}
 
 	private MockMultipartFile profilePhoto() {

@@ -57,8 +57,8 @@ public class MinioStorageService {
 		try {
 			minioClient.removeObject(RemoveObjectArgs.builder().bucket(properties.bucket()).object(objectKey).build());
 		} catch (Exception ex) {
-			throw new AppException(HttpStatus.BAD_GATEWAY, "MINIO_REMOVE_FAILED",
-					"Failed to remove file from storage", List.of(rootCause(ex)));
+			throw new AppException(HttpStatus.BAD_GATEWAY, "MINIO_REMOVE_FAILED", "Failed to remove file from storage",
+					List.of(rootCause(ex)));
 		}
 	}
 

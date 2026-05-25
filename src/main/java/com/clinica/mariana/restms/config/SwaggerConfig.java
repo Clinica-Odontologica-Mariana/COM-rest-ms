@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @OpenAPIDefinition(info = @Info(title = "COM-rest-ms API", version = "v1"), security = {
-		@SecurityRequirement(name = "bearerAuth") })
+		@SecurityRequirement(name = "bearerAuth")})
 @SecurityScheme(name = "bearerAuth", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT", in = SecuritySchemeIn.HEADER)
 public class SwaggerConfig {
 }

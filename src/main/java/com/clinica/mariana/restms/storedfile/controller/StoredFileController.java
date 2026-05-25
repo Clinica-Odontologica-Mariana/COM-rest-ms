@@ -31,11 +31,9 @@ public class StoredFileController {
 	@PostMapping(value = "/odontograms/{patientId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ResponseStatus(HttpStatus.CREATED)
 	@RolesAllowed({"ADMIN", "DOCTOR"})
-	public OdontogramFileDto uploadOdontogram(
-			@PathVariable UUID patientId,
+	public OdontogramFileDto uploadOdontogram(@PathVariable UUID patientId,
 			@RequestParam(required = false) UUID medicalRecordId,
-			@RequestParam(required = false) UUID odontogramEntryId,
-			@RequestParam(required = false) String description,
+			@RequestParam(required = false) UUID odontogramEntryId, @RequestParam(required = false) String description,
 			@RequestParam MultipartFile file) {
 		return odontogramFileService.upload(patientId, medicalRecordId, odontogramEntryId, description, file, null);
 	}
