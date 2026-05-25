@@ -1,13 +1,15 @@
-package com.clinica.mariana.restms.security.config;
+package com.clinica.mariana.restms.security.unit;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.security.oauth2.jwt.Jwt;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.clinica.mariana.restms.security.config.RestAccessDeniedHandler;
+import com.clinica.mariana.restms.security.config.RestAuthenticationEntryPoint;
+import com.clinica.mariana.restms.security.config.SecurityConfig;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 class SecurityConfigTest {
 
