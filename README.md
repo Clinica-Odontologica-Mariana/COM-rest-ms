@@ -9,7 +9,7 @@ Aplicacao Spring Boot com PostgreSQL e Keycloak (RBAC com JWT).
 
 Aplicacao Spring Boot com PostgreSQL (Supabase ou local) e Flyway para migrations de banco.
 
-## Estrutura arquitetural (MVC em camadas)
+## Exemplo da Estrutura arquitetural (MVC em camadas)
 
 ```text
 src/main/java/com/clinica/mariana/restms
@@ -35,8 +35,8 @@ src/test/java/com/clinica/mariana/restms
 - Usuario autenticado via `@AuthenticationPrincipal Jwt`
 - Interceptor HTTP para logging de request (`RequestLoggingInterceptor`)
 - Envelope global de resposta:
-    - sucesso: `{ "success": true, "data": ... }`
-    - erro: `{ "success": false, "error": ... }`
+  - sucesso: `{ "success": true, "data": ... }`
+  - erro: `{ "success": false, "error": ... }`
 - Keycloak como fonte unica de autenticacao/usuarios
 
 ## Estrutura simplificada
@@ -82,13 +82,13 @@ O projeto possui uma base inicial de CI/CD para validar PRs e branches principai
 Workflow atual:
 
 - `cicd.yml` (workflow unico `CI-CD`):
-    - `pull_request` para `develop` e `main`
-    - `push` para `develop` e `main`
-    - `workflow_dispatch` para placeholder manual de deploy futuro
-    - job de Gradle: `chmod +x ./gradlew`, `./gradlew test --no-daemon`,
-      `./gradlew check --no-daemon`, `./gradlew build --no-daemon`
-    - step de Docker: `docker build -t com-rest-ms:ci .`, sem push de imagem
-    - step manual de notas para deploy futuro, sem deploy real
+  - `pull_request` para `develop` e `main`
+  - `push` para `develop` e `main`
+  - `workflow_dispatch` para placeholder manual de deploy futuro
+  - job de Gradle: `chmod +x ./gradlew`, `./gradlew test --no-daemon`,
+    `./gradlew check --no-daemon`, `./gradlew build --no-daemon`
+  - step de Docker: `docker build -t com-rest-ms:ci .`, sem push de imagem
+  - step manual de notas para deploy futuro, sem deploy real
 
 Boas praticas aplicadas no CI/CD:
 
@@ -252,7 +252,7 @@ Defaults de desenvolvimento:
 Endpoints principais:
 
 | Metodo   | Endpoint                                             | Uso                                                   |
-|----------|------------------------------------------------------|-------------------------------------------------------|
+| -------- | ---------------------------------------------------- | ----------------------------------------------------- |
 | `POST`   | `/api/v1/users/me/profile-photo`                     | Envia/substitui a propria foto de perfil.             |
 | `GET`    | `/api/v1/users/me/profile-photo`                     | Consulta metadados da propria foto.                   |
 | `GET`    | `/api/v1/users/me/profile-photo/download-url`        | Gera URL presignada temporaria.                       |
@@ -261,7 +261,7 @@ Endpoints principais:
 | `GET`    | `/api/v1/users/{userId}/profile-photo`               | `ADMIN` consulta foto de outro usuario.               |
 | `GET`    | `/api/v1/users/{userId}/profile-photo/download-url`  | `ADMIN` gera URL presignada.                          |
 | `DELETE` | `/api/v1/users/{userId}/profile-photo`               | `ADMIN` remove foto de outro usuario com hard delete. |
-| `POST`   | `/api/v1/stored-files/odontograms`                   | `ADMIN`/`DOCTOR` envia odontograma.                   |
+| `POST`   | `/api/v1/stored-files/odontograms/{patientId}`       | `ADMIN`/`DOCTOR` envia odontograma.                   |
 | `GET`    | `/api/v1/stored-files/odontograms/{id}`              | `ADMIN`/`DOCTOR` consulta metadados.                  |
 | `GET`    | `/api/v1/stored-files/odontograms/{id}/download-url` | `ADMIN`/`DOCTOR` gera URL presignada.                 |
 | `DELETE` | `/api/v1/stored-files/odontograms/{id}`              | `ADMIN`/`DOCTOR` remove odontograma com hard delete.  |

@@ -5,6 +5,7 @@ import com.clinica.mariana.restms.storedfile.dto.UserProfilePhotoDto;
 import com.clinica.mariana.restms.storedfile.service.UserProfilePhotoService;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,7 +30,7 @@ public class UserProfilePhotoController {
 		this.userProfilePhotoService = userProfilePhotoService;
 	}
 
-	@PostMapping("/me/profile-photo")
+	@PostMapping(value = "/me/profile-photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ResponseStatus(HttpStatus.CREATED)
 	public UserProfilePhotoDto uploadOwnPhoto(@AuthenticationPrincipal Jwt jwt, @RequestParam MultipartFile file) {
 		return userProfilePhotoService.uploadOwnPhoto(jwt.getSubject(), file);
@@ -51,7 +52,7 @@ public class UserProfilePhotoController {
 		userProfilePhotoService.deleteOwnPhoto(jwt.getSubject());
 	}
 
-	@PostMapping("/{userId}/profile-photo")
+	@PostMapping(value = "/{userId}/profile-photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ResponseStatus(HttpStatus.CREATED)
 	@RolesAllowed("ADMIN")
 	public UserProfilePhotoDto uploadUserPhoto(@PathVariable UUID userId, @RequestParam MultipartFile file) {

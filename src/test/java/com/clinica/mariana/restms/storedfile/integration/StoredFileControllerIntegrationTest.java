@@ -10,9 +10,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -107,7 +113,7 @@ class StoredFileControllerIntegrationTest {
 	}
 
 	@Test
-	void shouldUploadOdontogramAndHardDeleteIt() throws Exception {
+	void shouldUploadFindDownloadAndHardDeleteOdontogram() throws Exception {
 		String response = mockMvc
 				.perform(multipart("/api/v1/stored-files/odontograms/{patientId}", patient.getId())
 						.file(odontogramPdf()).param("description", "Odontograma inicial").contextPath(CONTEXT_PATH)
@@ -117,6 +123,14 @@ class StoredFileControllerIntegrationTest {
 				.getContentAsString();
 
 		String id = objectMapper.readTree(response).get("data").get("id").asText();
+		mockMvc.perform(get("/api/v1/stored-files/odontograms/{id}", UUID.fromString(id)).contextPath(CONTEXT_PATH)
+				.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR")))).andExpect(status().isOk())
+				.andExpect(jsonPath("$.data.id", is(id)))
+				.andExpect(jsonPath("$.data.description", is("Odontograma inicial")));
+		mockMvc.perform(get("/api/v1/stored-files/odontograms/{id}/download-url", UUID.fromString(id))
+				.contextPath(CONTEXT_PATH).with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"))))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.data.url", is("http://localhost:9000/test-bucket/object?signature=test")));
 		mockMvc.perform(delete("/api/v1/stored-files/odontograms/{id}", UUID.fromString(id)).contextPath(CONTEXT_PATH)
 				.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR")))).andExpect(status().isNoContent());
 	}
@@ -127,6 +141,31 @@ class StoredFileControllerIntegrationTest {
 				.contextPath(CONTEXT_PATH)).andExpect(status().isUnauthorized());
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = {"ROLE_ASSISTANT", "ROLE_PATIENT"})
+	void shouldRejectOdontogramUploadForUnauthorizedRoles(String role) throws Exception {
+		mockMvc.perform(multipart("/api/v1/stored-files/odontograms/{patientId}", patient.getId()).file(odontogramPdf())
+				.contextPath(CONTEXT_PATH).with(jwt().authorities(new SimpleGrantedAuthority(role))))
+				.andExpect(status().isForbidden());
+	}
+
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("invalidProfilePhotos")
+	void shouldRejectInvalidOwnProfilePhoto(String scenario, MockMultipartFile file, HttpStatus expectedStatus)
+			throws Exception {
+		mockMvc.perform(multipart("/api/v1/users/me/profile-photo").file(file).contextPath(CONTEXT_PATH)
+				.with(jwt().jwt(jwt -> jwt.subject(USER_SUBJECT)))).andExpect(status().is(expectedStatus.value()));
+	}
+
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("invalidOdontogramFiles")
+	void shouldRejectInvalidOdontogramUpload(String scenario, MockMultipartFile file, HttpStatus expectedStatus)
+			throws Exception {
+		mockMvc.perform(multipart("/api/v1/stored-files/odontograms/{patientId}", patient.getId()).file(file)
+				.contextPath(CONTEXT_PATH).with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"))))
+				.andExpect(status().is(expectedStatus.value()));
+	}
+
 	private MockMultipartFile profilePhoto() {
 		return new MockMultipartFile("file", "profile.png", "image/png",
 				new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A});
@@ -135,6 +174,31 @@ class StoredFileControllerIntegrationTest {
 	private MockMultipartFile odontogramPdf() {
 		return new MockMultipartFile("file", "odontogram.pdf", "application/pdf",
 				new byte[]{0x25, 0x50, 0x44, 0x46, 0x2D});
+	}
+
+	static Stream<Arguments> invalidProfilePhotos() {
+		return Stream.of(Arguments.of("empty profile photo",
+				new MockMultipartFile("file", "profile.png", "image/png", new byte[]{}), HttpStatus.BAD_REQUEST),
+				Arguments.of("profile photo rejects pdf",
+						new MockMultipartFile("file", "profile.pdf", "application/pdf",
+								new byte[]{0x25, 0x50, 0x44, 0x46}),
+						HttpStatus.UNSUPPORTED_MEDIA_TYPE),
+				Arguments.of("profile photo rejects svg",
+						new MockMultipartFile("file", "profile.svg", "image/svg+xml", "<svg></svg>".getBytes()),
+						HttpStatus.UNSUPPORTED_MEDIA_TYPE));
+	}
+
+	static Stream<Arguments> invalidOdontogramFiles() {
+		return Stream.of(
+				Arguments.of("empty odontogram",
+						new MockMultipartFile("file", "odontogram.pdf", "application/pdf", new byte[]{}),
+						HttpStatus.BAD_REQUEST),
+				Arguments.of("odontogram rejects generic binary",
+						new MockMultipartFile("file", "odontogram.bin", "application/octet-stream",
+								new byte[]{1, 2, 3}),
+						HttpStatus.UNSUPPORTED_MEDIA_TYPE),
+				Arguments.of("odontogram rejects signature mismatch", new MockMultipartFile("file", "odontogram.png",
+						"image/png", new byte[]{0x25, 0x50, 0x44, 0x46}), HttpStatus.BAD_REQUEST));
 	}
 
 	private PatientEntity patient(String cpf) {

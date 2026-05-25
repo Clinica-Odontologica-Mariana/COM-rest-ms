@@ -129,7 +129,7 @@
           "201": {
             "description": "Created",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/UserProfilePhotoDto" } }
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseUserProfilePhotoDto" } }
             }
           }
         }
@@ -142,7 +142,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/UserProfilePhotoDto" } }
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseUserProfilePhotoDto" } }
             }
           }
         }
@@ -165,7 +165,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/PresignedUrlDto" } }
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponsePresignedUrlDto" } }
             }
           }
         }
@@ -202,7 +202,7 @@
           "201": {
             "description": "Created",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/UserProfilePhotoDto" } }
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseUserProfilePhotoDto" } }
             }
           }
         }
@@ -223,7 +223,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/UserProfilePhotoDto" } }
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseUserProfilePhotoDto" } }
             }
           }
         }
@@ -262,7 +262,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/PresignedUrlDto" } }
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponsePresignedUrlDto" } }
             }
           }
         }
@@ -302,7 +302,7 @@
           "201": {
             "description": "Created",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/OdontogramFileDto" } }
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseOdontogramFileDto" } }
             }
           }
         }
@@ -325,7 +325,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/OdontogramFileDto" } }
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseOdontogramFileDto" } }
             }
           }
         }
@@ -364,7 +364,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/PresignedUrlDto" } }
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponsePresignedUrlDto" } }
             }
           }
         }
@@ -1112,6 +1112,30 @@
           "createdAt": { "type": "string", "format": "date-time" }
         }
       },
+      "ApiResponsePresignedUrlDto": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": { "$ref": "#/components/schemas/PresignedUrlDto" },
+          "error": { "$ref": "#/components/schemas/ApiError" }
+        }
+      },
+      "ApiResponseUserProfilePhotoDto": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": { "$ref": "#/components/schemas/UserProfilePhotoDto" },
+          "error": { "$ref": "#/components/schemas/ApiError" }
+        }
+      },
+      "ApiResponseOdontogramFileDto": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": { "$ref": "#/components/schemas/OdontogramFileDto" },
+          "error": { "$ref": "#/components/schemas/ApiError" }
+        }
+      },
       "PresignedUrlDto": {
         "type": "object",
         "properties": {
@@ -1129,7 +1153,7 @@
           "checksumSha256": { "type": "string" },
           "category": {
             "type": "string",
-            "enum": ["ODONTOGRAM", "USER_PROFILE_PHOTO"]
+            "enum": ["ODONTOGRAM", "USER_PROFILE_PHOTO", "MEDICAL_RECORD_ATTACHMENT", "LEGACY"]
           },
           "uploadedByUserId": { "type": "string", "format": "uuid" },
           "description": { "type": "string" },

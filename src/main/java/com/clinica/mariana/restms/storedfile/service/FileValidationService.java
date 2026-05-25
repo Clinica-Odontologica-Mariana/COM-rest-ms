@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HexFormat;
 import java.util.Set;
 
@@ -51,6 +52,9 @@ public class FileValidationService {
 	}
 
 	private FileValidationProperties.FilePolicy policyFor(FileCategory category) {
+		if (category == null) {
+			throw new AppException(HttpStatus.BAD_REQUEST, "UNSUPPORTED_FILE_CATEGORY", "File category is required");
+		}
 		return switch (category) {
 			case USER_PROFILE_PHOTO -> properties.profilePhoto();
 			case ODONTOGRAM -> properties.odontogram();
@@ -84,8 +88,9 @@ public class FileValidationService {
 		return switch (mimeType) {
 			case "image/jpeg" -> hex.startsWith("ffd8ff");
 			case "image/png" -> hex.startsWith("89504e470d0a1a0a");
-			case "image/webp" -> header.length >= 12 && new String(header, 0, 4).equals("RIFF")
-					&& new String(header, 8, 4).equals("WEBP");
+			case "image/webp" ->
+				header.length >= 12 && new String(header, 0, 4, StandardCharsets.US_ASCII).equals("RIFF")
+						&& new String(header, 8, 4, StandardCharsets.US_ASCII).equals("WEBP");
 			case "application/pdf" -> hex.startsWith("25504446");
 			default -> false;
 		};
