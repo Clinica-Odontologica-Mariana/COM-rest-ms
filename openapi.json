@@ -119,7 +119,277 @@
               "format": "uuid"
             }
           }
+        }
+      }
+    },
+    "/users/me/profile-photo": {
+      "post": {
+        "tags": ["user-profile-photo-controller"],
+        "operationId": "uploadOwnPhoto",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": { "type": "string", "format": "binary" }
+                },
+                "required": ["file"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseUserProfilePhotoDto" } }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["user-profile-photo-controller"],
+        "operationId": "findOwnPhoto",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseUserProfilePhotoDto" } }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["user-profile-photo-controller"],
+        "operationId": "deleteOwnPhoto",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "204": { "description": "No Content" }
+        }
+      }
+    },
+    "/users/me/profile-photo/download-url": {
+      "get": {
+        "tags": ["user-profile-photo-controller"],
+        "operationId": "ownDownloadUrl",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponsePresignedUrlDto" } }
+            }
+          }
+        }
+      }
+    },
+    "/users/{userId}/profile-photo": {
+      "post": {
+        "tags": ["user-profile-photo-controller"],
+        "operationId": "uploadUserPhoto",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": { "type": "string", "format": "binary" }
+                },
+                "required": ["file"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseUserProfilePhotoDto" } }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["user-profile-photo-controller"],
+        "operationId": "findUserPhoto",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseUserProfilePhotoDto" } }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["user-profile-photo-controller"],
+        "operationId": "deleteUserPhoto",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "No Content" }
+        }
+      }
+    },
+    "/users/{userId}/profile-photo/download-url": {
+      "get": {
+        "tags": ["user-profile-photo-controller"],
+        "operationId": "userDownloadUrl",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponsePresignedUrlDto" } }
+            }
+          }
+        }
+      }
+    },
+    "/stored-files/odontograms/{patientId}": {
+      "post": {
+        "tags": ["stored-file-controller"],
+        "operationId": "uploadOdontogram",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "medicalRecordId": { "type": "string", "format": "uuid" },
+                  "odontogramEntryId": { "type": "string", "format": "uuid" },
+                  "description": { "type": "string" },
+                  "file": { "type": "string", "format": "binary" }
+                },
+                "required": ["file"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseOdontogramFileDto" } }
+            }
+          }
+        }
+      }
+    },
+    "/stored-files/odontograms/{id}": {
+      "get": {
+        "tags": ["stored-file-controller"],
+        "operationId": "findOdontogram",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseOdontogramFileDto" } }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["stored-file-controller"],
+        "operationId": "deleteOdontogram",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "No Content" }
+        }
+      }
+    },
+    "/stored-files/odontograms/{id}/download-url": {
+      "get": {
+        "tags": ["stored-file-controller"],
+        "operationId": "odontogramDownloadUrl",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponsePresignedUrlDto" } }
+            }
+          }
+        }
+      }
+    },
+    "/patients": {
+      "get": {
+        "tags": ["patient-controller"],
+        "operationId": "findAll",
         "responses": {
           "200": {
             "description": "OK",
@@ -2759,6 +3029,75 @@
             "type": "object",
             "additionalProperties": {}
           }
+        }
+      },
+      "ApiResponsePresignedUrlDto": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": { "$ref": "#/components/schemas/PresignedUrlDto" },
+          "error": { "$ref": "#/components/schemas/ApiError" }
+        }
+      },
+      "ApiResponseUserProfilePhotoDto": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": { "$ref": "#/components/schemas/UserProfilePhotoDto" },
+          "error": { "$ref": "#/components/schemas/ApiError" }
+        }
+      },
+      "ApiResponseOdontogramFileDto": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": { "$ref": "#/components/schemas/OdontogramFileDto" },
+          "error": { "$ref": "#/components/schemas/ApiError" }
+        }
+      },
+      "PresignedUrlDto": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string" },
+          "expiresAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "StoredFileDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "fileName": { "type": "string" },
+          "mimeType": { "type": "string" },
+          "sizeBytes": { "type": "integer", "format": "int64" },
+          "checksumSha256": { "type": "string" },
+          "category": {
+            "type": "string",
+            "enum": ["ODONTOGRAM", "USER_PROFILE_PHOTO", "MEDICAL_RECORD_ATTACHMENT", "LEGACY"]
+          },
+          "uploadedByUserId": { "type": "string", "format": "uuid" },
+          "description": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "UserProfilePhotoDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "userId": { "type": "string", "format": "uuid" },
+          "file": { "$ref": "#/components/schemas/StoredFileDto" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "OdontogramFileDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "patientId": { "type": "string", "format": "uuid" },
+          "medicalRecordId": { "type": "string", "format": "uuid" },
+          "odontogramEntryId": { "type": "string", "format": "uuid" },
+          "file": { "$ref": "#/components/schemas/StoredFileDto" },
+          "description": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
         }
       }
     }

@@ -6,7 +6,7 @@ Aplicacao Spring Boot com PostgreSQL e Keycloak (RBAC com JWT).
 
 Aplicacao Spring Boot com PostgreSQL (Supabase ou local) e Flyway para migrations de banco.
 
-## Estrutura arquitetural (MVC em camadas)
+## Exemplo da Estrutura arquitetural (MVC em camadas)
 
 ```text
 src/main/java/com/clinica/mariana/restms
@@ -32,8 +32,8 @@ src/test/java/com/clinica/mariana/restms
 - Usuario autenticado via `@AuthenticationPrincipal Jwt`
 - Interceptor HTTP para logging de request (`RequestLoggingInterceptor`)
 - Envelope global de resposta:
-    - sucesso: `{ "success": true, "data": ... }`
-    - erro: `{ "success": false, "error": ... }`
+  - sucesso: `{ "success": true, "data": ... }`
+  - erro: `{ "success": false, "error": ... }`
 - Keycloak como fonte unica de autenticacao/usuarios
 
 ## Estrutura simplificada
@@ -70,13 +70,13 @@ O projeto possui uma base inicial de CI/CD para validar PRs e branches principai
 Workflow atual:
 
 - `cicd.yml` (workflow unico `CI-CD`):
-    - `pull_request` para `develop` e `main`
-    - `push` para `develop` e `main`
-    - `workflow_dispatch` para placeholder manual de deploy futuro
-    - job de Gradle: `chmod +x ./gradlew`, `./gradlew test --no-daemon`,
-      `./gradlew check --no-daemon`, `./gradlew build --no-daemon`
-    - step de Docker: `docker build -t com-rest-ms:ci .`, sem push de imagem
-    - step manual de notas para deploy futuro, sem deploy real
+  - `pull_request` para `develop` e `main`
+  - `push` para `develop` e `main`
+  - `workflow_dispatch` para placeholder manual de deploy futuro
+  - job de Gradle: `chmod +x ./gradlew`, `./gradlew test --no-daemon`,
+    `./gradlew check --no-daemon`, `./gradlew build --no-daemon`
+  - step de Docker: `docker build -t com-rest-ms:ci .`, sem push de imagem
+  - step manual de notas para deploy futuro, sem deploy real
 
 Boas praticas aplicadas no CI/CD:
 
@@ -90,7 +90,8 @@ Boas praticas aplicadas no CI/CD:
 Observacoes importantes para o pipeline atual:
 
 - Os testes automatizados usam H2 em memoria com modo PostgreSQL.
-- Flyway esta desabilitado nos testes (`spring.flyway.enabled=false` em perfil de teste/task Gradle); a migration principal roda no startup da aplicacao com PostgreSQL, como no ambiente Docker Compose.
+- Flyway esta desabilitado nos testes (`spring.flyway.enabled=false` em perfil de teste/task Gradle); a migration
+  principal roda no startup da aplicacao com PostgreSQL, como no ambiente Docker Compose.
 - Testes de seguranca usam JWT mockado (`spring-security-test`), sem necessidade de subir Keycloak no CI.
 - Nao ha dependencia ativa de MinIO nos testes atuais.
 - O pipeline nao sobe PostgreSQL, Keycloak ou MinIO porque os testes atuais nao dependem desses services externos.
@@ -169,6 +170,8 @@ Servicos:
 - Swagger UI: `http://localhost:8080/api/v1/swagger-ui/index.html`
 - Keycloak: `http://localhost:8081`
 - PostgreSQL: `localhost:5432`
+- MinIO API: `http://localhost:9000`
+- MinIO Console: `http://localhost:9001`
 
 O schema inicial e aplicado pelo Flyway a partir de `src/main/resources/db/migration`.
 Para bancos ja inicializados antes do Flyway, `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` permite registrar uma baseline sem recriar as tabelas existentes.
@@ -193,6 +196,67 @@ Roles preconfiguradas no realm:
 - `ADMIN`
 - `RECEPTIONIST`
 - `DOCTOR`
+
+## Stored files e MinIO
+
+O modulo `storedfile` guarda binarios no MinIO e persiste no PostgreSQL apenas metadados e vinculos.
+O banco nao armazena o conteudo dos arquivos nem URLs publicas permanentes.
+
+Categorias suportadas:
+
+- `USER_PROFILE_PHOTO`: fotos de perfil de usuarios do app.
+- `ODONTOGRAM`: arquivos de odontograma vinculados a paciente/prontuario/entrada de odontograma.
+
+Variaveis principais:
+
+- `MINIO_ENDPOINT`: endpoint S3/MinIO usado pela API.
+- `MINIO_ACCESS_KEY`: usuario de acesso MinIO.
+- `MINIO_SECRET_KEY`: senha/chave MinIO.
+- `MINIO_BUCKET`: bucket usado pela aplicacao.
+- `MINIO_REGION`: regiao S3 opcional.
+- `MINIO_PRESIGNED_URL_EXPIRATION_SECONDS`: expiracao das URLs presignadas.
+- `APP_FILES_PROFILE_PHOTO_MAX_SIZE_BYTES`: limite para foto de perfil.
+- `APP_FILES_PROFILE_PHOTO_ALLOWED_MIME_TYPES`: MIME types aceitos para foto.
+- `APP_FILES_ODONTOGRAM_MAX_SIZE_BYTES`: limite para odontograma.
+- `APP_FILES_ODONTOGRAM_ALLOWED_MIME_TYPES`: MIME types aceitos para odontograma.
+
+Defaults de desenvolvimento:
+
+- foto de perfil: `image/jpeg`, `image/png`, `image/webp`, ate 5 MB.
+- odontograma: `image/jpeg`, `image/png`, `image/webp`, `application/pdf`, ate 10 MB.
+
+Endpoints principais:
+
+| Metodo   | Endpoint                                             | Uso                                                   |
+| -------- | ---------------------------------------------------- | ----------------------------------------------------- |
+| `POST`   | `/api/v1/users/me/profile-photo`                     | Envia/substitui a propria foto de perfil.             |
+| `GET`    | `/api/v1/users/me/profile-photo`                     | Consulta metadados da propria foto.                   |
+| `GET`    | `/api/v1/users/me/profile-photo/download-url`        | Gera URL presignada temporaria.                       |
+| `DELETE` | `/api/v1/users/me/profile-photo`                     | Remove a propria foto com hard delete.                |
+| `POST`   | `/api/v1/users/{userId}/profile-photo`               | `ADMIN` envia/substitui foto de outro usuario.        |
+| `GET`    | `/api/v1/users/{userId}/profile-photo`               | `ADMIN` consulta foto de outro usuario.               |
+| `GET`    | `/api/v1/users/{userId}/profile-photo/download-url`  | `ADMIN` gera URL presignada.                          |
+| `DELETE` | `/api/v1/users/{userId}/profile-photo`               | `ADMIN` remove foto de outro usuario com hard delete. |
+| `POST`   | `/api/v1/stored-files/odontograms/{patientId}`       | `ADMIN`/`DOCTOR` envia odontograma.                   |
+| `GET`    | `/api/v1/stored-files/odontograms/{id}`              | `ADMIN`/`DOCTOR` consulta metadados.                  |
+| `GET`    | `/api/v1/stored-files/odontograms/{id}/download-url` | `ADMIN`/`DOCTOR` gera URL presignada.                 |
+| `DELETE` | `/api/v1/stored-files/odontograms/{id}`              | `ADMIN`/`DOCTOR` remove odontograma com hard delete.  |
+| `GET`    | `/api/v1/patients/{patientId}/odontogram-files`      | `ADMIN`/`DOCTOR` lista odontogramas do paciente.      |
+
+Uploads usam `multipart/form-data` com o campo `file`. Odontogramas tambem recebem `patientId`
+e podem receber `medicalRecordId`, `odontogramEntryId` e `description`.
+
+As chaves dos objetos sao geradas pela API com UUID e nome sanitizado, por exemplo:
+
+- `profile-photos/{userId}/{uuid}-{fileName}`
+- `odontograms/{patientId}/{uuid}-{fileName}`
+
+Remocoes de fotos e odontogramas usam hard delete: o vinculo, o metadado e o objeto no MinIO sao removidos.
+Nao reutilize as credenciais de desenvolvimento do MinIO em homologacao ou producao.
+
+O realm local versionado define `accessTokenLifespan=86400` e
+`ssoSessionMaxLifespan=86400` para desenvolvimento, ou seja, sessoes e access tokens
+de ate 24 horas. Revise essa duracao antes de usar em homologacao ou producao.
 
 Usuario admin de API (local):
 
