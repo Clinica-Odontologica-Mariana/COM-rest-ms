@@ -10,12 +10,12 @@ import java.util.UUID;
 
 public interface ClinicRepository extends JpaRepository<ClinicEntity, UUID> {
 
-    boolean existsByDocument(String document);
+	boolean existsByDocument(String document);
 
-    boolean existsByDocumentAndIdNot(String document, UUID id);
+	boolean existsByDocumentAndIdNot(String document, UUID id);
 
-    Optional<ClinicEntity> findByDocument(String document);
+	Optional<ClinicEntity> findByDocument(String document);
 
-    List<ClinicEntity> findAllByActiveTrueOrderByNameAsc();
+	List<ClinicEntity> findAllByActiveTrueOrderByNameAsc();
 
 }

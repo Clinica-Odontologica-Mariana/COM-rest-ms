@@ -8,11 +8,11 @@ import java.util.UUID;
 
 public interface EquipmentRepository extends JpaRepository<EquipmentEntity, UUID> {
 
-    List<EquipmentEntity> findAllByClinicIdAndActiveTrueOrderByNameAsc(UUID clinicId);
+	List<EquipmentEntity> findAllByClinicIdAndActiveTrueOrderByNameAsc(UUID clinicId);
 
-    List<EquipmentEntity> findAllByClinicIdOrderByNameAsc(UUID clinicId);
+	List<EquipmentEntity> findAllByClinicIdOrderByNameAsc(UUID clinicId);
 
-    boolean existsByClinicIdAndName(UUID clinicId, String name);
+	boolean existsByClinicIdAndName(UUID clinicId, String name);
 
-    boolean existsByClinicIdAndNameAndIdNot(UUID clinicId, String name, UUID id);
+	boolean existsByClinicIdAndNameAndIdNot(UUID clinicId, String name, UUID id);
 }

@@ -14,59 +14,59 @@ import java.util.UUID;
 @Table(name = "working_hours")
 public class WorkingHoursEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
-    @Column(name = "clinic_id", nullable = false)
-    private UUID clinicId;
+	@Column(name = "clinic_id", nullable = false)
+	private UUID clinicId;
 
-    @Column(name = "day_of_week", nullable = false)
-    private int dayOfWeek;
+	@Column(name = "day_of_week", nullable = false)
+	private int dayOfWeek;
 
-    @Column(name = "start_time", nullable = false)
-    private LocalTime startTime;
+	@Column(name = "start_time", nullable = false)
+	private LocalTime startTime;
 
-    @Column(name = "end_time", nullable = false)
-    private LocalTime endTime;
+	@Column(name = "end_time", nullable = false)
+	private LocalTime endTime;
 
-    public UUID getId() {
-        return id;
-    }
+	public UUID getId() {
+		return id;
+	}
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+	public void setId(UUID id) {
+		this.id = id;
+	}
 
-    public UUID getClinicId() {
-        return clinicId;
-    }
+	public UUID getClinicId() {
+		return clinicId;
+	}
 
-    public void setClinicId(UUID clinicId) {
-        this.clinicId = clinicId;
-    }
+	public void setClinicId(UUID clinicId) {
+		this.clinicId = clinicId;
+	}
 
-    public int getDayOfWeek() {
-        return dayOfWeek;
-    }
+	public int getDayOfWeek() {
+		return dayOfWeek;
+	}
 
-    public void setDayOfWeek(int dayOfWeek) {
-        this.dayOfWeek = dayOfWeek;
-    }
+	public void setDayOfWeek(int dayOfWeek) {
+		this.dayOfWeek = dayOfWeek;
+	}
 
-    public LocalTime getStartTime() {
-        return startTime;
-    }
+	public LocalTime getStartTime() {
+		return startTime;
+	}
 
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
-    }
+	public void setStartTime(LocalTime startTime) {
+		this.startTime = startTime;
+	}
 
-    public LocalTime getEndTime() {
-        return endTime;
-    }
+	public LocalTime getEndTime() {
+		return endTime;
+	}
 
-    public void setEndTime(LocalTime endTime) {
-        this.endTime = endTime;
-    }
+	public void setEndTime(LocalTime endTime) {
+		this.endTime = endTime;
+	}
 }

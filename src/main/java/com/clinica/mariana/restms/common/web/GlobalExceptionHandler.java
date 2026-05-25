@@ -56,13 +56,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(IllegalArgumentException.class)
 	public ResponseEntity<ApiResponse<Object>> handleIllegalArgument(IllegalArgumentException ex, WebRequest request) {
-		return buildErrorResponse(
-				HttpStatus.BAD_REQUEST,
-				"VALIDATION_ERROR",
-				ex.getMessage(),
-				List.of(),
-				request
-		);
+		return buildErrorResponse(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", ex.getMessage(), List.of(), request);
 	}
 
 	@ExceptionHandler(Exception.class)

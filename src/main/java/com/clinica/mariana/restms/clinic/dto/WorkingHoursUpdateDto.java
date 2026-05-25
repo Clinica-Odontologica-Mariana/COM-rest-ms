@@ -8,20 +8,15 @@ import jakarta.validation.constraints.AssertTrue;
 import java.time.LocalTime;
 
 public record WorkingHoursUpdateDto(
+		@NotNull(message = "dayOfWeek is required") @Min(value = 0, message = "dayOfWeek must be between 0 and 6") @Max(value = 6, message = "dayOfWeek must be between 0 and 6") Integer dayOfWeek,
 
-        @Min(value = 0, message = "dayOfWeek must be between 0 (Sunday) and 6 (Saturday)")
-        @Max(value = 6, message = "dayOfWeek must be between 0 (Sunday) and 6 (Saturday)")
-        int dayOfWeek,
-
-        @NotNull(message = "startTime is required")
-        LocalTime startTime,
-
-        @NotNull(message = "endTime is required")
-        LocalTime endTime
-) {
-        @AssertTrue(message = "endTime must be after startTime")
-        public boolean isEndTimeAfterStartTime() {
-                if (startTime == null || endTime == null) return true;
-                return endTime.isAfter(startTime);
-        }
+		@NotNull(message = "startTime is required") LocalTime startTime,
+		@NotNull(message = "endTime is required") LocalTime endTime) {
+	@AssertTrue(message = "endTime must be after startTime")
+	public boolean isTimeRangeValid() {
+		if (startTime == null || endTime == null) {
+			return true;
+		}
+		return endTime.isAfter(startTime);
+	}
 }

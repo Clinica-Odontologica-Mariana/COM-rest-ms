@@ -7,11 +7,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.Optional;
 
-
 public interface SocialPlatformRepository extends JpaRepository<SocialPlatformEntity, UUID> {
 
-    List<SocialPlatformEntity> findAllByOrderByNameAsc();
+	List<SocialPlatformEntity> findAllByOrderByNameAsc();
 
-    Optional<SocialPlatformEntity> findByCode(String code);
+	Optional<SocialPlatformEntity> findByCode(String code);
 
 }

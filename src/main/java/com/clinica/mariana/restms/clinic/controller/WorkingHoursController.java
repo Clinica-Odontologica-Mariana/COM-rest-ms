@@ -9,15 +9,15 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,46 +26,45 @@ import java.util.UUID;
 @RequestMapping("/working-hours")
 public class WorkingHoursController {
 
-    private final WorkingHoursService workingHoursService;
+	private final WorkingHoursService workingHoursService;
 
-    public WorkingHoursController(WorkingHoursService workingHoursService) {
-        this.workingHoursService = workingHoursService;
-    }
+	public WorkingHoursController(WorkingHoursService workingHoursService) {
+		this.workingHoursService = workingHoursService;
+	}
 
-    @PostMapping
-    @RolesAllowed({"ADMIN", "RECEPTIONIST"})
-    public ResponseEntity<ApiResponse<WorkingHoursDto>> create(@Valid @RequestBody WorkingHoursCreateDto request) {
-        WorkingHoursDto created = workingHoursService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(created));
-    }
+	@PostMapping
+	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	public ResponseEntity<ApiResponse<WorkingHoursDto>> create(@Valid @RequestBody WorkingHoursCreateDto request) {
+		WorkingHoursDto created = workingHoursService.create(request);
+		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(created));
+	}
 
-    @GetMapping
-    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
-    public ResponseEntity<ApiResponse<List<WorkingHoursDto>>> findByClinicId(@RequestParam UUID clinicId) {
-        List<WorkingHoursDto> hours = workingHoursService.findByClinicId(clinicId);
-        return ResponseEntity.ok(ApiResponse.success(hours));
-    }
+	@GetMapping
+	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	public ResponseEntity<ApiResponse<List<WorkingHoursDto>>> findByClinicId(@RequestParam UUID clinicId) {
+		List<WorkingHoursDto> hours = workingHoursService.findByClinicId(clinicId);
+		return ResponseEntity.ok(ApiResponse.success(hours));
+	}
 
-    @GetMapping("/{id}")
-    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
-    public ResponseEntity<ApiResponse<WorkingHoursDto>> findById(@PathVariable UUID id) {
-        WorkingHoursDto hours = workingHoursService.findById(id);
-        return ResponseEntity.ok(ApiResponse.success(hours));
-    }
+	@GetMapping("/{id}")
+	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	public ResponseEntity<ApiResponse<WorkingHoursDto>> findById(@PathVariable UUID id) {
+		WorkingHoursDto hours = workingHoursService.findById(id);
+		return ResponseEntity.ok(ApiResponse.success(hours));
+	}
 
-    @PutMapping("/{id}")
-    @RolesAllowed({"ADMIN", "RECEPTIONIST"})
-    public ResponseEntity<ApiResponse<WorkingHoursDto>> update(
-            @PathVariable UUID id,
-            @Valid @RequestBody WorkingHoursUpdateDto request) {
-        WorkingHoursDto updated = workingHoursService.update(id, request);
-        return ResponseEntity.ok(ApiResponse.success(updated));
-    }
+	@PutMapping("/{id}")
+	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	public ResponseEntity<ApiResponse<WorkingHoursDto>> update(@PathVariable UUID id,
+			@Valid @RequestBody WorkingHoursUpdateDto request) {
+		WorkingHoursDto updated = workingHoursService.update(id, request);
+		return ResponseEntity.ok(ApiResponse.success(updated));
+	}
 
-    @DeleteMapping("/{id}")
-    @RolesAllowed("ADMIN")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
-        workingHoursService.delete(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
+	@DeleteMapping("/{id}")
+	@RolesAllowed("ADMIN")
+	public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+		workingHoursService.delete(id);
+		return ResponseEntity.ok(ApiResponse.success(null));
+	}
 }

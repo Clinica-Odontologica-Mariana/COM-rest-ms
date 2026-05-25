@@ -20,120 +20,94 @@ import java.util.UUID;
 @Service
 public class WorkingHoursService {
 
-    private final WorkingHoursRepository workingHoursRepository;
-    private final ClinicRepository clinicRepository;
+	private final WorkingHoursRepository workingHoursRepository;
+	private final ClinicRepository clinicRepository;
 
-    public WorkingHoursService(WorkingHoursRepository workingHoursRepository, ClinicRepository clinicRepository) {
-        this.workingHoursRepository = workingHoursRepository;
-        this.clinicRepository = clinicRepository;
-    }
+	public WorkingHoursService(WorkingHoursRepository workingHoursRepository, ClinicRepository clinicRepository) {
+		this.workingHoursRepository = workingHoursRepository;
+		this.clinicRepository = clinicRepository;
+	}
 
-    @Transactional
-    public WorkingHoursDto create(WorkingHoursCreateDto request) {
-        if (!clinicRepository.existsById(request.clinicId())) {
-            throw new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found");
-        }
+	@Transactional
+	public WorkingHoursDto create(WorkingHoursCreateDto request) {
+		if (!clinicRepository.existsById(request.clinicId())) {
+			throw new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found");
+		}
 
-        validateNoOverlap(request.clinicId(), request.dayOfWeek(),
-                request.startTime(), request.endTime(), null);
+		validateNoOverlap(request.clinicId(), request.dayOfWeek(), request.startTime(), request.endTime(), null);
 
-        WorkingHoursModel model = WorkingHoursModel.create(
-                request.clinicId(),
-                request.dayOfWeek(),
-                request.startTime(),
-                request.endTime()
-        );
+		WorkingHoursModel model = WorkingHoursModel.create(request.clinicId(), request.dayOfWeek(), request.startTime(),
+				request.endTime());
 
-        return toDto(toModel(workingHoursRepository.save(toEntity(model))));
-    }
+		return toDto(toModel(workingHoursRepository.save(toEntity(model))));
+	}
 
-    @Transactional(readOnly = true)
-    public List<WorkingHoursDto> findByClinicId(UUID clinicId) {
-        return workingHoursRepository
-                .findAllByClinicIdOrderByDayOfWeekAscStartTimeAsc(clinicId)
-                .stream()
-                .map(this::toModel)
-                .map(this::toDto)
-                .toList();
-    }
+	@Transactional(readOnly = true)
+	public List<WorkingHoursDto> findByClinicId(UUID clinicId) {
+		return workingHoursRepository.findAllByClinicIdOrderByDayOfWeekAscStartTimeAsc(clinicId).stream()
+				.map(this::toModel).map(this::toDto).toList();
+	}
 
-    @Transactional(readOnly = true)
-    public WorkingHoursDto findById(UUID id) {
-        WorkingHoursEntity entity = workingHoursRepository.findById(id)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "WORKING_HOURS_NOT_FOUND", "Working hours not found"));
-        return toDto(toModel(entity));
-    }
+	@Transactional(readOnly = true)
+	public WorkingHoursDto findById(UUID id) {
+		WorkingHoursEntity entity = workingHoursRepository.findById(id).orElseThrow(
+				() -> new AppException(HttpStatus.NOT_FOUND, "WORKING_HOURS_NOT_FOUND", "Working hours not found"));
+		return toDto(toModel(entity));
+	}
 
-    @Transactional
-    public WorkingHoursDto update(UUID id, WorkingHoursUpdateDto request) {
-        WorkingHoursEntity entity = workingHoursRepository.findById(id)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "WORKING_HOURS_NOT_FOUND", "Working hours not found"));
+	@Transactional
+	public WorkingHoursDto update(UUID id, WorkingHoursUpdateDto request) {
+		WorkingHoursEntity entity = workingHoursRepository.findById(id).orElseThrow(
+				() -> new AppException(HttpStatus.NOT_FOUND, "WORKING_HOURS_NOT_FOUND", "Working hours not found"));
 
-        validateNoOverlap(entity.getClinicId(), request.dayOfWeek(),
-                request.startTime(), request.endTime(), id);
+		validateNoOverlap(entity.getClinicId(), request.dayOfWeek(), request.startTime(), request.endTime(), id);
 
-        WorkingHoursModel model = new WorkingHoursModel(
-                id,
-                entity.getClinicId(),
-                request.dayOfWeek(),
-                request.startTime(),
-                request.endTime()
-        );
+		WorkingHoursModel model = new WorkingHoursModel(id, entity.getClinicId(), request.dayOfWeek(),
+				request.startTime(), request.endTime());
 
-        apply(entity, model);
-        return toDto(toModel(workingHoursRepository.save(entity)));
-    }
+		apply(entity, model);
+		return toDto(toModel(workingHoursRepository.save(entity)));
+	}
 
-    @Transactional
-    public void delete(UUID id) {
-        if (!workingHoursRepository.existsById(id)) {
-            throw new AppException(HttpStatus.NOT_FOUND, "WORKING_HOURS_NOT_FOUND", "Working hours not found");
-        }
-        workingHoursRepository.deleteById(id);
-    }
+	@Transactional
+	public void delete(UUID id) {
+		if (!workingHoursRepository.existsById(id)) {
+			throw new AppException(HttpStatus.NOT_FOUND, "WORKING_HOURS_NOT_FOUND", "Working hours not found");
+		}
+		workingHoursRepository.deleteById(id);
+	}
 
-    private void validateNoOverlap(UUID clinicId, int dayOfWeek,
-                                   LocalTime startTime, LocalTime endTime, UUID excludeId) {
-        boolean overlaps = excludeId == null
-                ? workingHoursRepository.existsOverlap(clinicId, dayOfWeek, startTime, endTime)
-                : workingHoursRepository.existsOverlapExcluding(clinicId, dayOfWeek, startTime, endTime, excludeId);
+	private void validateNoOverlap(UUID clinicId, int dayOfWeek, LocalTime startTime, LocalTime endTime,
+			UUID excludeId) {
+		boolean overlaps = excludeId == null
+				? workingHoursRepository.existsOverlap(clinicId, dayOfWeek, startTime, endTime)
+				: workingHoursRepository.existsOverlapExcluding(clinicId, dayOfWeek, startTime, endTime, excludeId);
 
-        if (overlaps) {
-            throw new AppException(HttpStatus.CONFLICT, "WORKING_HOURS_OVERLAP",
-                    "Working hours overlap with an existing interval for this clinic and day");
-        }
-    }
+		if (overlaps) {
+			throw new AppException(HttpStatus.CONFLICT, "WORKING_HOURS_OVERLAP",
+					"Working hours overlap with an existing interval for this clinic and day");
+		}
+	}
 
-    private WorkingHoursEntity toEntity(WorkingHoursModel model) {
-        WorkingHoursEntity entity = new WorkingHoursEntity();
-        apply(entity, model);
-        return entity;
-    }
+	private WorkingHoursEntity toEntity(WorkingHoursModel model) {
+		WorkingHoursEntity entity = new WorkingHoursEntity();
+		apply(entity, model);
+		return entity;
+	}
 
-    private void apply(WorkingHoursEntity entity, WorkingHoursModel model) {
-        entity.setClinicId(model.clinicId());
-        entity.setDayOfWeek(model.dayOfWeek());
-        entity.setStartTime(model.startTime());
-        entity.setEndTime(model.endTime());
-    }
+	private void apply(WorkingHoursEntity entity, WorkingHoursModel model) {
+		entity.setClinicId(model.clinicId());
+		entity.setDayOfWeek(model.dayOfWeek());
+		entity.setStartTime(model.startTime());
+		entity.setEndTime(model.endTime());
+	}
 
-    private WorkingHoursModel toModel(WorkingHoursEntity entity) {
-        return new WorkingHoursModel(
-                entity.getId(),
-                entity.getClinicId(),
-                entity.getDayOfWeek(),
-                entity.getStartTime(),
-                entity.getEndTime()
-        );
-    }
+	private WorkingHoursModel toModel(WorkingHoursEntity entity) {
+		return new WorkingHoursModel(entity.getId(), entity.getClinicId(), entity.getDayOfWeek(), entity.getStartTime(),
+				entity.getEndTime());
+	}
 
-    private WorkingHoursDto toDto(WorkingHoursModel model) {
-        return new WorkingHoursDto(
-                model.id(),
-                model.clinicId(),
-                model.dayOfWeek(),
-                model.startTime(),
-                model.endTime()
-        );
-    }
+	private WorkingHoursDto toDto(WorkingHoursModel model) {
+		return new WorkingHoursDto(model.id(), model.clinicId(), model.dayOfWeek(), model.startTime(), model.endTime());
+	}
 }

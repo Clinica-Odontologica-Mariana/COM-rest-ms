@@ -8,14 +8,9 @@ import java.util.UUID;
 
 public record SocialLinkCreateDto(
 
-        @NotNull(message = "clinicId is required")
-        UUID clinicId,
+		@NotNull(message = "clinicId is required") UUID clinicId,
 
-        @NotNull(message = "platformId is required")
-        UUID platformId,
+		@NotNull(message = "platformId is required") UUID platformId,
 
-        @NotBlank(message = "url is required")
-        @Pattern(regexp = "(?i)^https?://.*", message = "url must start with http:// or https://")
-        String url
-) {
+		@NotBlank(message = "url is required") @Pattern(regexp = "(?i)^https?://.*", message = "url must start with http:// or https://") String url) {
 }

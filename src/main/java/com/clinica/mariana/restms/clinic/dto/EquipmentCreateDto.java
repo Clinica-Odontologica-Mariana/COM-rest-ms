@@ -8,16 +8,11 @@ import java.util.UUID;
 
 public record EquipmentCreateDto(
 
-        @NotNull(message = "clinicId is required")
-        UUID clinicId,
+		@NotNull(message = "clinicId is required") UUID clinicId,
 
-        @NotBlank(message = "name is required")
-        @Size(max = 150, message = "name must have at most 150 characters")
-        String name,
+		@NotBlank(message = "name is required") @Size(max = 150, message = "name must have at most 150 characters") String name,
 
-        String description,
+		String description,
 
-        @Size(max = 100, message = "location must have at most 100 characters")
-        String location
-) {
+		@Size(max = 100, message = "location must have at most 100 characters") String location) {
 }

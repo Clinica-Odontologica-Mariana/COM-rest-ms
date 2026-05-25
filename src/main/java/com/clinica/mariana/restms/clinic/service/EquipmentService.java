@@ -21,119 +21,97 @@ import java.util.UUID;
 @Service
 public class EquipmentService {
 
-    private final EquipmentRepository equipmentRepository;
-    private final ClinicRepository clinicRepository;
+	private final EquipmentRepository equipmentRepository;
+	private final ClinicRepository clinicRepository;
 
-    public EquipmentService(EquipmentRepository equipmentRepository, ClinicRepository clinicRepository) {
-        this.equipmentRepository = equipmentRepository;
-        this.clinicRepository = clinicRepository;
-    }
+	public EquipmentService(EquipmentRepository equipmentRepository, ClinicRepository clinicRepository) {
+		this.equipmentRepository = equipmentRepository;
+		this.clinicRepository = clinicRepository;
+	}
 
-    @Transactional
-    public EquipmentDto create(EquipmentCreateDto request) {
-        if (!clinicRepository.existsById(request.clinicId())) {
-            throw new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found");
-        }
+	@Transactional
+	public EquipmentDto create(EquipmentCreateDto request) {
+		if (!clinicRepository.existsById(request.clinicId())) {
+			throw new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found");
+		}
 
-        if (equipmentRepository.existsByClinicIdAndName(request.clinicId(), request.name())) {
-            throw new AppException(HttpStatus.CONFLICT, "EQUIPMENT_NAME_CONFLICT",
-                    "Equipment with this name already exists in the clinic");
-        }
+		if (equipmentRepository.existsByClinicIdAndName(request.clinicId(), request.name())) {
+			throw new AppException(HttpStatus.CONFLICT, "EQUIPMENT_NAME_CONFLICT",
+					"Equipment with this name already exists in the clinic");
+		}
 
-        EquipmentModel model = EquipmentModel.create(
-                request.clinicId(),
-                request.name(),
-                request.description(),
-                request.location()
-        );
-        return toDto(toModel(equipmentRepository.save(toEntity(model))));
-    }
+		EquipmentModel model = EquipmentModel.create(request.clinicId(), request.name(), request.description(),
+				request.location());
+		return toDto(toModel(equipmentRepository.save(toEntity(model))));
+	}
 
-    @Transactional(readOnly = true)
-    public List<EquipmentDto> findByClinicId(UUID clinicId, boolean activeOnly) {
-        List<EquipmentEntity> entities = activeOnly
-                ? equipmentRepository.findAllByClinicIdAndActiveTrueOrderByNameAsc(clinicId)
-                : equipmentRepository.findAllByClinicIdOrderByNameAsc(clinicId);
-        return entities.stream().map(this::toModel).map(this::toDto).toList();
-    }
+	@Transactional(readOnly = true)
+	public List<EquipmentDto> findByClinicId(UUID clinicId, boolean activeOnly) {
+		List<EquipmentEntity> entities = activeOnly
+				? equipmentRepository.findAllByClinicIdAndActiveTrueOrderByNameAsc(clinicId)
+				: equipmentRepository.findAllByClinicIdOrderByNameAsc(clinicId);
+		return entities.stream().map(this::toModel).map(this::toDto).toList();
+	}
 
-    @Transactional(readOnly = true)
-    public EquipmentDto findById(UUID id) {
-        EquipmentEntity entity = equipmentRepository.findById(id)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "EQUIPMENT_NOT_FOUND", "Equipment not found"));
-        return toDto(toModel(entity));
-    }
+	@Transactional(readOnly = true)
+	public EquipmentDto findById(UUID id) {
+		EquipmentEntity entity = equipmentRepository.findById(id).orElseThrow(
+				() -> new AppException(HttpStatus.NOT_FOUND, "EQUIPMENT_NOT_FOUND", "Equipment not found"));
+		return toDto(toModel(entity));
+	}
 
-    @Transactional
-    public EquipmentDto update(UUID id, EquipmentUpdateDto request) {
-        EquipmentEntity entity = equipmentRepository.findById(id)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "EQUIPMENT_NOT_FOUND", "Equipment not found"));
+	@Transactional
+	public EquipmentDto update(UUID id, EquipmentUpdateDto request) {
+		EquipmentEntity entity = equipmentRepository.findById(id).orElseThrow(
+				() -> new AppException(HttpStatus.NOT_FOUND, "EQUIPMENT_NOT_FOUND", "Equipment not found"));
 
-        if (equipmentRepository.existsByClinicIdAndNameAndIdNot(entity.getClinicId(), request.name(), id)) {
-            throw new AppException(HttpStatus.CONFLICT, "EQUIPMENT_NAME_CONFLICT",
-                    "Equipment with this name already exists in the clinic");
-        }
+		if (equipmentRepository.existsByClinicIdAndNameAndIdNot(entity.getClinicId(), request.name(), id)) {
+			throw new AppException(HttpStatus.CONFLICT, "EQUIPMENT_NAME_CONFLICT",
+					"Equipment with this name already exists in the clinic");
+		}
 
-        EquipmentModel model = new EquipmentModel(
-                id,
-                entity.getClinicId(),
-                request.name(),
-                request.description(),
-                request.location(),
-                entity.isActive()
-        );
+		EquipmentModel model = new EquipmentModel(id, entity.getClinicId(), request.name(), request.description(),
+				request.location(), entity.isActive());
 
-        apply(entity, model);
-        return toDto(toModel(equipmentRepository.save(entity)));
-    }
+		apply(entity, model);
+		return toDto(toModel(equipmentRepository.save(entity)));
+	}
 
-    @Transactional
-    public void inactivate(UUID id) {
-        EquipmentEntity entity = equipmentRepository.findById(id)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "EQUIPMENT_NOT_FOUND", "Equipment not found"));
+	@Transactional
+	public void inactivate(UUID id) {
+		EquipmentEntity entity = equipmentRepository.findById(id).orElseThrow(
+				() -> new AppException(HttpStatus.NOT_FOUND, "EQUIPMENT_NOT_FOUND", "Equipment not found"));
 
-        if (!entity.isActive()) {
-            throw new AppException(HttpStatus.CONFLICT, "EQUIPMENT_ALREADY_INACTIVE", "Equipment is already inactive");
-        }
+		if (!entity.isActive()) {
+			throw new AppException(HttpStatus.CONFLICT, "EQUIPMENT_ALREADY_INACTIVE", "Equipment is already inactive");
+		}
 
-        entity.setActive(false);
-        entity.setInactivatedAt(OffsetDateTime.now());
-        equipmentRepository.save(entity);
-    }
+		entity.setActive(false);
+		entity.setInactivatedAt(OffsetDateTime.now());
+		equipmentRepository.save(entity);
+	}
 
-    private EquipmentEntity toEntity(EquipmentModel model) {
-        EquipmentEntity entity = new EquipmentEntity();
-        apply(entity, model);
-        return entity;
-    }
+	private EquipmentEntity toEntity(EquipmentModel model) {
+		EquipmentEntity entity = new EquipmentEntity();
+		apply(entity, model);
+		return entity;
+	}
 
-    private void apply(EquipmentEntity entity, EquipmentModel model) {
-        entity.setClinicId(model.clinicId());
-        entity.setName(model.name());
-        entity.setDescription(model.description());
-        entity.setLocation(model.location());
-        entity.setActive(model.active());
-    }
+	private void apply(EquipmentEntity entity, EquipmentModel model) {
+		entity.setClinicId(model.clinicId());
+		entity.setName(model.name());
+		entity.setDescription(model.description());
+		entity.setLocation(model.location());
+		entity.setActive(model.active());
+	}
 
-    private EquipmentModel toModel(EquipmentEntity entity) {
-        return new EquipmentModel(
-                entity.getId(),
-                entity.getClinicId(),
-                entity.getName(),
-                entity.getDescription(),
-                entity.getLocation(),
-                entity.isActive()
-        );
-    }
+	private EquipmentModel toModel(EquipmentEntity entity) {
+		return new EquipmentModel(entity.getId(), entity.getClinicId(), entity.getName(), entity.getDescription(),
+				entity.getLocation(), entity.isActive());
+	}
 
-    private EquipmentDto toDto(EquipmentModel model) {
-        return new EquipmentDto(
-                model.id(),
-                model.clinicId(),
-                model.name(),
-                model.description(),
-                model.location(),
-                model.active()
-        );
-    }
+	private EquipmentDto toDto(EquipmentModel model) {
+		return new EquipmentDto(model.id(), model.clinicId(), model.name(), model.description(), model.location(),
+				model.active());
+	}
 }

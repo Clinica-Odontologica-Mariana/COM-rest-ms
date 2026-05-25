@@ -14,55 +14,55 @@ import java.util.UUID;
 @Table(name = "social_link")
 public class SocialLinkEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
-    @Column(name = "clinic_id", nullable = false)
-    private UUID clinicId;
+	@Column(name = "clinic_id", nullable = false)
+	private UUID clinicId;
 
-    @Column(name = "platform_id", nullable = false)
-    private UUID platformId;
+	@Column(name = "platform_id", nullable = false)
+	private UUID platformId;
 
-    @Column(name = "url", nullable = false)
-    private String url;
+	@Column(name = "url", nullable = false)
+	private String url;
 
-    @Column(name = "created_at", insertable = false, updatable = false)
-    private OffsetDateTime createdAt;
+	@Column(name = "created_at", insertable = false, updatable = false)
+	private OffsetDateTime createdAt;
 
-    public UUID getId() {
-        return id;
-    }
+	public UUID getId() {
+		return id;
+	}
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+	public void setId(UUID id) {
+		this.id = id;
+	}
 
-    public UUID getClinicId() {
-        return clinicId;
-    }
+	public UUID getClinicId() {
+		return clinicId;
+	}
 
-    public void setClinicId(UUID clinicId) {
-        this.clinicId = clinicId;
-    }
+	public void setClinicId(UUID clinicId) {
+		this.clinicId = clinicId;
+	}
 
-    public UUID getPlatformId() {
-        return platformId;
-    }
+	public UUID getPlatformId() {
+		return platformId;
+	}
 
-    public void setPlatformId(UUID platformId) {
-        this.platformId = platformId;
-    }
+	public void setPlatformId(UUID platformId) {
+		this.platformId = platformId;
+	}
 
-    public String getUrl() {
-        return url;
-    }
+	public String getUrl() {
+		return url;
+	}
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+	public void setUrl(String url) {
+		this.url = url;
+	}
 
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
-    }
+	public OffsetDateTime getCreatedAt() {
+		return createdAt;
+	}
 }

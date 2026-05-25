@@ -17,30 +17,30 @@ import java.util.UUID;
 @RequestMapping("/social-platforms")
 public class SocialPlatformController {
 
-    private final SocialPlatformService socialPlatformService;
+	private final SocialPlatformService socialPlatformService;
 
-    public SocialPlatformController(SocialPlatformService socialPlatformService) {
-        this.socialPlatformService = socialPlatformService;
-    }
+	public SocialPlatformController(SocialPlatformService socialPlatformService) {
+		this.socialPlatformService = socialPlatformService;
+	}
 
-    @GetMapping
-    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
-    public ResponseEntity<ApiResponse<List<SocialPlatformDto>>> findAll() {
-        List<SocialPlatformDto> platforms = socialPlatformService.findAll();
-        return ResponseEntity.ok(ApiResponse.success(platforms));
-    }
+	@GetMapping
+	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	public ResponseEntity<ApiResponse<List<SocialPlatformDto>>> findAll() {
+		List<SocialPlatformDto> platforms = socialPlatformService.findAll();
+		return ResponseEntity.ok(ApiResponse.success(platforms));
+	}
 
-    @GetMapping("/{id}")
-    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
-    public ResponseEntity<ApiResponse<SocialPlatformDto>> findById(@PathVariable UUID id) {
-        SocialPlatformDto platform = socialPlatformService.findById(id);
-        return ResponseEntity.ok(ApiResponse.success(platform));
-    }
+	@GetMapping("/{id}")
+	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	public ResponseEntity<ApiResponse<SocialPlatformDto>> findById(@PathVariable UUID id) {
+		SocialPlatformDto platform = socialPlatformService.findById(id);
+		return ResponseEntity.ok(ApiResponse.success(platform));
+	}
 
-    @GetMapping("/code/{code}")
-    @RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
-    public ResponseEntity<ApiResponse<SocialPlatformDto>> findByCode(@PathVariable String code) {
-        SocialPlatformDto platform = socialPlatformService.findByCode(code);
-        return ResponseEntity.ok(ApiResponse.success(platform));
-    }
+	@GetMapping("/code/{code}")
+	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	public ResponseEntity<ApiResponse<SocialPlatformDto>> findByCode(@PathVariable String code) {
+		SocialPlatformDto platform = socialPlatformService.findByCode(code);
+		return ResponseEntity.ok(ApiResponse.success(platform));
+	}
 }
