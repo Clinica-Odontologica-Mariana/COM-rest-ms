@@ -43,8 +43,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AppointmentControllerHttpTest {
 
 	private static final String BASE = "/api/v1/appointments";
+	private static final String DATA_PATH = "$.data";
 	private static final String STATUS_SCHEDULED = "aaaaaaaa-0000-0000-0000-000000000001";
 	private static final String STATUS_CONFIRMED = "aaaaaaaa-0000-0000-0000-000000000002";
+	private static final String SCHEDULED = "SCHEDULED";
+	private static final String CONFIRMED = "CONFIRMED";
+	private static final String SYNCED = "SYNCED";
+	private static final String CONSULTA_DE_ROTINA = "Consulta de rotina";
+	private static final String CONSULTA_CONFIRMADA = "Consulta confirmada";
+	private static final String GOOGLE_EVENT_HTTP_TEST = "google-event-http-test";
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -60,7 +67,7 @@ class AppointmentControllerHttpTest {
 	@BeforeEach
 	void setup() throws IOException {
 		appointmentRepository.deleteAll();
-		when(googleCalendarService.createEvent(any(), any(), any(), any())).thenReturn("google-event-http-test");
+		when(googleCalendarService.createEvent(any(), any(), any(), any())).thenReturn(GOOGLE_EVENT_HTTP_TEST);
 	}
 
 	@Nested
@@ -73,10 +80,10 @@ class AppointmentControllerHttpTest {
 			mockMvc.perform(post(BASE).with(jwtAsReceptionist()).contentType(MediaType.APPLICATION_JSON)
 					.content(buildCreatePayload(STATUS_SCHEDULED))).andExpect(status().isCreated())
 					.andExpect(jsonPath("$.data.id", notNullValue()))
-					.andExpect(jsonPath("$.data.statusCode", is("SCHEDULED")))
-					.andExpect(jsonPath("$.data.notes", is("Consulta de rotina")))
-					.andExpect(jsonPath("$.data.externalCalendarEventId", is("google-event-http-test")))
-					.andExpect(jsonPath("$.data.calendarSyncStatusCode", is("SYNCED")));
+					.andExpect(jsonPath("$.data.statusCode", is(SCHEDULED)))
+					.andExpect(jsonPath("$.data.notes", is(CONSULTA_DE_ROTINA)))
+					.andExpect(jsonPath("$.data.externalCalendarEventId", is(GOOGLE_EVENT_HTTP_TEST)))
+					.andExpect(jsonPath("$.data.calendarSyncStatusCode", is(SYNCED)));
 		}
 
 		@Test
@@ -85,7 +92,7 @@ class AppointmentControllerHttpTest {
 			createAppointment(STATUS_SCHEDULED);
 
 			mockMvc.perform(get(BASE).with(jwtAsReceptionist())).andExpect(status().isOk())
-					.andExpect(jsonPath("$.data", hasSize(greaterThanOrEqualTo(1))));
+					.andExpect(jsonPath(DATA_PATH, hasSize(greaterThanOrEqualTo(1))));
 		}
 
 		@Test
@@ -99,7 +106,7 @@ class AppointmentControllerHttpTest {
 			mockMvc.perform(get(BASE + "/period").with(jwtAsReceptionist())
 					.param("start", start.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
 					.param("end", end.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))).andExpect(status().isOk())
-					.andExpect(jsonPath("$.data", hasSize(greaterThanOrEqualTo(1))))
+					.andExpect(jsonPath(DATA_PATH, hasSize(greaterThanOrEqualTo(1))))
 					.andExpect(jsonPath("$.data[0].id", is(created.id().toString())));
 		}
 
@@ -118,13 +125,13 @@ class AppointmentControllerHttpTest {
 							  "statusId": "%s",
 							  "startDatetime": "%s",
 							  "endDatetime": "%s",
-							  "notes": "Consulta confirmada",
+							  "notes": "%s",
 							  "blocksSchedule": true
 							}
 							""".formatted(STATUS_CONFIRMED, newStart.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
-							newEnd.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
-					.andExpect(status().isOk()).andExpect(jsonPath("$.data.statusCode", is("CONFIRMED")))
-					.andExpect(jsonPath("$.data.notes", is("Consulta confirmada")));
+							newEnd.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME), CONSULTA_CONFIRMADA)))
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.statusCode", is(CONFIRMED)))
+					.andExpect(jsonPath("$.data.notes", is(CONSULTA_CONFIRMADA)));
 		}
 
 		@Test
@@ -136,7 +143,38 @@ class AppointmentControllerHttpTest {
 					.andExpect(status().isNoContent());
 
 			mockMvc.perform(get(BASE).with(jwtAsReceptionist())).andExpect(status().isOk())
-					.andExpect(jsonPath("$.data", hasSize(0)));
+					.andExpect(jsonPath(DATA_PATH, hasSize(0)));
+		}
+
+		private AppointmentDto createAppointment(String statusId) throws Exception {
+			String response = mockMvc
+					.perform(post(BASE).with(jwtAsReceptionist()).contentType(MediaType.APPLICATION_JSON)
+							.content(buildCreatePayload(statusId)))
+					.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+
+			JsonNode data = objectMapper.readTree(response).get("data");
+			AppointmentDto dto = objectMapper.treeToValue(data, AppointmentDto.class);
+			assertThat(dto.id()).isNotNull();
+			return dto;
+		}
+
+		private String buildCreatePayload(String statusId) {
+			OffsetDateTime start = OffsetDateTime.now().plusDays(1).withNano(0);
+			OffsetDateTime end = start.plusHours(1);
+			return """
+					{
+					  "patientId": "%s",
+					  "clinicId": "%s",
+					  "professionalId": "%s",
+					  "statusId": "%s",
+					  "startDatetime": "%s",
+					  "endDatetime": "%s",
+					  "notes": "%s",
+					  "blocksSchedule": true
+					}
+					""".formatted(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), statusId,
+					start.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+					end.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME), CONSULTA_DE_ROTINA);
 		}
 	}
 
@@ -169,37 +207,6 @@ class AppointmentControllerHttpTest {
 			mockMvc.perform(delete(BASE + "/" + nonExistentId).with(jwtAsReceptionist()))
 					.andExpect(status().isNotFound());
 		}
-	}
-
-	private AppointmentDto createAppointment(String statusId) throws Exception {
-		String response = mockMvc
-				.perform(post(BASE).with(jwtAsReceptionist()).contentType(MediaType.APPLICATION_JSON)
-						.content(buildCreatePayload(statusId)))
-				.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
-
-		JsonNode data = objectMapper.readTree(response).get("data");
-		AppointmentDto dto = objectMapper.treeToValue(data, AppointmentDto.class);
-		assertThat(dto.id()).isNotNull();
-		return dto;
-	}
-
-	private String buildCreatePayload(String statusId) {
-		OffsetDateTime start = OffsetDateTime.now().plusDays(1).withNano(0);
-		OffsetDateTime end = start.plusHours(1);
-		return """
-				{
-				  "patientId": "%s",
-				  "clinicId": "%s",
-				  "professionalId": "%s",
-				  "statusId": "%s",
-				  "startDatetime": "%s",
-				  "endDatetime": "%s",
-				  "notes": "Consulta de rotina",
-				  "blocksSchedule": true
-				}
-				""".formatted(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), statusId,
-				start.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
-				end.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
 	}
 
 	private org.springframework.test.web.servlet.request.RequestPostProcessor jwtAsReceptionist() {
