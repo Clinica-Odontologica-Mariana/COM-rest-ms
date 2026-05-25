@@ -1,13 +1,19 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI definition",
-    "version": "v0"
+    "title": "COM-rest-ms API",
+    "description": "API da Clínica Odontológica Mariana",
+    "version": "v1"
   },
   "servers": [
     {
       "url": "http://localhost:8080/api/v1",
       "description": "Generated server url"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
     }
   ],
   "paths": {
@@ -119,277 +125,7 @@
               "format": "uuid"
             }
           }
-        }
-      }
-    },
-    "/users/me/profile-photo": {
-      "post": {
-        "tags": ["user-profile-photo-controller"],
-        "operationId": "uploadOwnPhoto",
-        "security": [{ "bearerAuth": [] }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": { "type": "string", "format": "binary" }
-                },
-                "required": ["file"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseUserProfilePhotoDto" } }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": ["user-profile-photo-controller"],
-        "operationId": "findOwnPhoto",
-        "security": [{ "bearerAuth": [] }],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseUserProfilePhotoDto" } }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": ["user-profile-photo-controller"],
-        "operationId": "deleteOwnPhoto",
-        "security": [{ "bearerAuth": [] }],
-        "responses": {
-          "204": { "description": "No Content" }
-        }
-      }
-    },
-    "/users/me/profile-photo/download-url": {
-      "get": {
-        "tags": ["user-profile-photo-controller"],
-        "operationId": "ownDownloadUrl",
-        "security": [{ "bearerAuth": [] }],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponsePresignedUrlDto" } }
-            }
-          }
-        }
-      }
-    },
-    "/users/{userId}/profile-photo": {
-      "post": {
-        "tags": ["user-profile-photo-controller"],
-        "operationId": "uploadUserPhoto",
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": { "type": "string", "format": "binary" }
-                },
-                "required": ["file"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseUserProfilePhotoDto" } }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": ["user-profile-photo-controller"],
-        "operationId": "findUserPhoto",
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseUserProfilePhotoDto" } }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": ["user-profile-photo-controller"],
-        "operationId": "deleteUserPhoto",
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
-        ],
-        "responses": {
-          "204": { "description": "No Content" }
-        }
-      }
-    },
-    "/users/{userId}/profile-photo/download-url": {
-      "get": {
-        "tags": ["user-profile-photo-controller"],
-        "operationId": "userDownloadUrl",
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponsePresignedUrlDto" } }
-            }
-          }
-        }
-      }
-    },
-    "/stored-files/odontograms/{patientId}": {
-      "post": {
-        "tags": ["stored-file-controller"],
-        "operationId": "uploadOdontogram",
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [
-          {
-            "name": "patientId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "medicalRecordId": { "type": "string", "format": "uuid" },
-                  "odontogramEntryId": { "type": "string", "format": "uuid" },
-                  "description": { "type": "string" },
-                  "file": { "type": "string", "format": "binary" }
-                },
-                "required": ["file"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseOdontogramFileDto" } }
-            }
-          }
-        }
-      }
-    },
-    "/stored-files/odontograms/{id}": {
-      "get": {
-        "tags": ["stored-file-controller"],
-        "operationId": "findOdontogram",
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponseOdontogramFileDto" } }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": ["stored-file-controller"],
-        "operationId": "deleteOdontogram",
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
-        ],
-        "responses": {
-          "204": { "description": "No Content" }
-        }
-      }
-    },
-    "/stored-files/odontograms/{id}/download-url": {
-      "get": {
-        "tags": ["stored-file-controller"],
-        "operationId": "odontogramDownloadUrl",
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/ApiResponsePresignedUrlDto" } }
-            }
-          }
-        }
-      }
-    },
-    "/patients": {
-      "get": {
-        "tags": ["patient-controller"],
-        "operationId": "findAll",
         "responses": {
           "200": {
             "description": "OK",
@@ -755,12 +491,342 @@
         }
       }
     },
+    "/medical-records/{id}": {
+      "get": {
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "findById_5",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalRecordDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "update_5",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MedicalRecordUpdateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalRecordDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "delete_5",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/medical-records/by-patient/{patientId}/notes/{noteId}": {
+      "get": {
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "findNoteById",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalRecordNoteDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "updateNote",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MedicalRecordNoteUpdateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalRecordNoteDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "deleteNote",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/medical-records/by-patient/{patientId}/attachments/{attachmentId}": {
+      "get": {
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "findAttachmentById",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalRecordAttachmentDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "updateAttachment",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MedicalRecordAttachmentUpdateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalRecordAttachmentDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "deleteAttachment",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
     "/equipments/{id}": {
       "get": {
         "tags": [
           "equipment-controller"
         ],
-        "operationId": "findById_5",
+        "operationId": "findById_6",
         "parameters": [
           {
             "name": "id",
@@ -789,7 +855,7 @@
         "tags": [
           "equipment-controller"
         ],
-        "operationId": "update_5",
+        "operationId": "update_6",
         "parameters": [
           {
             "name": "id",
@@ -830,7 +896,7 @@
         "tags": [
           "clinic-controller"
         ],
-        "operationId": "findById_6",
+        "operationId": "findById_7",
         "parameters": [
           {
             "name": "id",
@@ -859,7 +925,7 @@
         "tags": [
           "clinic-controller"
         ],
-        "operationId": "update_6",
+        "operationId": "update_7",
         "parameters": [
           {
             "name": "id",
@@ -895,12 +961,75 @@
         }
       }
     },
+    "/api/v1/appointments/{id}": {
+      "put": {
+        "tags": [
+          "appointment-controller"
+        ],
+        "operationId": "update_8",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppointmentUpdateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "appointment-controller"
+        ],
+        "operationId": "delete_6",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
     "/addresses/{id}": {
       "get": {
         "tags": [
           "address-controller"
         ],
-        "operationId": "findById_7",
+        "operationId": "findById_8",
         "parameters": [
           {
             "name": "id",
@@ -929,7 +1058,7 @@
         "tags": [
           "address-controller"
         ],
-        "operationId": "update_7",
+        "operationId": "update_9",
         "parameters": [
           {
             "name": "id",
@@ -968,7 +1097,7 @@
         "tags": [
           "address-controller"
         ],
-        "operationId": "delete_5",
+        "operationId": "delete_7",
         "parameters": [
           {
             "name": "id",
@@ -1138,6 +1267,248 @@
         }
       }
     },
+    "/users/{userId}/profile-photo": {
+      "get": {
+        "tags": [
+          "user-profile-photo-controller"
+        ],
+        "operationId": "findUserPhoto",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfilePhotoDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "user-profile-photo-controller"
+        ],
+        "operationId": "uploadUserPhoto",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfilePhotoDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "user-profile-photo-controller"
+        ],
+        "operationId": "deleteUserPhoto",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/users/me/profile-photo": {
+      "get": {
+        "tags": [
+          "user-profile-photo-controller"
+        ],
+        "operationId": "findOwnPhoto",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfilePhotoDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "user-profile-photo-controller"
+        ],
+        "operationId": "uploadOwnPhoto",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfilePhotoDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "user-profile-photo-controller"
+        ],
+        "operationId": "deleteOwnPhoto",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/stored-files/odontograms/{patientId}": {
+      "post": {
+        "tags": [
+          "stored-file-controller"
+        ],
+        "operationId": "uploadOdontogram",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "medicalRecordId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "odontogramEntryId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OdontogramFileDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/social-links": {
       "get": {
         "tags": [
@@ -1299,7 +1670,90 @@
         }
       }
     },
+    "/medical-records": {
+      "get": {
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "findAll_2",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MedicalRecordDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "create_5",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MedicalRecordCreateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalRecordDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/medical-records/by-patient/{patientId}/notes": {
+      "get": {
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "findNotesByPatientId",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MedicalRecordNoteDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "medical-record-controller"
@@ -1341,6 +1795,38 @@
       }
     },
     "/medical-records/by-patient/{patientId}/attachments": {
+      "get": {
+        "tags": [
+          "medical-record-controller"
+        ],
+        "operationId": "findAttachmentsByPatientId",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MedicalRecordAttachmentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "medical-record-controller"
@@ -1424,7 +1910,7 @@
         "tags": [
           "equipment-controller"
         ],
-        "operationId": "create_5",
+        "operationId": "create_6",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1454,7 +1940,7 @@
         "tags": [
           "clinic-controller"
         ],
-        "operationId": "findAll_2",
+        "operationId": "findAll_3",
         "responses": {
           "200": {
             "description": "OK",
@@ -1472,7 +1958,7 @@
         "tags": [
           "clinic-controller"
         ],
-        "operationId": "create_6",
+        "operationId": "create_7",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1527,12 +2013,63 @@
         }
       }
     },
+    "/api/v1/appointments": {
+      "get": {
+        "tags": [
+          "appointment-controller"
+        ],
+        "operationId": "findAll_4",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppointmentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "appointment-controller"
+        ],
+        "operationId": "create_8",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppointmentCreateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/addresses": {
       "get": {
         "tags": [
           "address-controller"
         ],
-        "operationId": "findAll_3",
+        "operationId": "findAll_5",
         "responses": {
           "200": {
             "description": "OK",
@@ -1553,7 +2090,7 @@
         "tags": [
           "address-controller"
         ],
-        "operationId": "create_7",
+        "operationId": "create_9",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1674,12 +2211,147 @@
         }
       }
     },
+    "/users/{userId}/profile-photo/download-url": {
+      "get": {
+        "tags": [
+          "user-profile-photo-controller"
+        ],
+        "operationId": "userDownloadUrl",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresignedUrlDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/profile-photo/download-url": {
+      "get": {
+        "tags": [
+          "user-profile-photo-controller"
+        ],
+        "operationId": "ownDownloadUrl",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresignedUrlDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stored-files/odontograms/{id}": {
+      "get": {
+        "tags": [
+          "stored-file-controller"
+        ],
+        "operationId": "findOdontogram",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OdontogramFileDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "stored-file-controller"
+        ],
+        "operationId": "deleteOdontogram",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/stored-files/odontograms/{id}/download-url": {
+      "get": {
+        "tags": [
+          "stored-file-controller"
+        ],
+        "operationId": "odontogramDownloadUrl",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresignedUrlDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/social-platforms": {
       "get": {
         "tags": [
           "social-platform-controller"
         ],
-        "operationId": "findAll_4",
+        "operationId": "findAll_6",
         "responses": {
           "200": {
             "description": "OK",
@@ -1699,7 +2371,7 @@
         "tags": [
           "social-platform-controller"
         ],
-        "operationId": "findById_8",
+        "operationId": "findById_9",
         "parameters": [
           {
             "name": "id",
@@ -1755,12 +2427,46 @@
         }
       }
     },
+    "/patients/{patientId}/odontogram-files": {
+      "get": {
+        "tags": [
+          "patient-odontogram-file-controller"
+        ],
+        "operationId": "findByPatient",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OdontogramFileDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/medical-records/by-patient/{patientId}": {
       "get": {
         "tags": [
           "medical-record-controller"
         ],
-        "operationId": "findByPatient",
+        "operationId": "findByPatientId",
         "parameters": [
           {
             "name": "patientId",
@@ -1835,6 +2541,49 @@
           }
         }
       }
+    },
+    "/api/v1/appointments/period": {
+      "get": {
+        "tags": [
+          "appointment-controller"
+        ],
+        "operationId": "findByPeriod",
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppointmentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1891,11 +2640,12 @@
           "endTime": {
             "type": "string"
           },
-          "endTimeAfterStartTime": {
+          "timeRangeValid": {
             "type": "boolean"
           }
         },
         "required": [
+          "dayOfWeek",
           "endTime",
           "startTime"
         ]
@@ -2170,6 +2920,146 @@
           }
         }
       },
+      "MedicalRecordUpdateDto": {
+        "type": "object",
+        "properties": {
+          "allergies": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 0
+          },
+          "chronicConditions": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 0
+          },
+          "continuousMedications": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 0
+          },
+          "generalObservations": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 0
+          }
+        }
+      },
+      "MedicalRecordDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdByUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "allergies": {
+            "type": "string"
+          },
+          "chronicConditions": {
+            "type": "string"
+          },
+          "continuousMedications": {
+            "type": "string"
+          },
+          "generalObservations": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MedicalRecordNoteUpdateDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "note"
+        ]
+      },
+      "MedicalRecordNoteDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "medicalRecordId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdByUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "note": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MedicalRecordAttachmentUpdateDto": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "MedicalRecordAttachmentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "medicalRecordId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "storedFileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "originalFileName": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "EquipmentUpdateDto": {
         "type": "object",
         "properties": {
@@ -2315,6 +3205,112 @@
           }
         }
       },
+      "AppointmentUpdateDto": {
+        "type": "object",
+        "properties": {
+          "statusId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "blocksSchedule": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "endDatetime",
+          "startDatetime",
+          "statusId"
+        ]
+      },
+      "AppointmentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workplaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "professionalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "statusCode": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          },
+          "calendarSyncStatusCode": {
+            "type": "string"
+          },
+          "externalCalendarEventId": {
+            "type": "string"
+          },
+          "lastSyncedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "blocksSchedule": {
+            "type": "boolean"
+          },
+          "startDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "cancellationReason": {
+            "type": "string"
+          },
+          "cancelledAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cancelledByUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdByUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "AddressUpdateDto": {
         "type": "object",
         "properties": {
@@ -2430,12 +3426,13 @@
           "endTime": {
             "type": "string"
           },
-          "endTimeAfterStartTime": {
+          "timeRangeValid": {
             "type": "boolean"
           }
         },
         "required": [
           "clinicId",
+          "dayOfWeek",
           "endTime",
           "startTime"
         ]
@@ -2507,6 +3504,99 @@
           },
           "role": {
             "type": "string"
+          }
+        }
+      },
+      "StoredFileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "checksumSha256": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "ODONTOGRAM",
+              "USER_PROFILE_PHOTO",
+              "MEDICAL_RECORD_ATTACHMENT",
+              "LEGACY"
+            ]
+          },
+          "uploadedByUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UserProfilePhotoDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "file": {
+            "$ref": "#/components/schemas/StoredFileDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OdontogramFileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "medicalRecordId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "odontogramEntryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "file": {
+            "$ref": "#/components/schemas/StoredFileDto"
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -2618,6 +3708,38 @@
           "phone"
         ]
       },
+      "MedicalRecordCreateDto": {
+        "type": "object",
+        "properties": {
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "allergies": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 0
+          },
+          "chronicConditions": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 0
+          },
+          "continuousMedications": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 0
+          },
+          "generalObservations": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "patientId"
+        ]
+      },
       "MedicalRecordNoteCreateDto": {
         "type": "object",
         "properties": {
@@ -2629,30 +3751,6 @@
         "required": [
           "note"
         ]
-      },
-      "MedicalRecordNoteDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "medicalRecordId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdByUserId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "note": {
-            "type": "string"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
       },
       "MedicalRecordAttachmentCreateDto": {
         "type": "object",
@@ -2668,30 +3766,6 @@
         "required": [
           "storedFileId"
         ]
-      },
-      "MedicalRecordAttachmentDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "medicalRecordId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "storedFileId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": {
-            "type": "string"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
       },
       "EquipmentCreateDto": {
         "type": "object",
@@ -2805,6 +3879,53 @@
           }
         }
       },
+      "AppointmentCreateDto": {
+        "type": "object",
+        "properties": {
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workplaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "professionalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "statusId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "blocksSchedule": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "clinicId",
+          "endDatetime",
+          "patientId",
+          "professionalId",
+          "startDatetime",
+          "statusId"
+        ]
+      },
       "AddressCreateDto": {
         "type": "object",
         "properties": {
@@ -2880,6 +4001,18 @@
           }
         }
       },
+      "PresignedUrlDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ApiResponseListSocialPlatformDto": {
         "type": "object",
         "properties": {
@@ -2943,35 +4076,6 @@
           }
         }
       },
-      "MedicalRecordDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "patientId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdByUserId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "allergies": {
-            "type": "string"
-          },
-          "chronicConditions": {
-            "type": "string"
-          },
-          "continuousMedications": {
-            "type": "string"
-          },
-          "generalObservations": {
-            "type": "string"
-          }
-        }
-      },
       "ApiResponseListEquipmentDto": {
         "type": "object",
         "properties": {
@@ -3030,75 +4134,14 @@
             "additionalProperties": {}
           }
         }
-      },
-      "ApiResponsePresignedUrlDto": {
-        "type": "object",
-        "properties": {
-          "success": { "type": "boolean" },
-          "data": { "$ref": "#/components/schemas/PresignedUrlDto" },
-          "error": { "$ref": "#/components/schemas/ApiError" }
-        }
-      },
-      "ApiResponseUserProfilePhotoDto": {
-        "type": "object",
-        "properties": {
-          "success": { "type": "boolean" },
-          "data": { "$ref": "#/components/schemas/UserProfilePhotoDto" },
-          "error": { "$ref": "#/components/schemas/ApiError" }
-        }
-      },
-      "ApiResponseOdontogramFileDto": {
-        "type": "object",
-        "properties": {
-          "success": { "type": "boolean" },
-          "data": { "$ref": "#/components/schemas/OdontogramFileDto" },
-          "error": { "$ref": "#/components/schemas/ApiError" }
-        }
-      },
-      "PresignedUrlDto": {
-        "type": "object",
-        "properties": {
-          "url": { "type": "string" },
-          "expiresAt": { "type": "string", "format": "date-time" }
-        }
-      },
-      "StoredFileDto": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "fileName": { "type": "string" },
-          "mimeType": { "type": "string" },
-          "sizeBytes": { "type": "integer", "format": "int64" },
-          "checksumSha256": { "type": "string" },
-          "category": {
-            "type": "string",
-            "enum": ["ODONTOGRAM", "USER_PROFILE_PHOTO", "MEDICAL_RECORD_ATTACHMENT", "LEGACY"]
-          },
-          "uploadedByUserId": { "type": "string", "format": "uuid" },
-          "description": { "type": "string" },
-          "createdAt": { "type": "string", "format": "date-time" }
-        }
-      },
-      "UserProfilePhotoDto": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "userId": { "type": "string", "format": "uuid" },
-          "file": { "$ref": "#/components/schemas/StoredFileDto" },
-          "createdAt": { "type": "string", "format": "date-time" }
-        }
-      },
-      "OdontogramFileDto": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "patientId": { "type": "string", "format": "uuid" },
-          "medicalRecordId": { "type": "string", "format": "uuid" },
-          "odontogramEntryId": { "type": "string", "format": "uuid" },
-          "file": { "$ref": "#/components/schemas/StoredFileDto" },
-          "description": { "type": "string" },
-          "createdAt": { "type": "string", "format": "date-time" }
-        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "in": "header",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     }
   }
