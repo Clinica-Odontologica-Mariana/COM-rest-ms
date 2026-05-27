@@ -83,6 +83,8 @@ class FileValidationServiceTest {
 				Arguments.of("non-uploadable legacy category", FileCategory.LEGACY, "image/png",
 						new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}),
 				Arguments.of("non-uploadable medical attachment category", FileCategory.MEDICAL_RECORD_ATTACHMENT,
-						"image/png", new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}));
+						"image/png", new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}),
+				Arguments.of("non-uploadable certificate category", FileCategory.CERTIFICATE, "image/png",
+						new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}));
 	}
 }

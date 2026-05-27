@@ -323,12 +323,20 @@ class ProfessionalControllerIntegrationTest {
 		insertReference("app_user", OTHER_USER_ID);
 		insertReference("app_user", THIRD_USER_ID);
 		insertReference("app_user", FOURTH_USER_ID);
-		insertReference("clinic", CLINIC_ID);
-		insertReference("clinic", OTHER_CLINIC_ID);
+		insertClinic(CLINIC_ID, "Clinica Principal", "00000000000001");
+		insertClinic(OTHER_CLINIC_ID, "Clinica Secundaria", "00000000000002");
 		insertReference("specialty", SPECIALTY_ID);
 	}
 
 	private void insertReference(String tableName, UUID id) {
 		jdbcTemplate.update("merge into " + tableName + " (id) key(id) values (?)", id);
+	}
+
+	private void insertClinic(UUID id, String name, String document) {
+		jdbcTemplate.update("""
+				merge into clinic (id, name, document, phone, timezone, active)
+				key(id)
+				values (?, ?, ?, ?, ?, ?)
+				""", id, name, document, "61999999999", "America/Sao_Paulo", true);
 	}
 }
