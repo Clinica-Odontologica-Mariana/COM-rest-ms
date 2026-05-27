@@ -1,6 +1,6 @@
-package com.clinica.mariana.restms.storedfile.repository;
+package com.clinica.mariana.restms.odontogram.repository;
 
-import com.clinica.mariana.restms.storedfile.entity.OdontogramFileEntity;
+import com.clinica.mariana.restms.odontogram.entity.OdontogramFileEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

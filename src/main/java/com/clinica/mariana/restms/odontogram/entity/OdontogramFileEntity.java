@@ -1,4 +1,4 @@
-package com.clinica.mariana.restms.storedfile.entity;
+package com.clinica.mariana.restms.odontogram.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

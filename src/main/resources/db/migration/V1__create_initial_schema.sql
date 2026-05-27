@@ -241,7 +241,7 @@ CREATE TABLE stored_file
     created_at          TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_stored_file_bucket_key UNIQUE (bucket_name, object_key),
     CONSTRAINT chk_stored_file_category CHECK (
-        file_category IN ('ODONTOGRAM', 'USER_PROFILE_PHOTO', 'MEDICAL_RECORD_ATTACHMENT', 'CERTIFICATE', 'LEGACY')
+        file_category IN ('ODONTOGRAM', 'USER_PROFILE_PHOTO', 'MEDICAL_RECORD_ATTACHMENT', 'CERTIFICATE')
     ),
     CONSTRAINT chk_stored_file_size CHECK (size_bytes >= 0),
     CONSTRAINT fk_stored_file_uploaded_by FOREIGN KEY (uploaded_by_user_id) REFERENCES app_user (id) ON DELETE SET NULL

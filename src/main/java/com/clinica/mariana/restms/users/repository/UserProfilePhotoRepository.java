@@ -1,6 +1,6 @@
-package com.clinica.mariana.restms.storedfile.repository;
+package com.clinica.mariana.restms.users.repository;
 
-import com.clinica.mariana.restms.storedfile.entity.UserProfilePhotoEntity;
+import com.clinica.mariana.restms.users.entity.UserProfilePhotoEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

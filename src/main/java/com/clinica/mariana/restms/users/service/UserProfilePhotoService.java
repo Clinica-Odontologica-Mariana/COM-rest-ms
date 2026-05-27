@@ -1,12 +1,13 @@
-package com.clinica.mariana.restms.storedfile.service;
+package com.clinica.mariana.restms.users.service;
 
 import com.clinica.mariana.restms.common.exception.AppException;
 import com.clinica.mariana.restms.storedfile.dto.PresignedUrlDto;
-import com.clinica.mariana.restms.storedfile.dto.UserProfilePhotoDto;
+import com.clinica.mariana.restms.users.dto.UserProfilePhotoDto;
 import com.clinica.mariana.restms.storedfile.entity.StoredFileEntity;
-import com.clinica.mariana.restms.storedfile.entity.UserProfilePhotoEntity;
+import com.clinica.mariana.restms.users.entity.UserProfilePhotoEntity;
 import com.clinica.mariana.restms.storedfile.model.FileCategory;
-import com.clinica.mariana.restms.storedfile.repository.UserProfilePhotoRepository;
+import com.clinica.mariana.restms.storedfile.service.StoredFileService;
+import com.clinica.mariana.restms.users.repository.UserProfilePhotoRepository;
 import com.clinica.mariana.restms.users.repository.AppUserReferenceRepository;
 import com.clinica.mariana.restms.users.repository.AppUserReferenceRepository.AppUserReference;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,6 @@
-package com.clinica.mariana.restms.storedfile.dto;
+package com.clinica.mariana.restms.users.dto;
+
+import com.clinica.mariana.restms.storedfile.dto.StoredFileDto;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;

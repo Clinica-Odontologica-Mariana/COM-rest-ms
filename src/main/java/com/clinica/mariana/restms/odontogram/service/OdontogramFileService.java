@@ -1,16 +1,17 @@
-package com.clinica.mariana.restms.storedfile.service;
+package com.clinica.mariana.restms.odontogram.service;
 
 import com.clinica.mariana.restms.common.exception.AppException;
 import com.clinica.mariana.restms.medicalrecord.entity.MedicalRecordEntity;
 import com.clinica.mariana.restms.medicalrecord.repository.MedicalRecordRepository;
 import com.clinica.mariana.restms.patient.repository.PatientRepository;
-import com.clinica.mariana.restms.storedfile.dto.OdontogramFileDto;
+import com.clinica.mariana.restms.odontogram.dto.OdontogramFileDto;
 import com.clinica.mariana.restms.storedfile.dto.PresignedUrlDto;
-import com.clinica.mariana.restms.storedfile.entity.OdontogramFileEntity;
+import com.clinica.mariana.restms.odontogram.entity.OdontogramFileEntity;
 import com.clinica.mariana.restms.storedfile.entity.StoredFileEntity;
 import com.clinica.mariana.restms.storedfile.model.FileCategory;
-import com.clinica.mariana.restms.storedfile.repository.OdontogramFileRepository;
+import com.clinica.mariana.restms.odontogram.repository.OdontogramFileRepository;
 import com.clinica.mariana.restms.storedfile.repository.StoredFileReferenceRepository;
+import com.clinica.mariana.restms.storedfile.service.StoredFileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,4 +1,4 @@
-package com.clinica.mariana.restms.storedfile.entity;
+package com.clinica.mariana.restms.users.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
