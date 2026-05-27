@@ -71,6 +71,10 @@ public class ClinicService {
 		ClinicEntity entity = clinicRepository.findById(id)
 				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found"));
 
+		if (request.addressId() != null && !addressRepository.existsById(request.addressId())) {
+			throw new AppException(HttpStatus.NOT_FOUND, "ADDRESS_NOT_FOUND", "Address not found");
+		}
+
 		if (clinicRepository.existsByDocumentAndIdNot(request.document(), id)) {
 			throw new AppException(HttpStatus.CONFLICT, "CLINIC_DOCUMENT_CONFLICT", "Clinic document already exists");
 		}
