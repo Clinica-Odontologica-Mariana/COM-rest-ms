@@ -2,9 +2,6 @@
 
 Aplicacao Spring Boot com PostgreSQL e Keycloak (RBAC com JWT).
 
-![CI-CD](https://github.com/Clinica-Odontologica-Mariana/COM-rest-ms/actions/workflows/cicd.yml/badge.svg)
-![Coverage](https://codecov.io/gh/Clinica-Odontologica-Mariana/COM-rest-ms/graph/badge.svg)
-
 ## Stack e padroes implementados
 
 Aplicacao Spring Boot com PostgreSQL (Supabase ou local) e Flyway para migrations de banco.
@@ -44,7 +41,6 @@ src/test/java/com/clinica/mariana/restms
 - `auth`: login e usuario autenticado (`/auth/login`, `/auth/me`)
 - `users`: criacao de usuarios no Keycloak (`/users`)
 - `patient`: dominio da clinica (CRUD de pacientes)
-- `professional`: profissionais vinculados a usuarios, clinicas e especialidades
 - `security`: configuracao de autenticacao/autorizacao
 - `common`: padrao de resposta e tratamento global de erros
 
@@ -63,14 +59,6 @@ src/test/java/com/clinica/mariana/restms
 - `GET /api/v1/patients/{id}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
 - `PUT /api/v1/patients/{id}` (`ADMIN`, `RECEPTIONIST`)
 - `DELETE /api/v1/patients/{id}` (`ADMIN`)
-
-### Professionals
-
-- `POST /api/v1/professionals` (`ADMIN`, `RECEPTIONIST`)
-- `GET /api/v1/professionals` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `GET /api/v1/professionals/{id}` (`ADMIN`, `RECEPTIONIST`, `DOCTOR`)
-- `PUT /api/v1/professionals/{id}` (`ADMIN`, `RECEPTIONIST`)
-- `DELETE /api/v1/professionals/{id}` (`ADMIN`)
 
 As respostas REST sao envelopadas em `{ "success": true, "data": ... }` para sucesso e
 `{ "success": false, "error": ... }` para erro.
@@ -186,19 +174,7 @@ Servicos:
 - MinIO Console: `http://localhost:9001`
 
 O schema inicial e aplicado pelo Flyway a partir de `src/main/resources/db/migration`.
-O container do PostgreSQL nao executa scripts em `docker-entrypoint-initdb.d`; ele sobe
-apenas o banco vazio e a aplicacao aplica as migrations ao iniciar.
-
-Se voce ja possui um volume local antigo criado a partir de SQL de bootstrap, recrie o
-volume uma vez para alinhar com Flyway:
-
-```bash
-docker compose down -v
-docker compose up --build
-```
-
-Evite `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` no desenvolvimento comum, pois isso pode
-registrar uma baseline em um schema legado e pular a migration inicial.
+Para bancos ja inicializados antes do Flyway, `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` permite registrar uma baseline sem recriar as tabelas existentes.
 
 Arquivos de apoio:
 
