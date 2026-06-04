@@ -3,18 +3,56 @@ services:
     image: postgres:17-alpine
     container_name: rest-ms-postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres-db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres-usuarios}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres-senha}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.1
+    container_name: rest-ms-keycloak
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_BOOTSTRAP_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD:-admin}
+    ports:
+      - "8081:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./docker/keycloak/rest-ms-realm.json:/opt/keycloak/data/import/rest-ms-realm.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8080'"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    container_name: rest-ms-minio
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin123}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
     restart: unless-stopped
 
   rest-ms:
@@ -22,15 +60,46 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: rest-ms
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_DOCKER_URL:-jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres-db}}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_DOCKER_USERNAME:-${POSTGRES_USER:-postgres-usuarios}}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_DOCKER_PASSWORD:-${POSTGRES_PASSWORD:-postgres-senha}}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-none}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM:-rest-ms}
+      KEYCLOAK_BASE_URL: ${KEYCLOAK_BASE_URL:-http://keycloak:8080}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-rest-ms}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-rest-ms-api}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-rest-ms-api-secret}
+      KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-api-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-api-admin123}
       SPRING_FLYWAY_ENABLED: true
-      SPRING_FLYWAY_BASELINE_ON_MIGRATE: true
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: false
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REFRESH_TOKEN: ${GOOGLE_REFRESH_TOKEN}
+      GOOGLE_CALENDAR_ID: ${GOOGLE_CALENDAR_ID}
+      MINIO_ENDPOINT: ${MINIO_DOCKER_ENDPOINT:-http://minio:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin123}
+      MINIO_BUCKET: ${MINIO_BUCKET:-com-rest-ms}
+      MINIO_REGION: ${MINIO_REGION:-us-east-1}
+      MINIO_PRESIGNED_URL_EXPIRATION_SECONDS: ${MINIO_PRESIGNED_URL_EXPIRATION_SECONDS:-300}
+      MINIO_CREATE_BUCKET_IF_MISSING: ${MINIO_CREATE_BUCKET_IF_MISSING:-true}
+      APP_FILES_PROFILE_PHOTO_MAX_SIZE_BYTES: ${APP_FILES_PROFILE_PHOTO_MAX_SIZE_BYTES:-5242880}
+      APP_FILES_PROFILE_PHOTO_ALLOWED_MIME_TYPES: ${APP_FILES_PROFILE_PHOTO_ALLOWED_MIME_TYPES:-image/jpeg,image/png,image/webp}
+      APP_FILES_ODONTOGRAM_MAX_SIZE_BYTES: ${APP_FILES_ODONTOGRAM_MAX_SIZE_BYTES:-10485760}
+      APP_FILES_ODONTOGRAM_ALLOWED_MIME_TYPES: ${APP_FILES_ODONTOGRAM_ALLOWED_MIME_TYPES:-image/jpeg,image/png,image/webp,application/pdf}
     ports:
       - "8080:8080"
     restart: unless-stopped
 volumes:
   postgres_data:
+  keycloak_data:
+  minio_data:

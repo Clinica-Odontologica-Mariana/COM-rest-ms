@@ -1,141 +1,120 @@
 package com.clinica.mariana.restms.patient.service;
 
+import com.clinica.mariana.restms.medicalrecord.service.MedicalRecordService;
 import com.clinica.mariana.restms.patient.dto.PatientCreateDto;
 import com.clinica.mariana.restms.patient.dto.PatientDto;
 import com.clinica.mariana.restms.patient.dto.PatientUpdateDto;
 import com.clinica.mariana.restms.patient.entity.PatientEntity;
-import com.clinica.mariana.restms.patient.model.PatientModel;
 import com.clinica.mariana.restms.patient.repository.PatientRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Service
 public class PatientService {
 
-	private final PatientRepository patientRepository;
+	private static final String PATIENT_NOT_FOUND = "Patient not found";
 
-	public PatientService(PatientRepository patientRepository) {
+	private final PatientRepository patientRepository;
+	private final MedicalRecordService medicalRecordService;
+
+	public PatientService(PatientRepository patientRepository, MedicalRecordService medicalRecordService) {
 		this.patientRepository = patientRepository;
+		this.medicalRecordService = medicalRecordService;
 	}
 
 	@Transactional
 	public PatientDto create(PatientCreateDto request) {
 		if (patientRepository.existsByCpf(request.cpf())) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Patient cpf already exists");
+			throw new AppException(HttpStatus.CONFLICT, "CPF_ALREADY_EXISTS", "Patient cpf already exists");
 		}
 
 		PatientEntity entity = new PatientEntity();
+		entity.setAddressId(request.addressId());
 		entity.setFullName(request.fullName());
 		entity.setCpf(request.cpf());
 		entity.setPhone(request.phone());
 		entity.setEmail(request.email());
 		entity.setBirthDate(request.birthDate());
+		entity.setEmergencyContactName(request.emergencyContactName());
+		entity.setEmergencyContactPhone(request.emergencyContactPhone());
+		entity.setNotes(request.notes());
 		entity.setActive(true);
 		entity.setInactivatedAt(null);
 
-		return toDto(toModel(patientRepository.save(entity)));
+		PatientEntity saved = patientRepository.save(entity);
+		medicalRecordService.createForPatientIfMissing(saved.getId());
+
+		return toDto(saved);
 	}
 
 	@Transactional(readOnly = true)
-	public List<PatientDto> findAll() {
-		return patientRepository.findAllByActiveTrueOrderByFullNameAsc()
-				.stream()
-				.map(this::toModel)
-				.map(this::toDto)
-				.toList();
+	public Page<PatientDto> findAll(Pageable pageable) {
+		return patientRepository.findAllByActiveTrueOrderByFullNameAsc(pageable).map(this::toDto);
 	}
 
 	@Transactional(readOnly = true)
 	public PatientDto findById(UUID id) {
 		PatientEntity entity = patientRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "PATIENT_NOT_FOUND", PATIENT_NOT_FOUND));
 
-		return toDto(toModel(entity));
+		return toDto(entity);
 	}
 
 	@Transactional(readOnly = true)
 	public PatientDto findByCpf(String cpf) {
 		PatientEntity entity = patientRepository.findByCpf(cpf)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "PATIENT_NOT_FOUND", PATIENT_NOT_FOUND));
 
-		return toDto(toModel(entity));
+		return toDto(entity);
 	}
 
 	@Transactional
 	public PatientDto update(UUID id, PatientUpdateDto request) {
 		PatientEntity entity = patientRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "PATIENT_NOT_FOUND", PATIENT_NOT_FOUND));
 
 		if (patientRepository.existsByCpfAndIdNot(request.cpf(), id)) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Patient cpf already exists");
+			throw new AppException(HttpStatus.CONFLICT, "CPF_ALREADY_EXISTS", "Patient cpf already exists");
 		}
 
+		entity.setAddressId(request.addressId());
 		entity.setFullName(request.fullName());
 		entity.setCpf(request.cpf());
 		entity.setPhone(request.phone());
 		entity.setEmail(request.email());
 		entity.setBirthDate(request.birthDate());
+		entity.setEmergencyContactName(request.emergencyContactName());
+		entity.setEmergencyContactPhone(request.emergencyContactPhone());
+		entity.setNotes(request.notes());
 
-		return toDto(toModel(patientRepository.save(entity)));
+		return toDto(patientRepository.save(entity));
 	}
 
 	@Transactional
 	public void delete(UUID id) {
 		PatientEntity entity = patientRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "PATIENT_NOT_FOUND", PATIENT_NOT_FOUND));
 
 		if (!entity.isActive()) {
 			return;
 		}
 
 		entity.setActive(false);
-		entity.setInactivatedAt(LocalDateTime.now());
+		entity.setInactivatedAt(OffsetDateTime.now());
 		patientRepository.save(entity);
 	}
 
-	@Transactional(readOnly = true)
-	public PatientDto example() {
-		PatientModel model = new PatientModel(
-				UUID.fromString("11111111-1111-1111-1111-111111111111"),
-				"Paciente Exemplo",
-				"12345678901",
-				"11999999999",
-				"paciente.exemplo@clinic.com",
-				LocalDate.of(1995, 5, 15),
-				true
-		);
-
-		return toDto(model);
-	}
-
-	private PatientModel toModel(PatientEntity entity) {
-		return new PatientModel(
-				entity.getId(),
-				entity.getFullName(),
-				entity.getCpf(),
-				entity.getPhone(),
-				entity.getEmail(),
-				entity.getBirthDate(),
-				entity.isActive()
-		);
-	}
-
-	private PatientDto toDto(PatientModel model) {
-		return new PatientDto(
-				model.id(),
-				model.fullName(),
-				model.cpf(),
-				model.phone(),
-				model.email(),
-				model.birthDate(),
-				model.active()
-		);
+	private PatientDto toDto(PatientEntity entity) {
+		return new PatientDto(entity.getId(), entity.getAddressId(), entity.getCreatedByUserId(), entity.getFullName(),
+				entity.getCpf(), entity.getPhone(), entity.getEmail(), entity.getBirthDate(),
+				entity.getEmergencyContactName(), entity.getEmergencyContactPhone(), entity.getNotes(),
+				entity.isActive());
 	}
 }

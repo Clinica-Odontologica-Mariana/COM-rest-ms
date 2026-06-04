@@ -1,0 +1,13 @@
+INSERT INTO appointment_status (id, code, name, blocks_schedule, final_status) VALUES ('aaaaaaaa-0000-0000-0000-000000000001', 'SCHEDULED', 'Agendado', TRUE, FALSE);
+INSERT INTO appointment_status (id, code, name, blocks_schedule, final_status) VALUES ('aaaaaaaa-0000-0000-0000-000000000002', 'CONFIRMED', 'Confirmado', TRUE, FALSE);
+INSERT INTO appointment_status (id, code, name, blocks_schedule, final_status) VALUES ('aaaaaaaa-0000-0000-0000-000000000003', 'IN_PROGRESS', 'Em atendimento', TRUE, FALSE);
+INSERT INTO appointment_status (id, code, name, blocks_schedule, final_status) VALUES ('aaaaaaaa-0000-0000-0000-000000000004', 'COMPLETED', 'Concluido', FALSE, TRUE);
+INSERT INTO appointment_status (id, code, name, blocks_schedule, final_status) VALUES ('aaaaaaaa-0000-0000-0000-000000000005', 'CANCELLED', 'Cancelado', FALSE, TRUE);
+INSERT INTO appointment_status (id, code, name, blocks_schedule, final_status) VALUES ('aaaaaaaa-0000-0000-0000-000000000006', 'NO_SHOW', 'Nao compareceu', FALSE, TRUE);
+INSERT INTO calendar_provider (id, code, name) VALUES ('bbbbbbbb-0000-0000-0000-000000000001', 'GOOGLE', 'Google Agenda');
+INSERT INTO calendar_provider (id, code, name) VALUES ('bbbbbbbb-0000-0000-0000-000000000002', 'OUTLOOK', 'Microsoft Outlook');
+INSERT INTO calendar_provider (id, code, name) VALUES ('bbbbbbbb-0000-0000-0000-000000000003', 'MANUAL', 'Manual');
+INSERT INTO calendar_sync_status (id, code, name) VALUES ('cccccccc-0000-0000-0000-000000000001', 'PENDING', 'Pendente');
+INSERT INTO calendar_sync_status (id, code, name) VALUES ('cccccccc-0000-0000-0000-000000000002', 'SYNCED', 'Sincronizado');
+INSERT INTO calendar_sync_status (id, code, name) VALUES ('cccccccc-0000-0000-0000-000000000003', 'FAILED', 'Falhou');
+INSERT INTO calendar_sync_status (id, code, name) VALUES ('cccccccc-0000-0000-0000-000000000004', 'NOT_SYNCED', 'Nao sincronizado');
