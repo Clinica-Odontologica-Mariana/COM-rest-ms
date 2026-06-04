@@ -54,6 +54,11 @@ public class GlobalExceptionHandler {
 		return buildErrorResponse(HttpStatus.FORBIDDEN, "FORBIDDEN", "Access denied", List.of(), request);
 	}
 
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ApiResponse<Object>> handleIllegalArgument(IllegalArgumentException ex, WebRequest request) {
+		return buildErrorResponse(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", ex.getMessage(), List.of(), request);
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<Object>> handleGeneric(Exception ex, WebRequest request) {
 		LoggerFactory.getLogger(GlobalExceptionHandler.class).error("Unexpected error in request", ex);
