@@ -74,6 +74,14 @@ public class ClinicService {
 	}
 
 	@Transactional
+	public ClinicDto inactivate(UUID id) {
+		ClinicEntity entity = findEntity(id);
+		entity.setActive(false);
+		entity.setInactivatedAt(OffsetDateTime.now());
+		return toDto(clinicRepository.save(entity));
+	}
+
+	@Transactional
 	public void delete(UUID id) {
 		ClinicEntity entity = findEntity(id);
 		if (!entity.isActive()) {

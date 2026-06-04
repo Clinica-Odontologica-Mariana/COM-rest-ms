@@ -102,13 +102,13 @@ class ClinicControllerIntegrationTest {
 					.andExpect(jsonPath("$.data.phone", is("11888888888")));
 
 			mockMvc.perform(get(CLINICS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
-					.andExpect(status().isOk()).andExpect(jsonPath("$.data", hasSize(1)));
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(1)));
 
 			mockMvc.perform(patch("/api/v1/clinics/{id}/inactivate", created.id()).contextPath(CONTEXT_PATH)
 					.with(jwtWithRole(ROLE_ADMIN))).andExpect(status().isOk());
 
 			mockMvc.perform(get(CLINICS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
-					.andExpect(status().isOk()).andExpect(jsonPath("$.data", hasSize(0)));
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(0)));
 		}
 
 		@Nested

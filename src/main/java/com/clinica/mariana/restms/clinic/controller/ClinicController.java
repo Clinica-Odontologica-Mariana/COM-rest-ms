@@ -9,12 +9,12 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,9 +47,9 @@ public class ClinicController {
 		return clinicService.findAll(pageable);
 	}
 
-	@GetMapping(params = "document")
+	@GetMapping("/document/{document}")
 	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
-	public ClinicDto findByDocument(@RequestParam String document) {
+	public ClinicDto findByDocument(@PathVariable String document) {
 		return clinicService.findByDocument(document);
 	}
 
@@ -63,6 +63,12 @@ public class ClinicController {
 	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
 	public ClinicDto update(@PathVariable UUID id, @Valid @RequestBody ClinicUpdateDto request) {
 		return clinicService.update(id, request);
+	}
+
+	@PatchMapping("/{id}/inactivate")
+	@RolesAllowed("ADMIN")
+	public ClinicDto inactivate(@PathVariable UUID id) {
+		return clinicService.inactivate(id);
 	}
 
 	@DeleteMapping("/{id}")
