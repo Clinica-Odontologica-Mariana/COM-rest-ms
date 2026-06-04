@@ -12,7 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -79,7 +79,7 @@ class ProfessionalClinicServiceTest {
 				.thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.deactivate(professionalId, clinicId))
-				.isInstanceOf(ResponseStatusException.class)
+				.isInstanceOf(AppException.class)
 				.hasMessageContaining("Professional must keep at least one active clinic");
 	}
 }

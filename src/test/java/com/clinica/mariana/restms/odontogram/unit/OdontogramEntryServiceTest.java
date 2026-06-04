@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
 import java.util.UUID;
 
@@ -40,7 +40,7 @@ class OdontogramEntryServiceTest {
 		OdontogramEntryCreateDto request = new OdontogramEntryCreateDto(UUID.randomUUID(), UUID.randomUUID(), 19, null,
 				"CARIES", null, null);
 
-		assertThatThrownBy(() -> service.create(request)).isInstanceOf(ResponseStatusException.class)
+		assertThatThrownBy(() -> service.create(request)).isInstanceOf(AppException.class)
 				.hasMessageContaining("Invalid tooth number");
 	}
 }

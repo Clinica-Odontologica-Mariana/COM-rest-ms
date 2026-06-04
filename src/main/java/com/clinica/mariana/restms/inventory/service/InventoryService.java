@@ -13,7 +13,7 @@ import com.clinica.mariana.restms.inventory.repository.StockMovementRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -39,7 +39,7 @@ public class InventoryService {
 	public InventoryItemDto createItem(InventoryItemCreateDto request) {
 		validateClinic(request.clinicId());
 		if (itemRepository.existsByClinicIdAndName(request.clinicId(), request.name())) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Inventory item name already exists for clinic");
+			throw new AppException(HttpStatus.CONFLICT, "ALREADY_EXISTS", "Inventory item name already exists for clinic");
 		}
 		InventoryItemEntity entity = new InventoryItemEntity();
 		entity.setClinicId(request.clinicId());
@@ -65,7 +65,7 @@ public class InventoryService {
 	public InventoryItemDto updateItem(UUID id, InventoryItemUpdateDto request) {
 		InventoryItemEntity entity = findItem(id);
 		if (itemRepository.existsByClinicIdAndNameAndIdNot(entity.getClinicId(), request.name(), id)) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Inventory item name already exists for clinic");
+			throw new AppException(HttpStatus.CONFLICT, "ALREADY_EXISTS", "Inventory item name already exists for clinic");
 		}
 		apply(entity, request.itemType(), request.name(), request.description(), request.sku(), request.unit(),
 				request.minimumQuantity());
@@ -86,17 +86,17 @@ public class InventoryService {
 	public StockMovementDto createMovement(StockMovementCreateDto request) {
 		InventoryItemEntity item = findItem(request.inventoryItemId());
 		if (!item.isActive()) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Inventory item is inactive");
+			throw new AppException(HttpStatus.CONFLICT, "INTERNAL_ERROR", "Inventory item is inactive");
 		}
 
 		BigDecimal newQuantity = switch (request.movementType()) {
 			case "IN" -> item.getCurrentQuantity().add(request.quantity());
 			case "OUT" -> item.getCurrentQuantity().subtract(request.quantity());
 			case "ADJUSTMENT" -> request.quantity();
-			default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid movement type");
+			default -> throw new AppException(HttpStatus.BAD_REQUEST, "INTERNAL_ERROR", "Invalid movement type");
 		};
 		if (newQuantity.compareTo(BigDecimal.ZERO) < 0) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Stock movement would make inventory negative");
+			throw new AppException(HttpStatus.CONFLICT, "INTERNAL_ERROR", "Stock movement would make inventory negative");
 		}
 
 		item.setCurrentQuantity(newQuantity);
@@ -107,7 +107,6 @@ public class InventoryService {
 		movement.setMovementType(request.movementType());
 		movement.setQuantity(request.quantity());
 		movement.setReason(request.reason());
-		movement.setCreatedByUserId(request.createdByUserId());
 		return toDto(movementRepository.save(movement));
 	}
 
@@ -120,12 +119,12 @@ public class InventoryService {
 
 	private InventoryItemEntity findItem(UUID id) {
 		return itemRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, ITEM_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "ITEM_NOT_FOUND", ITEM_NOT_FOUND));
 	}
 
 	private void validateClinic(UUID clinicId) {
 		if (!clinicRepository.existsById(clinicId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Clinic not found");
+			throw new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found");
 		}
 	}
 

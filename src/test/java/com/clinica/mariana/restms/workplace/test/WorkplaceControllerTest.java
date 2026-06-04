@@ -7,7 +7,7 @@ import com.clinica.mariana.restms.workplace.service.WorkplaceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
 import java.util.List;
 import java.util.UUID;
@@ -56,8 +56,8 @@ class WorkplaceControllerTest {
 		workplaceService.create(new WorkplaceCreateDto(clinicId, duplicateName, "Primeiro"));
 
 		assertThatThrownBy(() -> workplaceService.create(new WorkplaceCreateDto(clinicId, duplicateName, "Segundo")))
-				.isInstanceOf(ResponseStatusException.class).hasMessageContaining("409")
-				.hasMessageContaining("already exists");
+				.isInstanceOf(AppException.class)
+				.extracting(e -> ((AppException) e).getStatus().value()).isEqualTo(409);
 	}
 
 	@Test
@@ -77,8 +77,8 @@ class WorkplaceControllerTest {
 	void shouldFailWhenWorkplaceNotFound() {
 		UUID nonExistentId = UUID.randomUUID();
 
-		assertThatThrownBy(() -> workplaceService.findById(nonExistentId)).isInstanceOf(ResponseStatusException.class)
-				.hasMessageContaining("404").hasMessageContaining("not found");
+		assertThatThrownBy(() -> workplaceService.findById(nonExistentId)).isInstanceOf(AppException.class)
+				.extracting(e -> ((AppException) e).getStatus().value()).isEqualTo(404);
 	}
 
 	@Test
@@ -87,7 +87,8 @@ class WorkplaceControllerTest {
 
 		assertThatThrownBy(
 				() -> workplaceService.update(nonExistentId, new WorkplaceUpdateDto("New Name", "New Description")))
-				.isInstanceOf(ResponseStatusException.class).hasMessageContaining("404");
+				.isInstanceOf(AppException.class)
+				.extracting(e -> ((AppException) e).getStatus().value()).isEqualTo(404);
 	}
 
 	@Test

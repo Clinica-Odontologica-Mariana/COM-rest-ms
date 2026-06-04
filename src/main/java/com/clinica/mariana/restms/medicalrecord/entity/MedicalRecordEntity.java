@@ -1,5 +1,12 @@
 package com.clinica.mariana.restms.medicalrecord.entity;
 
+import lombok.Getter;
+import jakarta.persistence.EntityListeners;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.annotation.CreatedBy;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,6 +17,10 @@ import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@EntityListeners(AuditingEntityListener.class)
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "medical_record")
 public class MedicalRecordEntity {
@@ -21,7 +32,8 @@ public class MedicalRecordEntity {
 	@Column(name = "patient_id", nullable = false, unique = true)
 	private UUID patientId;
 
-	@Column(name = "created_by_user_id")
+	@CreatedBy
+	@Column(name = "created_by_user_id", updatable = false)
 	private UUID createdByUserId;
 
 	@Column(name = "allergies")
@@ -42,67 +54,4 @@ public class MedicalRecordEntity {
 	@Column(name = "updated_at", insertable = false, updatable = false)
 	private OffsetDateTime updatedAt;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public void setId(UUID id) {
-		this.id = id;
-	}
-
-	public UUID getPatientId() {
-		return patientId;
-	}
-
-	public void setPatientId(UUID patientId) {
-		this.patientId = patientId;
-	}
-
-	public UUID getCreatedByUserId() {
-		return createdByUserId;
-	}
-
-	public void setCreatedByUserId(UUID createdByUserId) {
-		this.createdByUserId = createdByUserId;
-	}
-
-	public String getAllergies() {
-		return allergies;
-	}
-
-	public void setAllergies(String allergies) {
-		this.allergies = allergies;
-	}
-
-	public String getChronicConditions() {
-		return chronicConditions;
-	}
-
-	public void setChronicConditions(String chronicConditions) {
-		this.chronicConditions = chronicConditions;
-	}
-
-	public String getContinuousMedications() {
-		return continuousMedications;
-	}
-
-	public void setContinuousMedications(String continuousMedications) {
-		this.continuousMedications = continuousMedications;
-	}
-
-	public String getGeneralObservations() {
-		return generalObservations;
-	}
-
-	public void setGeneralObservations(String generalObservations) {
-		this.generalObservations = generalObservations;
-	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public OffsetDateTime getUpdatedAt() {
-		return updatedAt;
-	}
 }

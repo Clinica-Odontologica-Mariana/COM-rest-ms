@@ -1,5 +1,12 @@
 package com.clinica.mariana.restms.odontogram.entity;
 
+import lombok.Getter;
+import jakarta.persistence.EntityListeners;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.annotation.CreatedBy;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,6 +17,10 @@ import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@EntityListeners(AuditingEntityListener.class)
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "odontogram_file")
 public class OdontogramFileEntity {
@@ -33,65 +44,11 @@ public class OdontogramFileEntity {
 	@Column(name = "description")
 	private String description;
 
-	@Column(name = "created_by_user_id")
+	@CreatedBy
+	@Column(name = "created_by_user_id", updatable = false)
 	private UUID createdByUserId;
 
 	@Column(name = "created_at", insertable = false, updatable = false)
 	private OffsetDateTime createdAt;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public UUID getPatientId() {
-		return patientId;
-	}
-
-	public void setPatientId(UUID patientId) {
-		this.patientId = patientId;
-	}
-
-	public UUID getMedicalRecordId() {
-		return medicalRecordId;
-	}
-
-	public void setMedicalRecordId(UUID medicalRecordId) {
-		this.medicalRecordId = medicalRecordId;
-	}
-
-	public UUID getOdontogramEntryId() {
-		return odontogramEntryId;
-	}
-
-	public void setOdontogramEntryId(UUID odontogramEntryId) {
-		this.odontogramEntryId = odontogramEntryId;
-	}
-
-	public UUID getStoredFileId() {
-		return storedFileId;
-	}
-
-	public void setStoredFileId(UUID storedFileId) {
-		this.storedFileId = storedFileId;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public UUID getCreatedByUserId() {
-		return createdByUserId;
-	}
-
-	public void setCreatedByUserId(UUID createdByUserId) {
-		this.createdByUserId = createdByUserId;
-	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
 }

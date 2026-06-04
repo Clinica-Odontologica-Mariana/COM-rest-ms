@@ -19,6 +19,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -41,15 +44,16 @@ public class AppointmentController {
 	}
 
 	@GetMapping
-	public List<AppointmentDto> findAll() {
-		return appointmentService.findAll();
+	public Page<AppointmentDto> findAll(@PageableDefault(size = 20) Pageable pageable) {
+		return appointmentService.findAll(pageable);
 	}
 
 	@GetMapping("/period")
-	public List<AppointmentDto> findByPeriod(
+	public Page<AppointmentDto> findByPeriod(
+			@PageableDefault(size = 20) Pageable pageable,
 			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime start,
 			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime end) {
-		return appointmentService.findByPeriod(start, end);
+		return appointmentService.findByPeriod(start, end, pageable);
 	}
 
 	@PutMapping("/{id}")

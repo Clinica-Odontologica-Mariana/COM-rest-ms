@@ -17,7 +17,5 @@ public record StockMovementCreateDto(
 
 		@NotNull(message = "quantity is required") @DecimalMin(value = "0.01") BigDecimal quantity,
 
-		@Size(max = 255) String reason,
-
-		UUID createdByUserId) {
+		@Size(max = 255) String reason) {
 }

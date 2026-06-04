@@ -3,6 +3,8 @@ package com.clinica.mariana.restms.patient.repository;
 import com.clinica.mariana.restms.patient.entity.PatientEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,5 +17,5 @@ public interface PatientRepository extends JpaRepository<PatientEntity, UUID> {
 
 	Optional<PatientEntity> findByCpf(String cpf);
 
-	List<PatientEntity> findAllByActiveTrueOrderByFullNameAsc();
+	Page<PatientEntity> findAllByActiveTrueOrderByFullNameAsc(Pageable pageable);
 }

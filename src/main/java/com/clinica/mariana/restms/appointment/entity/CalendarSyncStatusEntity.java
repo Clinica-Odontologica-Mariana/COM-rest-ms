@@ -1,5 +1,9 @@
 package com.clinica.mariana.restms.appointment.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -9,6 +13,9 @@ import jakarta.persistence.Table;
 
 import java.util.UUID;
 
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "calendar_sync_status")
 public class CalendarSyncStatusEntity {
@@ -23,27 +30,4 @@ public class CalendarSyncStatusEntity {
 	@Column(name = "name", nullable = false, unique = true, length = 80)
 	private String name;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public void setId(UUID id) {
-		this.id = id;
-	}
-
-	public String getCode() {
-		return code;
-	}
-
-	public void setCode(String code) {
-		this.code = code;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
 }

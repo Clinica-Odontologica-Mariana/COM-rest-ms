@@ -9,7 +9,7 @@ import com.clinica.mariana.restms.workplace.repository.WorkplaceRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -28,7 +28,7 @@ public class WorkplaceService {
 	@Transactional
 	public WorkplaceDto create(WorkplaceCreateDto request) {
 		if (workplaceRepository.existsByClinicIdAndName(request.clinicId(), request.name())) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Workplace name already exists for this clinic");
+			throw new AppException(HttpStatus.CONFLICT, "WORKPLACE_NAME_ALREADY_EXISTS", "Workplace name already exists for this clinic");
 		}
 
 		WorkplaceModel model = WorkplaceModel.create(request.clinicId(), request.name(), request.description());
@@ -52,7 +52,7 @@ public class WorkplaceService {
 	@Transactional(readOnly = true)
 	public WorkplaceDto findById(UUID id) {
 		WorkplaceEntity entity = workplaceRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, WORKPLACE_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "WORKPLACE_NOT_FOUND", WORKPLACE_NOT_FOUND));
 
 		return toDto(entity);
 	}
@@ -60,7 +60,7 @@ public class WorkplaceService {
 	@Transactional(readOnly = true)
 	public WorkplaceDto findByClinicIdAndName(UUID clinicId, String name) {
 		WorkplaceEntity entity = workplaceRepository.findByClinicIdAndName(clinicId, name)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, WORKPLACE_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "WORKPLACE_NOT_FOUND", WORKPLACE_NOT_FOUND));
 
 		return toDto(entity);
 	}
@@ -68,10 +68,10 @@ public class WorkplaceService {
 	@Transactional
 	public WorkplaceDto update(UUID id, WorkplaceUpdateDto request) {
 		WorkplaceEntity entity = workplaceRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, WORKPLACE_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "WORKPLACE_NOT_FOUND", WORKPLACE_NOT_FOUND));
 
 		if (workplaceRepository.existsByClinicIdAndNameAndIdNot(entity.getClinicId(), request.name(), id)) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Workplace name already exists for this clinic");
+			throw new AppException(HttpStatus.CONFLICT, "WORKPLACE_NAME_ALREADY_EXISTS", "Workplace name already exists for this clinic");
 		}
 
 		entity.setName(request.name());
@@ -83,7 +83,7 @@ public class WorkplaceService {
 	@Transactional
 	public void delete(UUID id) {
 		WorkplaceEntity entity = workplaceRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, WORKPLACE_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "WORKPLACE_NOT_FOUND", WORKPLACE_NOT_FOUND));
 
 		if (!entity.isActive()) {
 			return;

@@ -8,8 +8,10 @@ import com.clinica.mariana.restms.clinicalprocedure.repository.ClinicalProcedure
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -37,8 +39,8 @@ public class ClinicalProcedureService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<ClinicalProcedureDto> findAll() {
-		return repository.findAllByActiveTrueOrderByNameAsc().stream().map(this::toDto).toList();
+	public Page<ClinicalProcedureDto> findAll(Pageable pageable) {
+		return repository.findAllByActiveTrueOrderByNameAsc(pageable).map(this::toDto);
 	}
 
 	@Transactional(readOnly = true)
@@ -68,7 +70,7 @@ public class ClinicalProcedureService {
 
 	private ClinicalProcedureEntity findEntity(UUID id) {
 		return repository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, PROCEDURE_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "PROCEDURE_NOT_FOUND", PROCEDURE_NOT_FOUND));
 	}
 
 	private void validateUnique(String code, String name, UUID idToIgnore) {
@@ -77,14 +79,14 @@ public class ClinicalProcedureService {
 					? repository.existsByCode(code)
 					: repository.existsByCodeAndIdNot(code, idToIgnore);
 			if (codeExists) {
-				throw new ResponseStatusException(HttpStatus.CONFLICT, "Clinical procedure code already exists");
+				throw new AppException(HttpStatus.CONFLICT, "ALREADY_EXISTS", "Clinical procedure code already exists");
 			}
 		}
 		boolean nameExists = idToIgnore == null
 				? repository.existsByName(name)
 				: repository.existsByNameAndIdNot(name, idToIgnore);
 		if (nameExists) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Clinical procedure name already exists");
+			throw new AppException(HttpStatus.CONFLICT, "ALREADY_EXISTS", "Clinical procedure name already exists");
 		}
 	}
 

@@ -1,5 +1,7 @@
 package com.clinica.mariana.restms.patient.service;
 
+import com.clinica.mariana.restms.common.exception.AppException;
+
 import com.clinica.mariana.restms.clinic.repository.ClinicRepository;
 import com.clinica.mariana.restms.patient.dto.PatientClinicCreateDto;
 import com.clinica.mariana.restms.patient.dto.PatientClinicDto;
@@ -10,7 +12,6 @@ import com.clinica.mariana.restms.patient.repository.PatientRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -65,7 +66,7 @@ public class PatientClinicService {
 	public PatientClinicDto setPrimary(UUID patientId, UUID clinicId) {
 		validatePatientAndClinic(patientId, clinicId);
 		PatientClinicEntity entity = patientClinicRepository.findById(new PatientClinicId(patientId, clinicId))
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, MEMBERSHIP_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "MEMBERSHIP_NOT_FOUND", MEMBERSHIP_NOT_FOUND));
 
 		if (!entity.isActive()) {
 			entity.setActive(true);
@@ -80,7 +81,7 @@ public class PatientClinicService {
 	@Transactional
 	public void deactivate(UUID patientId, UUID clinicId) {
 		PatientClinicEntity entity = patientClinicRepository.findById(new PatientClinicId(patientId, clinicId))
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, MEMBERSHIP_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "MEMBERSHIP_NOT_FOUND", MEMBERSHIP_NOT_FOUND));
 
 		entity.setActive(false);
 		entity.setPrimaryClinic(false);
@@ -104,13 +105,13 @@ public class PatientClinicService {
 	private void validatePatientAndClinic(UUID patientId, UUID clinicId) {
 		validatePatient(patientId);
 		if (!clinicRepository.existsById(clinicId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, CLINIC_NOT_FOUND);
+			throw new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", CLINIC_NOT_FOUND);
 		}
 	}
 
 	private void validatePatient(UUID patientId) {
 		if (!patientRepository.existsById(patientId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, PATIENT_NOT_FOUND);
+			throw new AppException(HttpStatus.NOT_FOUND, "PATIENT_NOT_FOUND", PATIENT_NOT_FOUND);
 		}
 	}
 

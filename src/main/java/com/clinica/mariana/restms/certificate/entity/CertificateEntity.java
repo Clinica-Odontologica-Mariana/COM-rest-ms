@@ -1,5 +1,9 @@
 package com.clinica.mariana.restms.certificate.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,6 +14,9 @@ import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "certificate")
 public class CertificateEntity {
@@ -51,87 +58,4 @@ public class CertificateEntity {
 	@Column(name = "updated_at", insertable = false, updatable = false)
 	private OffsetDateTime updatedAt;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public UUID getPatientId() {
-		return patientId;
-	}
-
-	public void setPatientId(UUID patientId) {
-		this.patientId = patientId;
-	}
-
-	public UUID getProfessionalId() {
-		return professionalId;
-	}
-
-	public void setProfessionalId(UUID professionalId) {
-		this.professionalId = professionalId;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
-	}
-
-	public String getCertificateType() {
-		return certificateType;
-	}
-
-	public void setCertificateType(String certificateType) {
-		this.certificateType = certificateType;
-	}
-
-	public String getContent() {
-		return content;
-	}
-
-	public void setContent(String content) {
-		this.content = content;
-	}
-
-	public OffsetDateTime getIssuedAt() {
-		return issuedAt;
-	}
-
-	public void setIssuedAt(OffsetDateTime issuedAt) {
-		this.issuedAt = issuedAt;
-	}
-
-	public UUID getStoredFileId() {
-		return storedFileId;
-	}
-
-	public void setStoredFileId(UUID storedFileId) {
-		this.storedFileId = storedFileId;
-	}
-
-	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-
-	public OffsetDateTime getRevokedAt() {
-		return revokedAt;
-	}
-
-	public void setRevokedAt(OffsetDateTime revokedAt) {
-		this.revokedAt = revokedAt;
-	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public OffsetDateTime getUpdatedAt() {
-		return updatedAt;
-	}
 }

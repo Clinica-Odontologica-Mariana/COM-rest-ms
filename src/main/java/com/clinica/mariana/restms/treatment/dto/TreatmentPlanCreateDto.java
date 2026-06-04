@@ -17,7 +17,5 @@ public record TreatmentPlanCreateDto(@NotNull UUID patientId, @NotNull UUID medi
 
 		String notes,
 
-		@DecimalMin("0.00") BigDecimal totalAmount,
-
-		UUID createdByUserId) {
+		@DecimalMin("0.00") BigDecimal totalAmount) {
 }

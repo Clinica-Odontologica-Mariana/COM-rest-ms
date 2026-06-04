@@ -1,5 +1,9 @@
 package com.clinica.mariana.restms.storedfile.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,6 +18,9 @@ import com.clinica.mariana.restms.storedfile.model.FileCategory;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "stored_file")
 public class StoredFileEntity {
@@ -56,95 +63,4 @@ public class StoredFileEntity {
 	@Column(name = "created_at", insertable = false, updatable = false)
 	private OffsetDateTime createdAt;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public String getBucketName() {
-		return bucketName;
-	}
-
-	public String getObjectKey() {
-		return objectKey;
-	}
-
-	public String getOriginalFileName() {
-		return originalFileName;
-	}
-
-	public String getMimeType() {
-		return mimeType;
-	}
-
-	public Long getSizeBytes() {
-		return sizeBytes;
-	}
-
-	public String getChecksumSha256() {
-		return checksumSha256;
-	}
-
-	public String getEtag() {
-		return etag;
-	}
-
-	public FileCategory getFileCategory() {
-		return fileCategory;
-	}
-
-	public UUID getUploadedByUserId() {
-		return uploadedByUserId;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setId(UUID id) {
-		this.id = id;
-	}
-
-	public void setBucketName(String bucketName) {
-		this.bucketName = bucketName;
-	}
-
-	public void setObjectKey(String objectKey) {
-		this.objectKey = objectKey;
-	}
-
-	public void setOriginalFileName(String originalFileName) {
-		this.originalFileName = originalFileName;
-	}
-
-	public void setMimeType(String mimeType) {
-		this.mimeType = mimeType;
-	}
-
-	public void setSizeBytes(Long sizeBytes) {
-		this.sizeBytes = sizeBytes;
-	}
-
-	public void setChecksumSha256(String checksumSha256) {
-		this.checksumSha256 = checksumSha256;
-	}
-
-	public void setEtag(String etag) {
-		this.etag = etag;
-	}
-
-	public void setFileCategory(FileCategory fileCategory) {
-		this.fileCategory = fileCategory;
-	}
-
-	public void setUploadedByUserId(UUID uploadedByUserId) {
-		this.uploadedByUserId = uploadedByUserId;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
 }

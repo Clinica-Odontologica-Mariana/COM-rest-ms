@@ -1,5 +1,9 @@
 package com.clinica.mariana.restms.patient.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -7,6 +11,9 @@ import jakarta.persistence.Table;
 
 import java.time.OffsetDateTime;
 
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "patient_clinic")
 public class PatientClinicEntity {
@@ -23,31 +30,4 @@ public class PatientClinicEntity {
 	@Column(name = "created_at", insertable = false, updatable = false)
 	private OffsetDateTime createdAt;
 
-	public PatientClinicId getId() {
-		return id;
-	}
-
-	public void setId(PatientClinicId id) {
-		this.id = id;
-	}
-
-	public boolean isPrimaryClinic() {
-		return primaryClinic;
-	}
-
-	public void setPrimaryClinic(boolean primaryClinic) {
-		this.primaryClinic = primaryClinic;
-	}
-
-	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
 }

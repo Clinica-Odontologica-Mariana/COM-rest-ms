@@ -100,7 +100,7 @@ class ProfessionalControllerIntegrationTest {
 					.andExpect(jsonPath("$.data.licenseNumber", is("CRO-DF-54321")));
 
 			mockMvc.perform(get("/api/v1/professionals").contextPath(CONTEXT_PATH).with(jwtWithRole("DOCTOR")))
-					.andExpect(status().isOk()).andExpect(jsonPath("$.data", hasSize(1)));
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(1)));
 
 			mockMvc.perform(delete("/api/v1/professionals/{id}", created.id()).contextPath(CONTEXT_PATH)
 					.with(jwtWithRole("ADMIN"))).andExpect(status().isNoContent());
@@ -110,7 +110,7 @@ class ProfessionalControllerIntegrationTest {
 					.andExpect(jsonPath("$.data.active", is(false)));
 
 			mockMvc.perform(get("/api/v1/professionals").contextPath(CONTEXT_PATH).with(jwtWithRole("DOCTOR")))
-					.andExpect(status().isOk()).andExpect(jsonPath("$.data", hasSize(0)));
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(0)));
 
 			mockMvc.perform(delete("/api/v1/professionals/{id}", created.id()).contextPath(CONTEXT_PATH)
 					.with(jwtWithRole("ADMIN"))).andExpect(status().isNoContent());

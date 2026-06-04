@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -44,9 +44,9 @@ class InventoryServiceTest {
 
 		when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
 
-		StockMovementCreateDto request = new StockMovementCreateDto(itemId, "OUT", BigDecimal.TEN, "usage", null);
+		StockMovementCreateDto request = new StockMovementCreateDto(itemId, "OUT", BigDecimal.TEN, "usage");
 
-		assertThatThrownBy(() -> service.createMovement(request)).isInstanceOf(ResponseStatusException.class)
+		assertThatThrownBy(() -> service.createMovement(request)).isInstanceOf(AppException.class)
 				.hasMessageContaining("inventory negative");
 	}
 }

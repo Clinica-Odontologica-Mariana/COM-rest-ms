@@ -1,5 +1,12 @@
 package com.clinica.mariana.restms.appointment.entity;
 
+import lombok.Getter;
+import jakarta.persistence.EntityListeners;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.annotation.CreatedBy;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,6 +22,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@EntityListeners(AuditingEntityListener.class)
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "appointment")
 public class AppointmentEntity {
@@ -74,7 +85,8 @@ public class AppointmentEntity {
 	@Column(name = "cancelled_by_user_id")
 	private UUID cancelledByUserId;
 
-	@Column(name = "created_by_user_id")
+	@CreatedBy
+	@Column(name = "created_by_user_id", updatable = false)
 	private UUID createdByUserId;
 
 	@CreationTimestamp
@@ -85,163 +97,4 @@ public class AppointmentEntity {
 	@Column(name = "updated_at", nullable = false)
 	private OffsetDateTime updatedAt;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public void setId(UUID id) {
-		this.id = id;
-	}
-
-	public UUID getPatientId() {
-		return patientId;
-	}
-
-	public void setPatientId(UUID patientId) {
-		this.patientId = patientId;
-	}
-
-	public UUID getClinicId() {
-		return clinicId;
-	}
-
-	public void setClinicId(UUID clinicId) {
-		this.clinicId = clinicId;
-	}
-
-	public UUID getWorkplaceId() {
-		return workplaceId;
-	}
-
-	public void setWorkplaceId(UUID workplaceId) {
-		this.workplaceId = workplaceId;
-	}
-
-	public UUID getProfessionalId() {
-		return professionalId;
-	}
-
-	public void setProfessionalId(UUID professionalId) {
-		this.professionalId = professionalId;
-	}
-
-	public AppointmentStatusEntity getStatus() {
-		return status;
-	}
-
-	public void setStatus(AppointmentStatusEntity status) {
-		this.status = status;
-	}
-
-	public CalendarProviderEntity getCalendarProvider() {
-		return calendarProvider;
-	}
-
-	public void setCalendarProvider(CalendarProviderEntity calendarProvider) {
-		this.calendarProvider = calendarProvider;
-	}
-
-	public CalendarSyncStatusEntity getCalendarSyncStatus() {
-		return calendarSyncStatus;
-	}
-
-	public void setCalendarSyncStatus(CalendarSyncStatusEntity calendarSyncStatus) {
-		this.calendarSyncStatus = calendarSyncStatus;
-	}
-
-	public String getExternalCalendarEventId() {
-		return externalCalendarEventId;
-	}
-
-	public void setExternalCalendarEventId(String externalCalendarEventId) {
-		this.externalCalendarEventId = externalCalendarEventId;
-	}
-
-	public OffsetDateTime getLastSyncedAt() {
-		return lastSyncedAt;
-	}
-
-	public void setLastSyncedAt(OffsetDateTime lastSyncedAt) {
-		this.lastSyncedAt = lastSyncedAt;
-	}
-
-	public boolean isBlocksSchedule() {
-		return blocksSchedule;
-	}
-
-	public void setBlocksSchedule(boolean blocksSchedule) {
-		this.blocksSchedule = blocksSchedule;
-	}
-
-	public OffsetDateTime getStartDatetime() {
-		return startDatetime;
-	}
-
-	public void setStartDatetime(OffsetDateTime startDatetime) {
-		this.startDatetime = startDatetime;
-	}
-
-	public OffsetDateTime getEndDatetime() {
-		return endDatetime;
-	}
-
-	public void setEndDatetime(OffsetDateTime endDatetime) {
-		this.endDatetime = endDatetime;
-	}
-
-	public String getNotes() {
-		return notes;
-	}
-
-	public void setNotes(String notes) {
-		this.notes = notes;
-	}
-
-	public String getCancellationReason() {
-		return cancellationReason;
-	}
-
-	public void setCancellationReason(String cancellationReason) {
-		this.cancellationReason = cancellationReason;
-	}
-
-	public OffsetDateTime getCancelledAt() {
-		return cancelledAt;
-	}
-
-	public void setCancelledAt(OffsetDateTime cancelledAt) {
-		this.cancelledAt = cancelledAt;
-	}
-
-	public UUID getCancelledByUserId() {
-		return cancelledByUserId;
-	}
-
-	public void setCancelledByUserId(UUID cancelledByUserId) {
-		this.cancelledByUserId = cancelledByUserId;
-	}
-
-	public UUID getCreatedByUserId() {
-		return createdByUserId;
-	}
-
-	public void setCreatedByUserId(UUID createdByUserId) {
-		this.createdByUserId = createdByUserId;
-	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(OffsetDateTime createdAt) {
-		this.createdAt = createdAt;
-	}
-
-	public OffsetDateTime getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public void setUpdatedAt(OffsetDateTime updatedAt) {
-		this.updatedAt = updatedAt;
-	}
 }

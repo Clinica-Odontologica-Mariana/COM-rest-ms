@@ -1,5 +1,9 @@
 package com.clinica.mariana.restms.patient.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
@@ -7,6 +11,9 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
+@Getter
+@NoArgsConstructor
+@Setter
 @Embeddable
 public class PatientClinicId implements Serializable {
 
@@ -16,27 +23,8 @@ public class PatientClinicId implements Serializable {
 	@Column(name = "clinic_id", nullable = false)
 	private UUID clinicId;
 
-	public PatientClinicId() {
-	}
-
 	public PatientClinicId(UUID patientId, UUID clinicId) {
 		this.patientId = patientId;
-		this.clinicId = clinicId;
-	}
-
-	public UUID getPatientId() {
-		return patientId;
-	}
-
-	public void setPatientId(UUID patientId) {
-		this.patientId = patientId;
-	}
-
-	public UUID getClinicId() {
-		return clinicId;
-	}
-
-	public void setClinicId(UUID clinicId) {
 		this.clinicId = clinicId;
 	}
 

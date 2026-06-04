@@ -18,7 +18,7 @@ import com.clinica.mariana.restms.treatment.repository.TreatmentPlanRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -60,7 +60,6 @@ public class TreatmentPlanService {
 		entity.setStatus(defaultIfBlank(request.status(), "DRAFT"));
 		entity.setNotes(request.notes());
 		entity.setTotalAmount(request.totalAmount());
-		entity.setCreatedByUserId(request.createdByUserId());
 		return toDto(planRepository.save(entity));
 	}
 
@@ -72,7 +71,7 @@ public class TreatmentPlanService {
 	@Transactional(readOnly = true)
 	public List<TreatmentPlanDto> findByPatient(UUID patientId) {
 		if (!patientRepository.existsById(patientId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found");
+			throw new AppException(HttpStatus.NOT_FOUND, "PATIENT_NOT_FOUND", "Patient not found");
 		}
 		return planRepository.findAllByPatientIdOrderByCreatedAtDesc(patientId).stream().map(this::toDto).toList();
 	}
@@ -142,34 +141,34 @@ public class TreatmentPlanService {
 
 	private TreatmentPlanEntity findPlan(UUID id) {
 		return planRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, PLAN_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "TREATMENT_PLAN_NOT_FOUND", PLAN_NOT_FOUND));
 	}
 
 	private TreatmentPlanItemEntity findItem(UUID id) {
 		return itemRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, ITEM_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "ITEM_NOT_FOUND", ITEM_NOT_FOUND));
 	}
 
 	private void validatePatientAndRecord(UUID patientId, UUID medicalRecordId) {
 		if (!patientRepository.existsById(patientId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found");
+			throw new AppException(HttpStatus.NOT_FOUND, "PATIENT_NOT_FOUND", "Patient not found");
 		}
 		MedicalRecordEntity record = medicalRecordRepository.findById(medicalRecordId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medical record not found"));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "MEDICAL_RECORD_NOT_FOUND", "Medical record not found"));
 		if (!record.getPatientId().equals(patientId)) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Medical record does not belong to patient");
+			throw new AppException(HttpStatus.CONFLICT, "MEDICAL_RECORD_MISMATCH", "Medical record does not belong to patient");
 		}
 	}
 
 	private void validateProfessional(UUID professionalId) {
 		if (professionalId != null && !professionalRepository.existsById(professionalId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Professional not found");
+			throw new AppException(HttpStatus.NOT_FOUND, "PROFESSIONAL_NOT_FOUND", "Professional not found");
 		}
 	}
 
 	private void validateProcedure(UUID procedureId) {
 		if (procedureId != null && !procedureRepository.existsById(procedureId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Clinical procedure not found");
+			throw new AppException(HttpStatus.NOT_FOUND, "NOT_FOUND", "Clinical procedure not found");
 		}
 	}
 
@@ -182,7 +181,7 @@ public class TreatmentPlanService {
 		boolean deciduous = toothNumber >= 51 && toothNumber <= 85
 				&& !java.util.Set.of(59, 60, 69, 70, 79, 80).contains(toothNumber);
 		if (!permanent && !deciduous) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid tooth number");
+			throw new AppException(HttpStatus.BAD_REQUEST, "INVALID_TOOTH_NUMBER", "Invalid tooth number");
 		}
 	}
 

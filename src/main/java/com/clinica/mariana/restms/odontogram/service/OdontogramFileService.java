@@ -61,7 +61,6 @@ public class OdontogramFileService {
 			entity.setOdontogramEntryId(odontogramEntryId);
 			entity.setStoredFileId(storedFile.getId());
 			entity.setDescription(description);
-			entity.setCreatedByUserId(uploadedByUserId);
 			return toDto(odontogramFileRepository.save(entity), storedFile);
 		} catch (RuntimeException ex) {
 			storedFileService.hardDelete(storedFile);

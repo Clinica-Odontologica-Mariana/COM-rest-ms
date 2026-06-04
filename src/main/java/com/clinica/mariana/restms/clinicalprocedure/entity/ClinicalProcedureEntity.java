@@ -1,5 +1,9 @@
 package com.clinica.mariana.restms.clinicalprocedure.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,6 +15,9 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "clinical_procedure")
 public class ClinicalProcedureEntity {
@@ -49,79 +56,4 @@ public class ClinicalProcedureEntity {
 	@Column(name = "updated_at", insertable = false, updatable = false)
 	private OffsetDateTime updatedAt;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public String getCode() {
-		return code;
-	}
-
-	public void setCode(String code) {
-		this.code = code;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getCategory() {
-		return category;
-	}
-
-	public void setCategory(String category) {
-		this.category = category;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public Integer getEstimatedDurationMinutes() {
-		return estimatedDurationMinutes;
-	}
-
-	public void setEstimatedDurationMinutes(Integer estimatedDurationMinutes) {
-		this.estimatedDurationMinutes = estimatedDurationMinutes;
-	}
-
-	public BigDecimal getBasePrice() {
-		return basePrice;
-	}
-
-	public void setBasePrice(BigDecimal basePrice) {
-		this.basePrice = basePrice;
-	}
-
-	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-
-	public OffsetDateTime getInactivatedAt() {
-		return inactivatedAt;
-	}
-
-	public void setInactivatedAt(OffsetDateTime inactivatedAt) {
-		this.inactivatedAt = inactivatedAt;
-	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public OffsetDateTime getUpdatedAt() {
-		return updatedAt;
-	}
 }

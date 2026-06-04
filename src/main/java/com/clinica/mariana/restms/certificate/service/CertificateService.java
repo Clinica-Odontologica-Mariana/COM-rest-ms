@@ -11,7 +11,7 @@ import com.clinica.mariana.restms.storedfile.repository.StoredFileRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -55,7 +55,7 @@ public class CertificateService {
 	@Transactional(readOnly = true)
 	public List<CertificateDto> findByPatient(UUID patientId) {
 		if (!patientRepository.existsById(patientId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found");
+			throw new AppException(HttpStatus.NOT_FOUND, "PATIENT_NOT_FOUND", "Patient not found");
 		}
 		return certificateRepository.findAllByPatientIdAndActiveTrueOrderByIssuedAtDesc(patientId).stream()
 				.map(this::toDto).toList();
@@ -83,18 +83,18 @@ public class CertificateService {
 
 	private CertificateEntity findEntity(UUID id) {
 		return certificateRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, CERTIFICATE_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CERTIFICATE_NOT_FOUND", CERTIFICATE_NOT_FOUND));
 	}
 
 	private void validateReferences(UUID patientId, UUID professionalId, UUID storedFileId) {
 		if (!patientRepository.existsById(patientId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found");
+			throw new AppException(HttpStatus.NOT_FOUND, "PATIENT_NOT_FOUND", "Patient not found");
 		}
 		if (professionalId != null && !professionalRepository.existsById(professionalId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Professional not found");
+			throw new AppException(HttpStatus.NOT_FOUND, "PROFESSIONAL_NOT_FOUND", "Professional not found");
 		}
 		if (storedFileId != null && !storedFileRepository.existsById(storedFileId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Stored file not found");
+			throw new AppException(HttpStatus.NOT_FOUND, "STORED_FILE_NOT_FOUND", "Stored file not found");
 		}
 	}
 

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -66,6 +66,6 @@ class PatientClinicServiceTest {
 		when(clinicRepository.existsById(clinicId)).thenReturn(false);
 
 		assertThatThrownBy(() -> service.create(patientId, new PatientClinicCreateDto(clinicId, false)))
-				.isInstanceOf(ResponseStatusException.class).hasMessageContaining("Clinic not found");
+				.isInstanceOf(AppException.class).hasMessageContaining("Clinic not found");
 	}
 }

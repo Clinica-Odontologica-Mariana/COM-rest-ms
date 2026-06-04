@@ -11,7 +11,7 @@ import com.clinica.mariana.restms.professional.repository.ProfessionalRepository
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
 import java.util.List;
 import java.util.UUID;
@@ -72,7 +72,7 @@ public class ProfessionalClinicService {
 		validateClinic(clinicId);
 		ProfessionalClinicEntity entity = professionalClinicRepository
 				.findById(new ProfessionalClinicId(professionalId, clinicId))
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, MEMBERSHIP_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "MEMBERSHIP_NOT_FOUND", MEMBERSHIP_NOT_FOUND));
 
 		if (!entity.isActive()) {
 			entity.setActive(true);
@@ -90,7 +90,7 @@ public class ProfessionalClinicService {
 		ProfessionalEntity professional = findProfessional(professionalId);
 		ProfessionalClinicEntity entity = professionalClinicRepository
 				.findById(new ProfessionalClinicId(professionalId, clinicId))
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, MEMBERSHIP_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "MEMBERSHIP_NOT_FOUND", MEMBERSHIP_NOT_FOUND));
 
 		entity.setActive(false);
 		entity.setPrimaryClinic(false);
@@ -104,8 +104,7 @@ public class ProfessionalClinicService {
 					professional.setClinicId(next.getId().getClinicId());
 					professionalClinicRepository.save(next);
 				}, () -> {
-					throw new ResponseStatusException(HttpStatus.CONFLICT,
-							"Professional must keep at least one active clinic");
+					throw new AppException(HttpStatus.CONFLICT, "INTERNAL_ERROR", "Professional must keep at least one active clinic");
 				});
 	}
 
@@ -116,18 +115,18 @@ public class ProfessionalClinicService {
 
 	private ProfessionalEntity findProfessional(UUID professionalId) {
 		return professionalRepository.findById(professionalId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, PROFESSIONAL_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "PROFESSIONAL_NOT_FOUND", PROFESSIONAL_NOT_FOUND));
 	}
 
 	private void validateProfessional(UUID professionalId) {
 		if (!professionalRepository.existsById(professionalId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, PROFESSIONAL_NOT_FOUND);
+			throw new AppException(HttpStatus.NOT_FOUND, "PROFESSIONAL_NOT_FOUND", PROFESSIONAL_NOT_FOUND);
 		}
 	}
 
 	private void validateClinic(UUID clinicId) {
 		if (!clinicRepository.existsById(clinicId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, CLINIC_NOT_FOUND);
+			throw new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", CLINIC_NOT_FOUND);
 		}
 	}
 

@@ -7,16 +7,19 @@ import com.clinica.mariana.restms.appointment.entity.AppointmentEntity;
 import com.clinica.mariana.restms.appointment.entity.AppointmentStatusEntity;
 import com.clinica.mariana.restms.appointment.entity.CalendarProviderEntity;
 import com.clinica.mariana.restms.appointment.entity.CalendarSyncStatusEntity;
-import com.clinica.mariana.restms.appointment.model.AppointmentModel;
 import com.clinica.mariana.restms.appointment.repository.AppointmentRepository;
 import com.clinica.mariana.restms.appointment.repository.AppointmentStatusRepository;
 import com.clinica.mariana.restms.appointment.repository.CalendarProviderRepository;
 import com.clinica.mariana.restms.appointment.repository.CalendarSyncStatusRepository;
+import com.clinica.mariana.restms.common.exception.AppException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -28,30 +31,32 @@ public class AppointmentService {
 	private final AppointmentStatusRepository appointmentStatusRepository;
 	private final CalendarProviderRepository calendarProviderRepository;
 	private final CalendarSyncStatusRepository calendarSyncStatusRepository;
-	private final GoogleCalendarService googleCalendarService;
+	private final GoogleCalendarSyncService googleCalendarSyncService;
 
 	public AppointmentService(AppointmentRepository appointmentRepository,
 			AppointmentStatusRepository appointmentStatusRepository,
 			CalendarProviderRepository calendarProviderRepository,
-			CalendarSyncStatusRepository calendarSyncStatusRepository, GoogleCalendarService googleCalendarService) {
+			CalendarSyncStatusRepository calendarSyncStatusRepository,
+			GoogleCalendarSyncService googleCalendarSyncService) {
 		this.appointmentRepository = appointmentRepository;
 		this.appointmentStatusRepository = appointmentStatusRepository;
 		this.calendarProviderRepository = calendarProviderRepository;
 		this.calendarSyncStatusRepository = calendarSyncStatusRepository;
-		this.googleCalendarService = googleCalendarService;
+		this.googleCalendarSyncService = googleCalendarSyncService;
 	}
 
 	@Transactional
 	public AppointmentDto create(AppointmentCreateDto request) {
 		AppointmentStatusEntity status = appointmentStatusRepository.findById(request.statusId())
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment status not found"));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "APPOINTMENT_STATUS_NOT_FOUND",
+						"Appointment status not found"));
 
 		CalendarProviderEntity googleProvider = calendarProviderRepository.findByCode("GOOGLE")
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+				.orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "CONFIGURATION_ERROR",
 						"Google Calendar provider not configured"));
 
 		CalendarSyncStatusEntity pendingSync = calendarSyncStatusRepository.findByCode("PENDING")
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+				.orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "CONFIGURATION_ERROR",
 						"Calendar sync status not configured"));
 
 		AppointmentEntity entity = new AppointmentEntity();
@@ -68,48 +73,41 @@ public class AppointmentService {
 		entity.setNotes(request.notes());
 
 		AppointmentEntity saved = appointmentRepository.save(entity);
+		UUID savedId = saved.getId();
 
-		try {
-			String eventId = googleCalendarService.createEvent("Consulta", request.notes(), request.startDatetime(),
-					request.endDatetime());
-
-			CalendarSyncStatusEntity synced = calendarSyncStatusRepository.findByCode("SYNCED")
-					.orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-							"Calendar sync status not configured"));
-
-			saved.setExternalCalendarEventId(eventId);
-			saved.setCalendarSyncStatus(synced);
-			saved.setLastSyncedAt(OffsetDateTime.now());
-		} catch (Exception e) {
-			CalendarSyncStatusEntity failed = calendarSyncStatusRepository.findByCode("FAILED")
-					.orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-							"Calendar sync status not configured"));
-
-			saved.setCalendarSyncStatus(failed);
+		if (TransactionSynchronizationManager.isSynchronizationActive()) {
+			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+				@Override
+				public void afterCommit() {
+					googleCalendarSyncService.syncOnCreate(savedId);
+				}
+			});
+		} else {
+			googleCalendarSyncService.syncOnCreate(savedId);
 		}
 
-		return toDto(toModel(appointmentRepository.save(saved)));
+		return toDto(saved);
 	}
 
 	@Transactional(readOnly = true)
-	public List<AppointmentDto> findAll() {
-		return appointmentRepository.findAllByCancelledAtIsNullOrderByStartDatetimeAsc().stream().map(this::toModel)
-				.map(this::toDto).toList();
+	public Page<AppointmentDto> findAll(Pageable pageable) {
+		return appointmentRepository.findAllByCancelledAtIsNullOrderByStartDatetimeAsc(pageable).map(this::toDto);
 	}
 
 	@Transactional(readOnly = true)
-	public List<AppointmentDto> findByPeriod(OffsetDateTime start, OffsetDateTime end) {
-		return appointmentRepository.findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(start, end)
-				.stream().map(this::toModel).map(this::toDto).toList();
+	public Page<AppointmentDto> findByPeriod(OffsetDateTime start, OffsetDateTime end, Pageable pageable) {
+		return appointmentRepository.findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(start, end, pageable).map(this::toDto);
 	}
 
 	@Transactional
 	public AppointmentDto update(UUID id, AppointmentUpdateDto request) {
 		AppointmentEntity entity = appointmentRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found"));
+				.orElseThrow(
+						() -> new AppException(HttpStatus.NOT_FOUND, "APPOINTMENT_NOT_FOUND", "Appointment not found"));
 
 		AppointmentStatusEntity status = appointmentStatusRepository.findById(request.statusId())
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment status not found"));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "APPOINTMENT_STATUS_NOT_FOUND",
+						"Appointment status not found"));
 
 		entity.setStatus(status);
 		entity.setStartDatetime(request.startDatetime());
@@ -120,85 +118,66 @@ public class AppointmentService {
 		AppointmentEntity saved = appointmentRepository.save(entity);
 
 		if (saved.getExternalCalendarEventId() != null) {
-			try {
-				googleCalendarService.updateEvent(saved.getExternalCalendarEventId(), "Consulta", request.notes(),
-						request.startDatetime(), request.endDatetime());
+			String notes = request.notes();
+			OffsetDateTime start = request.startDatetime();
+			OffsetDateTime end = request.endDatetime();
 
-				CalendarSyncStatusEntity synced = calendarSyncStatusRepository.findByCode("SYNCED")
-						.orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-								"Calendar sync status not configured"));
-
-				saved.setCalendarSyncStatus(synced);
-				saved.setLastSyncedAt(OffsetDateTime.now());
-			} catch (Exception e) {
-				CalendarSyncStatusEntity failed = calendarSyncStatusRepository.findByCode("FAILED")
-						.orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-								"Calendar sync status not configured"));
-
-				saved.setCalendarSyncStatus(failed);
+			if (TransactionSynchronizationManager.isSynchronizationActive()) {
+				TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+					@Override
+					public void afterCommit() {
+						googleCalendarSyncService.syncOnUpdate(saved.getId(), notes, start, end);
+					}
+				});
+			} else {
+				googleCalendarSyncService.syncOnUpdate(saved.getId(), notes, start, end);
 			}
-
-			appointmentRepository.save(saved);
 		}
 
-		return toDto(toModel(saved));
+		return toDto(saved);
 	}
 
 	@Transactional
 	public void delete(UUID id) {
 		AppointmentEntity entity = appointmentRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found"));
+				.orElseThrow(
+						() -> new AppException(HttpStatus.NOT_FOUND, "APPOINTMENT_NOT_FOUND", "Appointment not found"));
 
 		if (entity.getCancelledAt() != null) {
 			return;
 		}
 
 		AppointmentStatusEntity cancelledStatus = appointmentStatusRepository.findByCode("CANCELLED")
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+				.orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "CONFIGURATION_ERROR",
 						"Appointment status not configured"));
 
 		entity.setStatus(cancelledStatus);
 		entity.setCancelledAt(OffsetDateTime.now());
 
-		if (entity.getExternalCalendarEventId() != null) {
-			try {
-				googleCalendarService.deleteEvent(entity.getExternalCalendarEventId());
-
-				CalendarSyncStatusEntity notSynced = calendarSyncStatusRepository.findByCode("NOT_SYNCED")
-						.orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-								"Calendar sync status not configured"));
-
-				entity.setCalendarSyncStatus(notSynced);
-				entity.setExternalCalendarEventId(null);
-			} catch (Exception e) {
-				CalendarSyncStatusEntity failed = calendarSyncStatusRepository.findByCode("FAILED")
-						.orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-								"Calendar sync status not configured"));
-
-				entity.setCalendarSyncStatus(failed);
-			}
-		}
-
 		appointmentRepository.save(entity);
+
+		UUID entityId = entity.getId();
+		if (TransactionSynchronizationManager.isSynchronizationActive()) {
+			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+				@Override
+				public void afterCommit() {
+					googleCalendarSyncService.syncOnDelete(entityId);
+				}
+			});
+		} else {
+			googleCalendarSyncService.syncOnDelete(entityId);
+		}
 	}
 
-	private AppointmentModel toModel(AppointmentEntity entity) {
-		return new AppointmentModel(entity.getId(), entity.getPatientId(), entity.getClinicId(),
-				entity.getWorkplaceId(), entity.getProfessionalId(),
+	private AppointmentDto toDto(AppointmentEntity entity) {
+		return new AppointmentDto(entity.getId(), entity.getPatientId(), entity.getClinicId(), entity.getWorkplaceId(),
+				entity.getProfessionalId(),
 				entity.getStatus() != null ? entity.getStatus().getCode() : null,
 				entity.getStatus() != null ? entity.getStatus().getName() : null,
 				entity.getCalendarSyncStatus() != null ? entity.getCalendarSyncStatus().getCode() : null,
 				entity.getExternalCalendarEventId(), entity.getLastSyncedAt(), entity.isBlocksSchedule(),
 				entity.getStartDatetime(), entity.getEndDatetime(), entity.getNotes(), entity.getCancellationReason(),
-				entity.getCancelledAt(), entity.getCancelledByUserId(), entity.getCreatedByUserId(),
-				entity.getCreatedAt(), entity.getUpdatedAt());
-	}
-
-	private AppointmentDto toDto(AppointmentModel model) {
-		return new AppointmentDto(model.id(), model.patientId(), model.clinicId(), model.workplaceId(),
-				model.professionalId(), model.statusCode(), model.statusName(), model.calendarSyncStatusCode(),
-				model.externalCalendarEventId(), model.lastSyncedAt(), model.blocksSchedule(), model.startDatetime(),
-				model.endDatetime(), model.notes(), model.cancellationReason(), model.cancelledAt(),
-				model.cancelledByUserId(), model.createdByUserId(), model.createdAt(), model.updatedAt());
+				entity.getCancelledAt(), entity.getCancelledByUserId(), entity.getCreatedByUserId(), entity.getCreatedAt(),
+				entity.getUpdatedAt());
 	}
 }

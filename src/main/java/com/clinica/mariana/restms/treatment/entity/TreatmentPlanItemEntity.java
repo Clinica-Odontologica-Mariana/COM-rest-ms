@@ -1,5 +1,9 @@
 package com.clinica.mariana.restms.treatment.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,6 +15,9 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "treatment_plan_item")
 public class TreatmentPlanItemEntity {
@@ -46,75 +53,4 @@ public class TreatmentPlanItemEntity {
 	@Column(name = "created_at", insertable = false, updatable = false)
 	private OffsetDateTime createdAt;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public UUID getTreatmentPlanId() {
-		return treatmentPlanId;
-	}
-
-	public void setTreatmentPlanId(UUID treatmentPlanId) {
-		this.treatmentPlanId = treatmentPlanId;
-	}
-
-	public UUID getProcedureId() {
-		return procedureId;
-	}
-
-	public void setProcedureId(UUID procedureId) {
-		this.procedureId = procedureId;
-	}
-
-	public Integer getToothNumber() {
-		return toothNumber;
-	}
-
-	public void setToothNumber(Integer toothNumber) {
-		this.toothNumber = toothNumber;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public BigDecimal getEstimatedPrice() {
-		return estimatedPrice;
-	}
-
-	public void setEstimatedPrice(BigDecimal estimatedPrice) {
-		this.estimatedPrice = estimatedPrice;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
-	public Integer getSortOrder() {
-		return sortOrder;
-	}
-
-	public void setSortOrder(Integer sortOrder) {
-		this.sortOrder = sortOrder;
-	}
-
-	public OffsetDateTime getCompletedAt() {
-		return completedAt;
-	}
-
-	public void setCompletedAt(OffsetDateTime completedAt) {
-		this.completedAt = completedAt;
-	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
 }

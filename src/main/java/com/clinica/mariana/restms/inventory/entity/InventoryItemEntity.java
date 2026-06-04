@@ -1,5 +1,9 @@
 package com.clinica.mariana.restms.inventory.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,6 +15,9 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "inventory_item")
 public class InventoryItemEntity {
@@ -52,87 +59,4 @@ public class InventoryItemEntity {
 	@Column(name = "updated_at", insertable = false, updatable = false)
 	private OffsetDateTime updatedAt;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public UUID getClinicId() {
-		return clinicId;
-	}
-
-	public void setClinicId(UUID clinicId) {
-		this.clinicId = clinicId;
-	}
-
-	public String getItemType() {
-		return itemType;
-	}
-
-	public void setItemType(String itemType) {
-		this.itemType = itemType;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public String getSku() {
-		return sku;
-	}
-
-	public void setSku(String sku) {
-		this.sku = sku;
-	}
-
-	public String getUnit() {
-		return unit;
-	}
-
-	public void setUnit(String unit) {
-		this.unit = unit;
-	}
-
-	public BigDecimal getCurrentQuantity() {
-		return currentQuantity;
-	}
-
-	public void setCurrentQuantity(BigDecimal currentQuantity) {
-		this.currentQuantity = currentQuantity;
-	}
-
-	public BigDecimal getMinimumQuantity() {
-		return minimumQuantity;
-	}
-
-	public void setMinimumQuantity(BigDecimal minimumQuantity) {
-		this.minimumQuantity = minimumQuantity;
-	}
-
-	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public OffsetDateTime getUpdatedAt() {
-		return updatedAt;
-	}
 }

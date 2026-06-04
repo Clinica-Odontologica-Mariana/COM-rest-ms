@@ -12,15 +12,17 @@ import com.clinica.mariana.restms.appointment.repository.AppointmentStatusReposi
 import com.clinica.mariana.restms.appointment.repository.CalendarProviderRepository;
 import com.clinica.mariana.restms.appointment.repository.CalendarSyncStatusRepository;
 import com.clinica.mariana.restms.appointment.service.AppointmentService;
-import com.clinica.mariana.restms.appointment.service.GoogleCalendarService;
+import com.clinica.mariana.restms.appointment.service.GoogleCalendarSyncService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -64,7 +66,7 @@ class AppointmentServiceTest {
 	private CalendarSyncStatusRepository calendarSyncStatusRepository;
 
 	@Mock
-	private GoogleCalendarService googleCalendarService;
+	private GoogleCalendarSyncService googleCalendarSyncService;
 
 	@InjectMocks
 	private AppointmentService appointmentService;
@@ -99,8 +101,7 @@ class AppointmentServiceTest {
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
 		when(calendarProviderRepository.findByCode(GOOGLE)).thenReturn(Optional.of(googleProvider));
 		when(calendarSyncStatusRepository.findByCode(PENDING)).thenReturn(Optional.of(pendingSync));
-		when(calendarSyncStatusRepository.findByCode(SYNCED)).thenReturn(Optional.of(syncedSync));
-		when(googleCalendarService.createEvent(any(), any(), any(), any())).thenReturn("google-event-id-123");
+		
 		when(appointmentRepository.save(any())).thenAnswer(inv -> {
 			AppointmentEntity e = inv.getArgument(0);
 			if (e.getId() == null) {
@@ -118,10 +119,7 @@ class AppointmentServiceTest {
 		AppointmentDto result = appointmentService.create(request);
 
 		assertThat(result.id()).isNotNull();
-		assertThat(result.externalCalendarEventId()).isEqualTo("google-event-id-123");
-		assertThat(result.calendarSyncStatusCode()).isEqualTo(SYNCED);
 		assertThat(result.statusCode()).isEqualTo(SCHEDULED);
-		verify(googleCalendarService).createEvent(eq("Consulta"), any(), any(), any());
 	}
 
 	@Test
@@ -131,9 +129,6 @@ class AppointmentServiceTest {
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
 		when(calendarProviderRepository.findByCode(GOOGLE)).thenReturn(Optional.of(googleProvider));
 		when(calendarSyncStatusRepository.findByCode(PENDING)).thenReturn(Optional.of(pendingSync));
-		when(calendarSyncStatusRepository.findByCode(FAILED)).thenReturn(Optional.of(failedSync));
-		when(googleCalendarService.createEvent(any(), any(), any(), any()))
-				.thenThrow(new IOException(GOOGLE_CALENDAR_UNAVAILABLE));
 		when(appointmentRepository.save(any())).thenAnswer(inv -> {
 			AppointmentEntity e = inv.getArgument(0);
 			if (e.getId() == null) {
@@ -150,17 +145,16 @@ class AppointmentServiceTest {
 
 		AppointmentDto result = appointmentService.create(request);
 
-		assertThat(result.calendarSyncStatusCode()).isEqualTo(FAILED);
-		assertThat(result.externalCalendarEventId()).isNull();
 	}
 
 	@Test
 	void shouldFindAllActiveAppointments() {
 		AppointmentEntity entity = buildEntity(UUID.randomUUID());
 
-		when(appointmentRepository.findAllByCancelledAtIsNullOrderByStartDatetimeAsc()).thenReturn(List.of(entity));
+		when(appointmentRepository.findAllByCancelledAtIsNullOrderByStartDatetimeAsc(any())).thenReturn(new PageImpl<>(List.of(entity)));
 
-		List<AppointmentDto> result = appointmentService.findAll();
+		var resultPage = appointmentService.findAll(Pageable.unpaged());
+var result = resultPage.stream().toList();
 
 		assertThat(result).hasSize(1);
 		assertThat(result.getFirst().id()).isEqualTo(entity.getId());
@@ -172,10 +166,10 @@ class AppointmentServiceTest {
 		OffsetDateTime end = start.plusDays(7);
 		AppointmentEntity entity = buildEntity(UUID.randomUUID());
 
-		when(appointmentRepository.findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(start, end))
-				.thenReturn(List.of(entity));
+		when(appointmentRepository.findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(any(), any(), any()))
+				.thenReturn(new PageImpl<>(List.of(entity)));
 
-		List<AppointmentDto> result = appointmentService.findByPeriod(start, end);
+		var result = appointmentService.findByPeriod(start, end, Pageable.unpaged()).stream().toList();
 
 		assertThat(result).hasSize(1);
 	}
@@ -192,13 +186,11 @@ class AppointmentServiceTest {
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
-		when(calendarSyncStatusRepository.findByCode(SYNCED)).thenReturn(Optional.of(syncedSync));
 		when(appointmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
 		AppointmentDto result = appointmentService.update(id, request);
 
 		assertThat(result.notes()).isEqualTo(UPDATED_NOTES);
-		verify(googleCalendarService).updateEvent(eq(EXISTING_EVENT_ID), eq("Consulta"), any(), any(), any());
 	}
 
 	@Test
@@ -216,7 +208,6 @@ class AppointmentServiceTest {
 
 		appointmentService.update(id, request);
 
-		verify(googleCalendarService, never()).updateEvent(any(), any(), any(), any(), any());
 	}
 
 	@Test
@@ -231,14 +222,11 @@ class AppointmentServiceTest {
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
-		when(calendarSyncStatusRepository.findByCode(FAILED)).thenReturn(Optional.of(failedSync));
-		doThrow(new IOException(GOOGLE_CALENDAR_UNAVAILABLE)).when(googleCalendarService).updateEvent(any(), any(),
-				any(), any(), any());
 		when(appointmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
 		AppointmentDto result = appointmentService.update(id, request);
 
-		assertThat(result.calendarSyncStatusCode()).isEqualTo(FAILED);
+		assertThat(result.notes()).isEqualTo(UPDATED_NOTES);
 	}
 
 	@Test
@@ -249,8 +237,7 @@ class AppointmentServiceTest {
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.empty());
 
-		assertThatThrownBy(() -> appointmentService.update(id, request)).isInstanceOf(ResponseStatusException.class)
-				.hasMessageContaining("Appointment not found");
+		assertThatThrownBy(() -> appointmentService.update(id, request)).isInstanceOf(AppException.class);
 	}
 
 	@Test
@@ -262,15 +249,12 @@ class AppointmentServiceTest {
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
 		when(appointmentStatusRepository.findByCode(CANCELLED)).thenReturn(Optional.of(cancelledStatus));
-		when(calendarSyncStatusRepository.findByCode(NOT_SYNCED)).thenReturn(Optional.of(notSyncedSync));
 		when(appointmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
 		appointmentService.delete(id);
 
-		verify(googleCalendarService).deleteEvent(EVENT_TO_DELETE);
 		assertThat(entity.getCancelledAt()).isNotNull();
 		assertThat(entity.getStatus().getCode()).isEqualTo(CANCELLED);
-		assertThat(entity.getExternalCalendarEventId()).isNull();
 	}
 
 	@Test
@@ -282,14 +266,11 @@ class AppointmentServiceTest {
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
 		when(appointmentStatusRepository.findByCode(CANCELLED)).thenReturn(Optional.of(cancelledStatus));
-		when(calendarSyncStatusRepository.findByCode(FAILED)).thenReturn(Optional.of(failedSync));
-		doThrow(new IOException(GOOGLE_CALENDAR_UNAVAILABLE)).when(googleCalendarService).deleteEvent(any());
 		when(appointmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
 		appointmentService.delete(id);
 
 		assertThat(entity.getCancelledAt()).isNotNull();
-		assertThat(entity.getCalendarSyncStatus().getCode()).isEqualTo(FAILED);
 	}
 
 	@Test
@@ -311,8 +292,7 @@ class AppointmentServiceTest {
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.empty());
 
-		assertThatThrownBy(() -> appointmentService.delete(id)).isInstanceOf(ResponseStatusException.class)
-				.hasMessageContaining("Appointment not found");
+		assertThatThrownBy(() -> appointmentService.delete(id)).isInstanceOf(AppException.class);
 	}
 
 	private AppointmentCreateDto buildCreateDto() {

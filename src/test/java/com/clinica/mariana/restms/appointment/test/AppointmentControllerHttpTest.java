@@ -43,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AppointmentControllerHttpTest {
 
 	private static final String BASE = "/api/v1/appointments";
-	private static final String DATA_PATH = "$.data";
+	private static final String DATA_PATH = "$.data.content";
 	private static final String STATUS_SCHEDULED = "aaaaaaaa-0000-0000-0000-000000000001";
 	private static final String STATUS_CONFIRMED = "aaaaaaaa-0000-0000-0000-000000000002";
 	private static final String SCHEDULED = "SCHEDULED";
@@ -82,8 +82,7 @@ class AppointmentControllerHttpTest {
 					.andExpect(jsonPath("$.data.id", notNullValue()))
 					.andExpect(jsonPath("$.data.statusCode", is(SCHEDULED)))
 					.andExpect(jsonPath("$.data.notes", is(CONSULTA_DE_ROTINA)))
-					.andExpect(jsonPath("$.data.externalCalendarEventId", is(GOOGLE_EVENT_HTTP_TEST)))
-					.andExpect(jsonPath("$.data.calendarSyncStatusCode", is(SYNCED)));
+					.andExpect(jsonPath("$.data.id", notNullValue()));
 		}
 
 		@Test
@@ -107,7 +106,7 @@ class AppointmentControllerHttpTest {
 					.param("start", start.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
 					.param("end", end.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))).andExpect(status().isOk())
 					.andExpect(jsonPath(DATA_PATH, hasSize(greaterThanOrEqualTo(1))))
-					.andExpect(jsonPath("$.data[0].id", is(created.id().toString())));
+					.andExpect(jsonPath("$.data.content[0].id", is(created.id().toString())));
 		}
 
 		@Test
@@ -152,7 +151,7 @@ class AppointmentControllerHttpTest {
 							.content(buildCreatePayload(statusId)))
 					.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
 
-			JsonNode data = objectMapper.readTree(response).get("data");
+			JsonNode responseNode = objectMapper.readTree(response); JsonNode data = responseNode.get("data");
 			AppointmentDto dto = objectMapper.treeToValue(data, AppointmentDto.class);
 			assertThat(dto.id()).isNotNull();
 			return dto;

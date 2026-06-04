@@ -1,5 +1,12 @@
 package com.clinica.mariana.restms.treatment.entity;
 
+import lombok.Getter;
+import jakarta.persistence.EntityListeners;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.annotation.CreatedBy;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,6 +18,10 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@EntityListeners(AuditingEntityListener.class)
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "treatment_plan")
 public class TreatmentPlanEntity {
@@ -40,7 +51,8 @@ public class TreatmentPlanEntity {
 	@Column(name = "total_amount")
 	private BigDecimal totalAmount;
 
-	@Column(name = "created_by_user_id")
+	@CreatedBy
+	@Column(name = "created_by_user_id", updatable = false)
 	private UUID createdByUserId;
 
 	@Column(name = "created_at", insertable = false, updatable = false)
@@ -49,79 +61,4 @@ public class TreatmentPlanEntity {
 	@Column(name = "updated_at", insertable = false, updatable = false)
 	private OffsetDateTime updatedAt;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public UUID getPatientId() {
-		return patientId;
-	}
-
-	public void setPatientId(UUID patientId) {
-		this.patientId = patientId;
-	}
-
-	public UUID getMedicalRecordId() {
-		return medicalRecordId;
-	}
-
-	public void setMedicalRecordId(UUID medicalRecordId) {
-		this.medicalRecordId = medicalRecordId;
-	}
-
-	public UUID getProfessionalId() {
-		return professionalId;
-	}
-
-	public void setProfessionalId(UUID professionalId) {
-		this.professionalId = professionalId;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
-	public String getNotes() {
-		return notes;
-	}
-
-	public void setNotes(String notes) {
-		this.notes = notes;
-	}
-
-	public BigDecimal getTotalAmount() {
-		return totalAmount;
-	}
-
-	public void setTotalAmount(BigDecimal totalAmount) {
-		this.totalAmount = totalAmount;
-	}
-
-	public UUID getCreatedByUserId() {
-		return createdByUserId;
-	}
-
-	public void setCreatedByUserId(UUID createdByUserId) {
-		this.createdByUserId = createdByUserId;
-	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public OffsetDateTime getUpdatedAt() {
-		return updatedAt;
-	}
 }

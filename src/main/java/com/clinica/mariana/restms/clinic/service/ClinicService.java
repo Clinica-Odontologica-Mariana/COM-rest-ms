@@ -9,8 +9,10 @@ import com.clinica.mariana.restms.clinic.repository.ClinicRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -33,7 +35,7 @@ public class ClinicService {
 	public ClinicDto create(ClinicCreateDto request) {
 		validateAddress(request.addressId());
 		if (clinicRepository.existsByDocument(request.document())) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Clinic document already exists");
+			throw new AppException(HttpStatus.CONFLICT, "CLINIC_DOCUMENT_ALREADY_EXISTS", "Clinic document already exists");
 		}
 		ClinicEntity entity = new ClinicEntity();
 		apply(entity, request.addressId(), request.name(), request.document(), request.phone(), request.email(),
@@ -44,8 +46,8 @@ public class ClinicService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<ClinicDto> findAll() {
-		return clinicRepository.findAllByActiveTrueOrderByNameAsc().stream().map(this::toDto).toList();
+	public Page<ClinicDto> findAll(Pageable pageable) {
+		return clinicRepository.findAllByActiveTrueOrderByNameAsc(pageable).map(this::toDto);
 	}
 
 	@Transactional(readOnly = true)
@@ -56,7 +58,7 @@ public class ClinicService {
 	@Transactional(readOnly = true)
 	public ClinicDto findByDocument(String document) {
 		return clinicRepository.findByDocument(document).map(this::toDto)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, CLINIC_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", CLINIC_NOT_FOUND));
 	}
 
 	@Transactional
@@ -64,7 +66,7 @@ public class ClinicService {
 		ClinicEntity entity = findEntity(id);
 		validateAddress(request.addressId());
 		if (clinicRepository.existsByDocumentAndIdNot(request.document(), id)) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Clinic document already exists");
+			throw new AppException(HttpStatus.CONFLICT, "CLINIC_DOCUMENT_ALREADY_EXISTS", "Clinic document already exists");
 		}
 		apply(entity, request.addressId(), request.name(), request.document(), request.phone(), request.email(),
 				request.timezone(), request.description());
@@ -84,12 +86,12 @@ public class ClinicService {
 
 	private ClinicEntity findEntity(UUID id) {
 		return clinicRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, CLINIC_NOT_FOUND));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", CLINIC_NOT_FOUND));
 	}
 
 	private void validateAddress(UUID addressId) {
 		if (addressId != null && !addressRepository.existsById(addressId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Address not found");
+			throw new AppException(HttpStatus.NOT_FOUND, "ADDRESS_NOT_FOUND", "Address not found");
 		}
 	}
 

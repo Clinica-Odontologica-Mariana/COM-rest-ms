@@ -1,5 +1,12 @@
 package com.clinica.mariana.restms.inventory.entity;
 
+import lombok.Getter;
+import jakarta.persistence.EntityListeners;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.annotation.CreatedBy;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,6 +18,10 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@EntityListeners(AuditingEntityListener.class)
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "stock_movement")
 public class StockMovementEntity {
@@ -31,57 +42,11 @@ public class StockMovementEntity {
 	@Column(name = "reason", length = 255)
 	private String reason;
 
-	@Column(name = "created_by_user_id")
+	@CreatedBy
+	@Column(name = "created_by_user_id", updatable = false)
 	private UUID createdByUserId;
 
 	@Column(name = "created_at", insertable = false, updatable = false)
 	private OffsetDateTime createdAt;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public UUID getInventoryItemId() {
-		return inventoryItemId;
-	}
-
-	public void setInventoryItemId(UUID inventoryItemId) {
-		this.inventoryItemId = inventoryItemId;
-	}
-
-	public String getMovementType() {
-		return movementType;
-	}
-
-	public void setMovementType(String movementType) {
-		this.movementType = movementType;
-	}
-
-	public BigDecimal getQuantity() {
-		return quantity;
-	}
-
-	public void setQuantity(BigDecimal quantity) {
-		this.quantity = quantity;
-	}
-
-	public String getReason() {
-		return reason;
-	}
-
-	public void setReason(String reason) {
-		this.reason = reason;
-	}
-
-	public UUID getCreatedByUserId() {
-		return createdByUserId;
-	}
-
-	public void setCreatedByUserId(UUID createdByUserId) {
-		this.createdByUserId = createdByUserId;
-	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
 }

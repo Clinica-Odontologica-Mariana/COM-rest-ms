@@ -1,5 +1,8 @@
 package com.clinica.mariana.restms.professional.controller;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import java.util.List;
 import java.util.UUID;
 
@@ -47,8 +50,8 @@ public class ProfessionalController {
 
 	@GetMapping
 	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
-	public List<ProfessionalDto> findAll() {
-		return professionalService.findAll();
+	public Page<ProfessionalDto> findAll(@PageableDefault(size = 20) Pageable pageable) {
+		return professionalService.findAll(pageable);
 	}
 
 	@GetMapping("/{id}")
