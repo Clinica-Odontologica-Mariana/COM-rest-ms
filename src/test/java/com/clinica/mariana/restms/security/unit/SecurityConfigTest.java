@@ -1,5 +1,6 @@
 package com.clinica.mariana.restms.security.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -11,8 +12,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class SecurityConfigTest {
 
-	private final SecurityConfig securityConfig = new SecurityConfig(new RestAuthenticationEntryPoint(),
-			new RestAccessDeniedHandler());
+	private final SecurityConfig securityConfig = new SecurityConfig(
+			new RestAuthenticationEntryPoint(new ObjectMapper().findAndRegisterModules()),
+			new RestAccessDeniedHandler(new ObjectMapper().findAndRegisterModules()));
 
 	@Test
 	void shouldMapRealmRolesToSpringAuthorities() {

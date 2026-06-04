@@ -10,9 +10,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
 @Service
@@ -33,15 +34,14 @@ public class AddressService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<AddressDto> findAll() {
-		return addressRepository.findAllByOrderByCityAscStreetAsc().stream().map(this::toModel).map(this::toDto)
-				.toList();
+	public Page<AddressDto> findAll(Pageable pageable) {
+		return addressRepository.findAllByOrderByCityAscStreetAsc(pageable).map(this::toModel).map(this::toDto);
 	}
 
 	@Transactional(readOnly = true)
 	public AddressDto findById(UUID id) {
 		AddressEntity entity = addressRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Address not found"));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "ADDRESS_NOT_FOUND", "Address not found"));
 
 		return toDto(toModel(entity));
 	}
@@ -49,7 +49,7 @@ public class AddressService {
 	@Transactional
 	public AddressDto update(UUID id, AddressUpdateDto request) {
 		AddressEntity entity = addressRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Address not found"));
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "ADDRESS_NOT_FOUND", "Address not found"));
 
 		AddressModel model = new AddressModel(id, request.street(), request.number(), request.complement(),
 				request.neighborhood(), request.city(), request.state(), request.zipCode());
@@ -61,14 +61,14 @@ public class AddressService {
 	@Transactional
 	public void delete(UUID id) {
 		if (!addressRepository.existsById(id)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Address not found");
+			throw new AppException(HttpStatus.NOT_FOUND, "ADDRESS_NOT_FOUND", "Address not found");
 		}
 
 		try {
 			addressRepository.deleteById(id);
 			addressRepository.flush();
 		} catch (DataIntegrityViolationException ex) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Address is in use", ex);
+			throw new AppException(HttpStatus.CONFLICT, "ADDRESS_IN_USE", "Address is in use");
 		}
 	}
 

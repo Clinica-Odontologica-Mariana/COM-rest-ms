@@ -1,8 +1,11 @@
 package com.clinica.mariana.restms.patient.controller;
 
 import com.clinica.mariana.restms.patient.dto.PatientCreateDto;
+import com.clinica.mariana.restms.patient.dto.PatientClinicCreateDto;
+import com.clinica.mariana.restms.patient.dto.PatientClinicDto;
 import com.clinica.mariana.restms.patient.dto.PatientDto;
 import com.clinica.mariana.restms.patient.dto.PatientUpdateDto;
+import com.clinica.mariana.restms.patient.service.PatientClinicService;
 import com.clinica.mariana.restms.patient.service.PatientService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
@@ -17,6 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,9 +31,11 @@ import java.util.UUID;
 public class PatientController {
 
 	private final PatientService patientService;
+	private final PatientClinicService patientClinicService;
 
-	public PatientController(PatientService patientService) {
+	public PatientController(PatientService patientService, PatientClinicService patientClinicService) {
 		this.patientService = patientService;
+		this.patientClinicService = patientClinicService;
 	}
 
 	@PostMapping
@@ -39,8 +47,8 @@ public class PatientController {
 
 	@GetMapping
 	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
-	public List<PatientDto> findAll() {
-		return patientService.findAll();
+	public Page<PatientDto> findAll(@PageableDefault(size = 20) Pageable pageable) {
+		return patientService.findAll(pageable);
 	}
 
 	@GetMapping("/{id}")
@@ -60,5 +68,32 @@ public class PatientController {
 	@RolesAllowed("ADMIN")
 	public void delete(@PathVariable UUID id) {
 		patientService.delete(id);
+	}
+
+	@PostMapping("/{patientId}/clinics")
+	@ResponseStatus(HttpStatus.CREATED)
+	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	public PatientClinicDto addClinic(@PathVariable UUID patientId,
+			@Valid @RequestBody PatientClinicCreateDto request) {
+		return patientClinicService.create(patientId, request);
+	}
+
+	@GetMapping("/{patientId}/clinics")
+	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	public List<PatientClinicDto> findClinics(@PathVariable UUID patientId) {
+		return patientClinicService.findByPatient(patientId);
+	}
+
+	@PutMapping("/{patientId}/clinics/{clinicId}/primary")
+	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	public PatientClinicDto setPrimaryClinic(@PathVariable UUID patientId, @PathVariable UUID clinicId) {
+		return patientClinicService.setPrimary(patientId, clinicId);
+	}
+
+	@DeleteMapping("/{patientId}/clinics/{clinicId}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	public void removeClinic(@PathVariable UUID patientId, @PathVariable UUID clinicId) {
+		patientClinicService.deactivate(patientId, clinicId);
 	}
 }

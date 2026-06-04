@@ -60,8 +60,8 @@ public class FileValidationService {
 			case ODONTOGRAM -> properties.odontogram();
 			case MEDICAL_RECORD_ATTACHMENT -> throw new AppException(HttpStatus.BAD_REQUEST,
 					"UNSUPPORTED_FILE_CATEGORY", "Medical record attachments cannot be uploaded through this endpoint");
-			case LEGACY -> throw new AppException(HttpStatus.BAD_REQUEST, "UNSUPPORTED_FILE_CATEGORY",
-					"Legacy files cannot be uploaded through this endpoint");
+			case CERTIFICATE -> throw new AppException(HttpStatus.BAD_REQUEST, "UNSUPPORTED_FILE_CATEGORY",
+					"Certificates cannot be uploaded through this endpoint");
 		};
 	}
 

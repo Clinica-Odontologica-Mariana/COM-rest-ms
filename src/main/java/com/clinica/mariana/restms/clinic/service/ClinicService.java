@@ -1,25 +1,26 @@
 package com.clinica.mariana.restms.clinic.service;
 
+import com.clinica.mariana.restms.address.repository.AddressRepository;
 import com.clinica.mariana.restms.clinic.dto.ClinicCreateDto;
 import com.clinica.mariana.restms.clinic.dto.ClinicDto;
 import com.clinica.mariana.restms.clinic.dto.ClinicUpdateDto;
 import com.clinica.mariana.restms.clinic.entity.ClinicEntity;
-import com.clinica.mariana.restms.clinic.model.ClinicModel;
 import com.clinica.mariana.restms.clinic.repository.ClinicRepository;
-import com.clinica.mariana.restms.common.exception.AppException;
-import com.clinica.mariana.restms.address.repository.AddressRepository;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.clinica.mariana.restms.common.exception.AppException;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.time.OffsetDateTime;
-
-import java.util.List;
 import java.util.UUID;
 
 @Service
 public class ClinicService {
+
+	private static final String DEFAULT_TIMEZONE = "America/Sao_Paulo";
+	private static final String CLINIC_NOT_FOUND = "Clinic not found";
 
 	private final ClinicRepository clinicRepository;
 	private final AddressRepository addressRepository;
@@ -31,100 +32,92 @@ public class ClinicService {
 
 	@Transactional
 	public ClinicDto create(ClinicCreateDto request) {
-		if (request.addressId() != null && !addressRepository.existsById(request.addressId())) {
-			throw new AppException(HttpStatus.NOT_FOUND, "ADDRESS_NOT_FOUND", "Address not found");
-		}
-
+		validateAddress(request.addressId());
 		if (clinicRepository.existsByDocument(request.document())) {
-			throw new AppException(HttpStatus.CONFLICT, "CLINIC_DOCUMENT_CONFLICT", "Clinic document already exists");
+			throw new AppException(HttpStatus.CONFLICT, "CLINIC_DOCUMENT_ALREADY_EXISTS",
+					"Clinic document already exists");
 		}
-
-		ClinicModel model = ClinicModel.create(request.addressId(), request.name(), request.document(), request.phone(),
-				request.email(), request.timezone());
-
-		return toDto(toModel(clinicRepository.save(toEntity(model))));
+		ClinicEntity entity = new ClinicEntity();
+		apply(entity, request.addressId(), request.name(), request.document(), request.phone(), request.email(),
+				request.timezone(), request.description());
+		entity.setActive(true);
+		entity.setInactivatedAt(null);
+		return toDto(clinicRepository.save(entity));
 	}
 
 	@Transactional(readOnly = true)
-	public List<ClinicDto> findAll() {
-		return clinicRepository.findAllByActiveTrueOrderByNameAsc().stream().map(this::toModel).map(this::toDto)
-				.toList();
+	public Page<ClinicDto> findAll(Pageable pageable) {
+		return clinicRepository.findAllByActiveTrueOrderByNameAsc(pageable).map(this::toDto);
 	}
 
 	@Transactional(readOnly = true)
 	public ClinicDto findById(UUID id) {
-		ClinicEntity entity = clinicRepository.findById(id)
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found"));
-		return toDto(toModel(entity));
+		return toDto(findEntity(id));
 	}
 
 	@Transactional(readOnly = true)
 	public ClinicDto findByDocument(String document) {
-		ClinicEntity entity = clinicRepository.findByDocument(document)
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found"));
-
-		return toDto(toModel(entity));
+		return clinicRepository.findByDocument(document).map(this::toDto)
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", CLINIC_NOT_FOUND));
 	}
 
 	@Transactional
 	public ClinicDto update(UUID id, ClinicUpdateDto request) {
-		ClinicEntity entity = clinicRepository.findById(id)
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found"));
-
-		if (request.addressId() != null && !addressRepository.existsById(request.addressId())) {
-			throw new AppException(HttpStatus.NOT_FOUND, "ADDRESS_NOT_FOUND", "Address not found");
-		}
-
+		ClinicEntity entity = findEntity(id);
+		validateAddress(request.addressId());
 		if (clinicRepository.existsByDocumentAndIdNot(request.document(), id)) {
-			throw new AppException(HttpStatus.CONFLICT, "CLINIC_DOCUMENT_CONFLICT", "Clinic document already exists");
+			throw new AppException(HttpStatus.CONFLICT, "CLINIC_DOCUMENT_ALREADY_EXISTS",
+					"Clinic document already exists");
 		}
-
-		ClinicModel model = new ClinicModel(id, request.addressId(), request.name(), request.document(),
-				request.phone(), request.email(),
-				request.timezone() != null ? request.timezone() : entity.getTimezone(), entity.isActive());
-
-		apply(entity, model);
-
-		return toDto(toModel(clinicRepository.save(entity)));
+		apply(entity, request.addressId(), request.name(), request.document(), request.phone(), request.email(),
+				request.timezone(), request.description());
+		return toDto(clinicRepository.save(entity));
 	}
 
 	@Transactional
-	public void inactivate(UUID id) {
-		ClinicEntity entity = clinicRepository.findById(id)
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", "Clinic not found"));
+	public ClinicDto inactivate(UUID id) {
+		ClinicEntity entity = findEntity(id);
+		entity.setActive(false);
+		entity.setInactivatedAt(OffsetDateTime.now());
+		return toDto(clinicRepository.save(entity));
+	}
 
+	@Transactional
+	public void delete(UUID id) {
+		ClinicEntity entity = findEntity(id);
 		if (!entity.isActive()) {
-			throw new AppException(HttpStatus.CONFLICT, "CLINIC_ALREADY_INACTIVE", "Clinic is already inactive");
+			return;
 		}
-
 		entity.setActive(false);
 		entity.setInactivatedAt(OffsetDateTime.now());
 		clinicRepository.save(entity);
 	}
 
-	private ClinicEntity toEntity(ClinicModel model) {
-		ClinicEntity entity = new ClinicEntity();
-		apply(entity, model);
-		return entity;
+	private ClinicEntity findEntity(UUID id) {
+		return clinicRepository.findById(id)
+				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", CLINIC_NOT_FOUND));
 	}
 
-	private void apply(ClinicEntity entity, ClinicModel model) {
-		entity.setAddressId(model.addressId());
-		entity.setName(model.name());
-		entity.setDocument(model.document());
-		entity.setPhone(model.phone());
-		entity.setEmail(model.email());
-		entity.setTimezone(model.timezone());
-		entity.setActive(model.active());
+	private void validateAddress(UUID addressId) {
+		if (addressId != null && !addressRepository.existsById(addressId)) {
+			throw new AppException(HttpStatus.NOT_FOUND, "ADDRESS_NOT_FOUND", "Address not found");
+		}
 	}
 
-	private ClinicModel toModel(ClinicEntity entity) {
-		return new ClinicModel(entity.getId(), entity.getAddressId(), entity.getName(), entity.getDocument(),
-				entity.getPhone(), entity.getEmail(), entity.getTimezone(), entity.isActive());
+	private void apply(ClinicEntity entity, UUID addressId, String name, String document, String phone, String email,
+			String timezone, String description) {
+		entity.setAddressId(addressId);
+		entity.setName(name);
+		entity.setDocument(document);
+		entity.setPhone(phone);
+		entity.setEmail(email);
+		entity.setTimezone(timezone == null || timezone.isBlank() ? DEFAULT_TIMEZONE : timezone);
+		entity.setDescription(description);
 	}
 
-	private ClinicDto toDto(ClinicModel model) {
-		return new ClinicDto(model.id(), model.addressId(), model.name(), model.document(), model.phone(),
-				model.email(), model.timezone(), model.active());
+	private ClinicDto toDto(ClinicEntity entity) {
+		return new ClinicDto(entity.getId(), entity.getAddressId(), entity.getName(), entity.getDocument(),
+				entity.getPhone(), entity.getEmail(), entity.getTimezone(), entity.getDescription(), entity.isActive(),
+				entity.getCreatedAt(), entity.getUpdatedAt());
 	}
 }

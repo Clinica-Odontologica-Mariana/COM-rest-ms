@@ -1,5 +1,9 @@
 package com.clinica.mariana.restms.medicalrecord.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,6 +14,9 @@ import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "medical_record_attachment")
 public class MedicalRecordAttachmentEntity {
@@ -30,39 +37,4 @@ public class MedicalRecordAttachmentEntity {
 	@Column(name = "created_at", insertable = false, updatable = false)
 	private OffsetDateTime createdAt;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public void setId(UUID id) {
-		this.id = id;
-	}
-
-	public UUID getMedicalRecordId() {
-		return medicalRecordId;
-	}
-
-	public void setMedicalRecordId(UUID medicalRecordId) {
-		this.medicalRecordId = medicalRecordId;
-	}
-
-	public UUID getStoredFileId() {
-		return storedFileId;
-	}
-
-	public void setStoredFileId(UUID storedFileId) {
-		this.storedFileId = storedFileId;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
 }

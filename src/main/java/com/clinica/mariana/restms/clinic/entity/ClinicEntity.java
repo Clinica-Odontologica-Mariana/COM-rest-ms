@@ -1,5 +1,9 @@
 package com.clinica.mariana.restms.clinic.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,6 +14,9 @@ import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "clinic")
 public class ClinicEntity {
@@ -30,14 +37,17 @@ public class ClinicEntity {
 	@Column(name = "phone", nullable = false, length = 20)
 	private String phone;
 
-	@Column(name = "email")
+	@Column(name = "email", length = 150)
 	private String email;
 
 	@Column(name = "timezone", nullable = false, length = 80)
-	private String timezone;
+	private String timezone = "America/Sao_Paulo";
+
+	@Column(name = "description")
+	private String description;
 
 	@Column(name = "active", nullable = false)
-	private boolean active;
+	private boolean active = true;
 
 	@Column(name = "inactivated_at")
 	private OffsetDateTime inactivatedAt;
@@ -48,83 +58,4 @@ public class ClinicEntity {
 	@Column(name = "updated_at", insertable = false, updatable = false)
 	private OffsetDateTime updatedAt;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public void setId(UUID id) {
-		this.id = id;
-	}
-
-	public UUID getAddressId() {
-		return addressId;
-	}
-
-	public void setAddressId(UUID addressId) {
-		this.addressId = addressId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getDocument() {
-		return document;
-	}
-
-	public void setDocument(String document) {
-		this.document = document;
-	}
-
-	public String getPhone() {
-		return phone;
-	}
-
-	public void setPhone(String phone) {
-		this.phone = phone;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getTimezone() {
-		return timezone;
-	}
-
-	public void setTimezone(String timezone) {
-		this.timezone = timezone;
-	}
-
-	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-
-	public OffsetDateTime getInactivatedAt() {
-		return inactivatedAt;
-	}
-
-	public void setInactivatedAt(OffsetDateTime inactivatedAt) {
-		this.inactivatedAt = inactivatedAt;
-	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public OffsetDateTime getUpdatedAt() {
-		return updatedAt;
-	}
 }

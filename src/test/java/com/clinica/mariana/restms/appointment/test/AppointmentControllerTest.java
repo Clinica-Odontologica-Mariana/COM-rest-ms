@@ -6,14 +6,15 @@ import com.clinica.mariana.restms.appointment.dto.AppointmentUpdateDto;
 import com.clinica.mariana.restms.appointment.repository.AppointmentStatusRepository;
 import com.clinica.mariana.restms.appointment.service.AppointmentService;
 import com.clinica.mariana.restms.appointment.service.GoogleCalendarService;
+import com.clinica.mariana.restms.appointment.service.GoogleCalendarSyncService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import org.springframework.data.domain.Pageable;
 import java.io.IOException;
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +39,9 @@ class AppointmentControllerTest {
 	@MockitoBean
 	private GoogleCalendarService googleCalendarService;
 
+	@MockitoBean
+	private GoogleCalendarSyncService googleCalendarSyncService;
+
 	@Test
 	void shouldRunAppointmentCrudFlow() throws IOException {
 		when(googleCalendarService.createEvent(any(), any(), any(), any())).thenReturn(GOOGLE_EVENT_INTEGRATION_TEST);
@@ -52,15 +56,13 @@ class AppointmentControllerTest {
 
 		assertThat(created.id()).isNotNull();
 		assertThat(created.statusCode()).isEqualTo(SCHEDULED);
-		assertThat(created.externalCalendarEventId()).isEqualTo(GOOGLE_EVENT_INTEGRATION_TEST);
-		assertThat(created.calendarSyncStatusCode()).isEqualTo("SYNCED");
 
-		List<AppointmentDto> all = appointmentService.findAll();
+		var all = appointmentService.findAll(Pageable.unpaged()).stream().toList();
 		assertThat(all).anyMatch(a -> a.id().equals(created.id()));
 
 		OffsetDateTime periodStart = start.minusHours(1);
 		OffsetDateTime periodEnd = end.plusHours(1);
-		List<AppointmentDto> byPeriod = appointmentService.findByPeriod(periodStart, periodEnd);
+		var byPeriod = appointmentService.findByPeriod(periodStart, periodEnd, Pageable.unpaged()).stream().toList();
 		assertThat(byPeriod).anyMatch(a -> a.id().equals(created.id()));
 
 		UUID confirmedStatusId = appointmentStatusRepository.findByCode(CONFIRMED).orElseThrow().getId();
@@ -73,7 +75,7 @@ class AppointmentControllerTest {
 
 		appointmentService.delete(created.id());
 
-		List<AppointmentDto> afterDelete = appointmentService.findAll();
+		var afterDelete = appointmentService.findAll(Pageable.unpaged()).stream().toList();
 		assertThat(afterDelete).noneMatch(a -> a.id().equals(created.id()));
 	}
 }

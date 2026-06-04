@@ -1,5 +1,9 @@
 package com.clinica.mariana.restms.professional.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,6 +14,9 @@ import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "professional")
 public class ProfessionalEntity {
@@ -42,67 +49,4 @@ public class ProfessionalEntity {
 	@Column(name = "updated_at", insertable = false, updatable = false)
 	private OffsetDateTime updatedAt;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public void setId(UUID id) {
-		this.id = id;
-	}
-
-	public UUID getUserId() {
-		return userId;
-	}
-
-	public void setUserId(UUID userId) {
-		this.userId = userId;
-	}
-
-	public UUID getClinicId() {
-		return clinicId;
-	}
-
-	public void setClinicId(UUID clinicId) {
-		this.clinicId = clinicId;
-	}
-
-	public UUID getSpecialtyId() {
-		return specialtyId;
-	}
-
-	public void setSpecialtyId(UUID specialtyId) {
-		this.specialtyId = specialtyId;
-	}
-
-	public String getLicenseNumber() {
-		return licenseNumber;
-	}
-
-	public void setLicenseNumber(String licenseNumber) {
-		this.licenseNumber = licenseNumber;
-	}
-
-	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-
-	public OffsetDateTime getInactivatedAt() {
-		return inactivatedAt;
-	}
-
-	public void setInactivatedAt(OffsetDateTime inactivatedAt) {
-		this.inactivatedAt = inactivatedAt;
-	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public OffsetDateTime getUpdatedAt() {
-		return updatedAt;
-	}
 }

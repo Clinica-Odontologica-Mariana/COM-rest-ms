@@ -100,7 +100,7 @@ class ProfessionalControllerIntegrationTest {
 					.andExpect(jsonPath("$.data.licenseNumber", is("CRO-DF-54321")));
 
 			mockMvc.perform(get("/api/v1/professionals").contextPath(CONTEXT_PATH).with(jwtWithRole("DOCTOR")))
-					.andExpect(status().isOk()).andExpect(jsonPath("$.data", hasSize(1)));
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(1)));
 
 			mockMvc.perform(delete("/api/v1/professionals/{id}", created.id()).contextPath(CONTEXT_PATH)
 					.with(jwtWithRole("ADMIN"))).andExpect(status().isNoContent());
@@ -110,7 +110,7 @@ class ProfessionalControllerIntegrationTest {
 					.andExpect(jsonPath("$.data.active", is(false)));
 
 			mockMvc.perform(get("/api/v1/professionals").contextPath(CONTEXT_PATH).with(jwtWithRole("DOCTOR")))
-					.andExpect(status().isOk()).andExpect(jsonPath("$.data", hasSize(0)));
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(0)));
 
 			mockMvc.perform(delete("/api/v1/professionals/{id}", created.id()).contextPath(CONTEXT_PATH)
 					.with(jwtWithRole("ADMIN"))).andExpect(status().isNoContent());
@@ -314,6 +314,7 @@ class ProfessionalControllerIntegrationTest {
 
 	private void ensureReferenceTables() {
 		jdbcTemplate.execute("create table if not exists app_user (id uuid primary key)");
+		jdbcTemplate.execute("create table if not exists clinic (id uuid primary key)");
 		jdbcTemplate.execute("create table if not exists specialty (id uuid primary key)");
 	}
 
@@ -322,8 +323,8 @@ class ProfessionalControllerIntegrationTest {
 		insertReference("app_user", OTHER_USER_ID);
 		insertReference("app_user", THIRD_USER_ID);
 		insertReference("app_user", FOURTH_USER_ID);
-		insertClinicReference(CLINIC_ID, "00000000000001");
-		insertClinicReference(OTHER_CLINIC_ID, "00000000000002");
+		insertClinic(CLINIC_ID, "Clinica Principal", "00000000000001");
+		insertClinic(OTHER_CLINIC_ID, "Clinica Secundaria", "00000000000002");
 		insertReference("specialty", SPECIALTY_ID);
 	}
 
@@ -331,12 +332,11 @@ class ProfessionalControllerIntegrationTest {
 		jdbcTemplate.update("merge into " + tableName + " (id) key(id) values (?)", id);
 	}
 
-	private void insertClinicReference(UUID id, String document) {
-		jdbcTemplate.update(
-				"""
-						merge into clinic (id, name, document, phone, timezone, active, created_at, updated_at)
-						key(id) values (?, 'Stub Clinic', ?, '00000000000', 'America/Sao_Paulo', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-						""",
-				id, document);
+	private void insertClinic(UUID id, String name, String document) {
+		jdbcTemplate.update("""
+				merge into clinic (id, name, document, phone, timezone, active)
+				key(id)
+				values (?, ?, ?, ?, ?, ?)
+				""", id, name, document, "61999999999", "America/Sao_Paulo", true);
 	}
 }

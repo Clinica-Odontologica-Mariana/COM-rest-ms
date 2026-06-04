@@ -1,8 +1,8 @@
 package com.clinica.mariana.restms.users.controller;
 
 import com.clinica.mariana.restms.storedfile.dto.PresignedUrlDto;
-import com.clinica.mariana.restms.storedfile.dto.UserProfilePhotoDto;
-import com.clinica.mariana.restms.storedfile.service.UserProfilePhotoService;
+import com.clinica.mariana.restms.users.dto.UserProfilePhotoDto;
+import com.clinica.mariana.restms.users.service.UserProfilePhotoService;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

@@ -80,9 +80,9 @@ class FileValidationServiceTest {
 						new byte[]{0x25, 0x50, 0x44, 0x46}),
 				Arguments.of("too large", FileCategory.USER_PROFILE_PHOTO, "image/jpeg",
 						new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}),
-				Arguments.of("non-uploadable legacy category", FileCategory.LEGACY, "image/png",
-						new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}),
 				Arguments.of("non-uploadable medical attachment category", FileCategory.MEDICAL_RECORD_ATTACHMENT,
-						"image/png", new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}));
+						"image/png", new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}),
+				Arguments.of("non-uploadable certificate category", FileCategory.CERTIFICATE, "image/png",
+						new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}));
 	}
 }
