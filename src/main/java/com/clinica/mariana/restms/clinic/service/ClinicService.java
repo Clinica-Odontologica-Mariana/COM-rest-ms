@@ -14,7 +14,6 @@ import com.clinica.mariana.restms.common.exception.AppException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -35,7 +34,8 @@ public class ClinicService {
 	public ClinicDto create(ClinicCreateDto request) {
 		validateAddress(request.addressId());
 		if (clinicRepository.existsByDocument(request.document())) {
-			throw new AppException(HttpStatus.CONFLICT, "CLINIC_DOCUMENT_ALREADY_EXISTS", "Clinic document already exists");
+			throw new AppException(HttpStatus.CONFLICT, "CLINIC_DOCUMENT_ALREADY_EXISTS",
+					"Clinic document already exists");
 		}
 		ClinicEntity entity = new ClinicEntity();
 		apply(entity, request.addressId(), request.name(), request.document(), request.phone(), request.email(),
@@ -66,7 +66,8 @@ public class ClinicService {
 		ClinicEntity entity = findEntity(id);
 		validateAddress(request.addressId());
 		if (clinicRepository.existsByDocumentAndIdNot(request.document(), id)) {
-			throw new AppException(HttpStatus.CONFLICT, "CLINIC_DOCUMENT_ALREADY_EXISTS", "Clinic document already exists");
+			throw new AppException(HttpStatus.CONFLICT, "CLINIC_DOCUMENT_ALREADY_EXISTS",
+					"Clinic document already exists");
 		}
 		apply(entity, request.addressId(), request.name(), request.document(), request.phone(), request.email(),
 				request.timezone(), request.description());

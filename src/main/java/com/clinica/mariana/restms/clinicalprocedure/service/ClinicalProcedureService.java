@@ -12,8 +12,8 @@ import com.clinica.mariana.restms.common.exception.AppException;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Service

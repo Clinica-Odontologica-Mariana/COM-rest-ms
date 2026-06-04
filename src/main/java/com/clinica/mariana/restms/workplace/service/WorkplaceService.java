@@ -28,7 +28,8 @@ public class WorkplaceService {
 	@Transactional
 	public WorkplaceDto create(WorkplaceCreateDto request) {
 		if (workplaceRepository.existsByClinicIdAndName(request.clinicId(), request.name())) {
-			throw new AppException(HttpStatus.CONFLICT, "WORKPLACE_NAME_ALREADY_EXISTS", "Workplace name already exists for this clinic");
+			throw new AppException(HttpStatus.CONFLICT, "WORKPLACE_NAME_ALREADY_EXISTS",
+					"Workplace name already exists for this clinic");
 		}
 
 		WorkplaceModel model = WorkplaceModel.create(request.clinicId(), request.name(), request.description());
@@ -71,7 +72,8 @@ public class WorkplaceService {
 				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "WORKPLACE_NOT_FOUND", WORKPLACE_NOT_FOUND));
 
 		if (workplaceRepository.existsByClinicIdAndNameAndIdNot(entity.getClinicId(), request.name(), id)) {
-			throw new AppException(HttpStatus.CONFLICT, "WORKPLACE_NAME_ALREADY_EXISTS", "Workplace name already exists for this clinic");
+			throw new AppException(HttpStatus.CONFLICT, "WORKPLACE_NAME_ALREADY_EXISTS",
+					"Workplace name already exists for this clinic");
 		}
 
 		entity.setName(request.name());

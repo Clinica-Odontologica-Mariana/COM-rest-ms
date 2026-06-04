@@ -91,18 +91,19 @@ public class OdontogramEntryService {
 	}
 
 	private OdontogramEntryEntity findEntity(UUID id) {
-		return repository.findById(id)
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "ODONTOGRAM_ENTRY_NOT_FOUND", ENTRY_NOT_FOUND));
+		return repository.findById(id).orElseThrow(
+				() -> new AppException(HttpStatus.NOT_FOUND, "ODONTOGRAM_ENTRY_NOT_FOUND", ENTRY_NOT_FOUND));
 	}
 
 	private void validatePatientAndRecord(UUID patientId, UUID medicalRecordId) {
 		if (!patientRepository.existsById(patientId)) {
 			throw new AppException(HttpStatus.NOT_FOUND, "PATIENT_NOT_FOUND", "Patient not found");
 		}
-		MedicalRecordEntity record = medicalRecordRepository.findById(medicalRecordId)
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "MEDICAL_RECORD_NOT_FOUND", "Medical record not found"));
+		MedicalRecordEntity record = medicalRecordRepository.findById(medicalRecordId).orElseThrow(
+				() -> new AppException(HttpStatus.NOT_FOUND, "MEDICAL_RECORD_NOT_FOUND", "Medical record not found"));
 		if (!record.getPatientId().equals(patientId)) {
-			throw new AppException(HttpStatus.CONFLICT, "MEDICAL_RECORD_MISMATCH", "Medical record does not belong to patient");
+			throw new AppException(HttpStatus.CONFLICT, "MEDICAL_RECORD_MISMATCH",
+					"Medical record does not belong to patient");
 		}
 	}
 

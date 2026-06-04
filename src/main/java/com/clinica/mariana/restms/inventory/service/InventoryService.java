@@ -39,7 +39,8 @@ public class InventoryService {
 	public InventoryItemDto createItem(InventoryItemCreateDto request) {
 		validateClinic(request.clinicId());
 		if (itemRepository.existsByClinicIdAndName(request.clinicId(), request.name())) {
-			throw new AppException(HttpStatus.CONFLICT, "ALREADY_EXISTS", "Inventory item name already exists for clinic");
+			throw new AppException(HttpStatus.CONFLICT, "ALREADY_EXISTS",
+					"Inventory item name already exists for clinic");
 		}
 		InventoryItemEntity entity = new InventoryItemEntity();
 		entity.setClinicId(request.clinicId());
@@ -65,7 +66,8 @@ public class InventoryService {
 	public InventoryItemDto updateItem(UUID id, InventoryItemUpdateDto request) {
 		InventoryItemEntity entity = findItem(id);
 		if (itemRepository.existsByClinicIdAndNameAndIdNot(entity.getClinicId(), request.name(), id)) {
-			throw new AppException(HttpStatus.CONFLICT, "ALREADY_EXISTS", "Inventory item name already exists for clinic");
+			throw new AppException(HttpStatus.CONFLICT, "ALREADY_EXISTS",
+					"Inventory item name already exists for clinic");
 		}
 		apply(entity, request.itemType(), request.name(), request.description(), request.sku(), request.unit(),
 				request.minimumQuantity());
@@ -96,7 +98,8 @@ public class InventoryService {
 			default -> throw new AppException(HttpStatus.BAD_REQUEST, "INTERNAL_ERROR", "Invalid movement type");
 		};
 		if (newQuantity.compareTo(BigDecimal.ZERO) < 0) {
-			throw new AppException(HttpStatus.CONFLICT, "INTERNAL_ERROR", "Stock movement would make inventory negative");
+			throw new AppException(HttpStatus.CONFLICT, "INTERNAL_ERROR",
+					"Stock movement would make inventory negative");
 		}
 
 		item.setCurrentQuantity(newQuantity);

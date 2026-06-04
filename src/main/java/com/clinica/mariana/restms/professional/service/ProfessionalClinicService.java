@@ -71,8 +71,8 @@ public class ProfessionalClinicService {
 		ProfessionalEntity professional = findProfessional(professionalId);
 		validateClinic(clinicId);
 		ProfessionalClinicEntity entity = professionalClinicRepository
-				.findById(new ProfessionalClinicId(professionalId, clinicId))
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "MEMBERSHIP_NOT_FOUND", MEMBERSHIP_NOT_FOUND));
+				.findById(new ProfessionalClinicId(professionalId, clinicId)).orElseThrow(
+						() -> new AppException(HttpStatus.NOT_FOUND, "MEMBERSHIP_NOT_FOUND", MEMBERSHIP_NOT_FOUND));
 
 		if (!entity.isActive()) {
 			entity.setActive(true);
@@ -89,8 +89,8 @@ public class ProfessionalClinicService {
 	public void deactivate(UUID professionalId, UUID clinicId) {
 		ProfessionalEntity professional = findProfessional(professionalId);
 		ProfessionalClinicEntity entity = professionalClinicRepository
-				.findById(new ProfessionalClinicId(professionalId, clinicId))
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "MEMBERSHIP_NOT_FOUND", MEMBERSHIP_NOT_FOUND));
+				.findById(new ProfessionalClinicId(professionalId, clinicId)).orElseThrow(
+						() -> new AppException(HttpStatus.NOT_FOUND, "MEMBERSHIP_NOT_FOUND", MEMBERSHIP_NOT_FOUND));
 
 		entity.setActive(false);
 		entity.setPrimaryClinic(false);
@@ -104,7 +104,8 @@ public class ProfessionalClinicService {
 					professional.setClinicId(next.getId().getClinicId());
 					professionalClinicRepository.save(next);
 				}, () -> {
-					throw new AppException(HttpStatus.CONFLICT, "INTERNAL_ERROR", "Professional must keep at least one active clinic");
+					throw new AppException(HttpStatus.CONFLICT, "INTERNAL_ERROR",
+							"Professional must keep at least one active clinic");
 				});
 	}
 
@@ -114,8 +115,8 @@ public class ProfessionalClinicService {
 	}
 
 	private ProfessionalEntity findProfessional(UUID professionalId) {
-		return professionalRepository.findById(professionalId)
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "PROFESSIONAL_NOT_FOUND", PROFESSIONAL_NOT_FOUND));
+		return professionalRepository.findById(professionalId).orElseThrow(
+				() -> new AppException(HttpStatus.NOT_FOUND, "PROFESSIONAL_NOT_FOUND", PROFESSIONAL_NOT_FOUND));
 	}
 
 	private void validateProfessional(UUID professionalId) {

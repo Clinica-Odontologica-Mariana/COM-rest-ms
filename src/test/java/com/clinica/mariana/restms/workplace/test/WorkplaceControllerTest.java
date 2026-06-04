@@ -56,8 +56,8 @@ class WorkplaceControllerTest {
 		workplaceService.create(new WorkplaceCreateDto(clinicId, duplicateName, "Primeiro"));
 
 		assertThatThrownBy(() -> workplaceService.create(new WorkplaceCreateDto(clinicId, duplicateName, "Segundo")))
-				.isInstanceOf(AppException.class)
-				.extracting(e -> ((AppException) e).getStatus().value()).isEqualTo(409);
+				.isInstanceOf(AppException.class).extracting(e -> ((AppException) e).getStatus().value())
+				.isEqualTo(409);
 	}
 
 	@Test
@@ -87,8 +87,8 @@ class WorkplaceControllerTest {
 
 		assertThatThrownBy(
 				() -> workplaceService.update(nonExistentId, new WorkplaceUpdateDto("New Name", "New Description")))
-				.isInstanceOf(AppException.class)
-				.extracting(e -> ((AppException) e).getStatus().value()).isEqualTo(404);
+				.isInstanceOf(AppException.class).extracting(e -> ((AppException) e).getStatus().value())
+				.isEqualTo(404);
 	}
 
 	@Test

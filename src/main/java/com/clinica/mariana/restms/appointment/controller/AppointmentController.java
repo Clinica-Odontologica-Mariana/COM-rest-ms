@@ -23,7 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -49,8 +48,7 @@ public class AppointmentController {
 	}
 
 	@GetMapping("/period")
-	public Page<AppointmentDto> findByPeriod(
-			@PageableDefault(size = 20) Pageable pageable,
+	public Page<AppointmentDto> findByPeriod(@PageableDefault(size = 20) Pageable pageable,
 			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime start,
 			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime end) {
 		return appointmentService.findByPeriod(start, end, pageable);

@@ -3,7 +3,6 @@ package com.clinica.mariana.restms.professional.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -54,16 +53,16 @@ public class ProfessionalService {
 
 	@Transactional(readOnly = true)
 	public ProfessionalDto findById(UUID id) {
-		ProfessionalEntity entity = professionalRepository.findById(id)
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "PROFESSIONAL_NOT_FOUND", "Professional not found"));
+		ProfessionalEntity entity = professionalRepository.findById(id).orElseThrow(
+				() -> new AppException(HttpStatus.NOT_FOUND, "PROFESSIONAL_NOT_FOUND", "Professional not found"));
 
 		return toDto(entity);
 	}
 
 	@Transactional
 	public ProfessionalDto update(UUID id, ProfessionalUpdateDto request) {
-		ProfessionalEntity entity = professionalRepository.findById(id)
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "PROFESSIONAL_NOT_FOUND", "Professional not found"));
+		ProfessionalEntity entity = professionalRepository.findById(id).orElseThrow(
+				() -> new AppException(HttpStatus.NOT_FOUND, "PROFESSIONAL_NOT_FOUND", "Professional not found"));
 
 		validateReferences(request.userId(), request.clinicId(), request.specialtyId());
 		validateUniqueUser(request.userId(), id);
@@ -79,8 +78,8 @@ public class ProfessionalService {
 
 	@Transactional
 	public void delete(UUID id) {
-		ProfessionalEntity entity = professionalRepository.findById(id)
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "PROFESSIONAL_NOT_FOUND", "Professional not found"));
+		ProfessionalEntity entity = professionalRepository.findById(id).orElseThrow(
+				() -> new AppException(HttpStatus.NOT_FOUND, "PROFESSIONAL_NOT_FOUND", "Professional not found"));
 
 		if (!entity.isActive()) {
 			return;
@@ -109,7 +108,8 @@ public class ProfessionalService {
 				: professionalRepository.existsByUserIdAndIdNot(userId, professionalIdToIgnore);
 
 		if (alreadyExists) {
-			throw new AppException(HttpStatus.CONFLICT, "PROFESSIONAL_ALREADY_EXISTS", "User already has a professional profile");
+			throw new AppException(HttpStatus.CONFLICT, "PROFESSIONAL_ALREADY_EXISTS",
+					"User already has a professional profile");
 		}
 	}
 
@@ -120,7 +120,8 @@ public class ProfessionalService {
 						professionalIdToIgnore);
 
 		if (alreadyExists) {
-			throw new AppException(HttpStatus.CONFLICT, "LICENSE_ALREADY_EXISTS", "Professional license already exists in this clinic");
+			throw new AppException(HttpStatus.CONFLICT, "LICENSE_ALREADY_EXISTS",
+					"Professional license already exists in this clinic");
 		}
 	}
 

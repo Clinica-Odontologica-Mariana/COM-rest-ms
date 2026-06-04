@@ -12,7 +12,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class SecurityConfigTest {
 
-	private final SecurityConfig securityConfig = new SecurityConfig(new RestAuthenticationEntryPoint(new ObjectMapper().findAndRegisterModules()),
+	private final SecurityConfig securityConfig = new SecurityConfig(
+			new RestAuthenticationEntryPoint(new ObjectMapper().findAndRegisterModules()),
 			new RestAccessDeniedHandler(new ObjectMapper().findAndRegisterModules()));
 
 	@Test

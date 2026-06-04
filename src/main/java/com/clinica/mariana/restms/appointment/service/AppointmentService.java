@@ -21,7 +21,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -96,14 +95,15 @@ public class AppointmentService {
 
 	@Transactional(readOnly = true)
 	public Page<AppointmentDto> findByPeriod(OffsetDateTime start, OffsetDateTime end, Pageable pageable) {
-		return appointmentRepository.findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(start, end, pageable).map(this::toDto);
+		return appointmentRepository
+				.findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(start, end, pageable)
+				.map(this::toDto);
 	}
 
 	@Transactional
 	public AppointmentDto update(UUID id, AppointmentUpdateDto request) {
-		AppointmentEntity entity = appointmentRepository.findById(id)
-				.orElseThrow(
-						() -> new AppException(HttpStatus.NOT_FOUND, "APPOINTMENT_NOT_FOUND", "Appointment not found"));
+		AppointmentEntity entity = appointmentRepository.findById(id).orElseThrow(
+				() -> new AppException(HttpStatus.NOT_FOUND, "APPOINTMENT_NOT_FOUND", "Appointment not found"));
 
 		AppointmentStatusEntity status = appointmentStatusRepository.findById(request.statusId())
 				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "APPOINTMENT_STATUS_NOT_FOUND",
@@ -139,9 +139,8 @@ public class AppointmentService {
 
 	@Transactional
 	public void delete(UUID id) {
-		AppointmentEntity entity = appointmentRepository.findById(id)
-				.orElseThrow(
-						() -> new AppException(HttpStatus.NOT_FOUND, "APPOINTMENT_NOT_FOUND", "Appointment not found"));
+		AppointmentEntity entity = appointmentRepository.findById(id).orElseThrow(
+				() -> new AppException(HttpStatus.NOT_FOUND, "APPOINTMENT_NOT_FOUND", "Appointment not found"));
 
 		if (entity.getCancelledAt() != null) {
 			return;
@@ -171,13 +170,12 @@ public class AppointmentService {
 
 	private AppointmentDto toDto(AppointmentEntity entity) {
 		return new AppointmentDto(entity.getId(), entity.getPatientId(), entity.getClinicId(), entity.getWorkplaceId(),
-				entity.getProfessionalId(),
-				entity.getStatus() != null ? entity.getStatus().getCode() : null,
+				entity.getProfessionalId(), entity.getStatus() != null ? entity.getStatus().getCode() : null,
 				entity.getStatus() != null ? entity.getStatus().getName() : null,
 				entity.getCalendarSyncStatus() != null ? entity.getCalendarSyncStatus().getCode() : null,
 				entity.getExternalCalendarEventId(), entity.getLastSyncedAt(), entity.isBlocksSchedule(),
 				entity.getStartDatetime(), entity.getEndDatetime(), entity.getNotes(), entity.getCancellationReason(),
-				entity.getCancelledAt(), entity.getCancelledByUserId(), entity.getCreatedByUserId(), entity.getCreatedAt(),
-				entity.getUpdatedAt());
+				entity.getCancelledAt(), entity.getCancelledByUserId(), entity.getCreatedByUserId(),
+				entity.getCreatedAt(), entity.getUpdatedAt());
 	}
 }

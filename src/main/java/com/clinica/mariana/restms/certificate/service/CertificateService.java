@@ -82,8 +82,8 @@ public class CertificateService {
 	}
 
 	private CertificateEntity findEntity(UUID id) {
-		return certificateRepository.findById(id)
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CERTIFICATE_NOT_FOUND", CERTIFICATE_NOT_FOUND));
+		return certificateRepository.findById(id).orElseThrow(
+				() -> new AppException(HttpStatus.NOT_FOUND, "CERTIFICATE_NOT_FOUND", CERTIFICATE_NOT_FOUND));
 	}
 
 	private void validateReferences(UUID patientId, UUID professionalId, UUID storedFileId) {

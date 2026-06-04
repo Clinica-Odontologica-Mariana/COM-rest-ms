@@ -66,7 +66,8 @@ public class PatientClinicService {
 	public PatientClinicDto setPrimary(UUID patientId, UUID clinicId) {
 		validatePatientAndClinic(patientId, clinicId);
 		PatientClinicEntity entity = patientClinicRepository.findById(new PatientClinicId(patientId, clinicId))
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "MEMBERSHIP_NOT_FOUND", MEMBERSHIP_NOT_FOUND));
+				.orElseThrow(
+						() -> new AppException(HttpStatus.NOT_FOUND, "MEMBERSHIP_NOT_FOUND", MEMBERSHIP_NOT_FOUND));
 
 		if (!entity.isActive()) {
 			entity.setActive(true);
@@ -81,7 +82,8 @@ public class PatientClinicService {
 	@Transactional
 	public void deactivate(UUID patientId, UUID clinicId) {
 		PatientClinicEntity entity = patientClinicRepository.findById(new PatientClinicId(patientId, clinicId))
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "MEMBERSHIP_NOT_FOUND", MEMBERSHIP_NOT_FOUND));
+				.orElseThrow(
+						() -> new AppException(HttpStatus.NOT_FOUND, "MEMBERSHIP_NOT_FOUND", MEMBERSHIP_NOT_FOUND));
 
 		entity.setActive(false);
 		entity.setPrimaryClinic(false);

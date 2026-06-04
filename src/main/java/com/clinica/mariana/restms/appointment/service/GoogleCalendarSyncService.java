@@ -38,8 +38,8 @@ public class GoogleCalendarSyncService {
 		}
 
 		try {
-			String eventId = googleCalendarService.createEvent("Consulta", entity.getNotes(),
-					entity.getStartDatetime(), entity.getEndDatetime());
+			String eventId = googleCalendarService.createEvent("Consulta", entity.getNotes(), entity.getStartDatetime(),
+					entity.getEndDatetime());
 
 			entity.setExternalCalendarEventId(eventId);
 			entity.setCalendarSyncStatus(findSyncStatus("SYNCED"));

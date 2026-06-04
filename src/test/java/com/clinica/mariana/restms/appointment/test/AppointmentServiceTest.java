@@ -32,8 +32,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -101,7 +99,7 @@ class AppointmentServiceTest {
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
 		when(calendarProviderRepository.findByCode(GOOGLE)).thenReturn(Optional.of(googleProvider));
 		when(calendarSyncStatusRepository.findByCode(PENDING)).thenReturn(Optional.of(pendingSync));
-		
+
 		when(appointmentRepository.save(any())).thenAnswer(inv -> {
 			AppointmentEntity e = inv.getArgument(0);
 			if (e.getId() == null) {
@@ -151,10 +149,11 @@ class AppointmentServiceTest {
 	void shouldFindAllActiveAppointments() {
 		AppointmentEntity entity = buildEntity(UUID.randomUUID());
 
-		when(appointmentRepository.findAllByCancelledAtIsNullOrderByStartDatetimeAsc(any())).thenReturn(new PageImpl<>(List.of(entity)));
+		when(appointmentRepository.findAllByCancelledAtIsNullOrderByStartDatetimeAsc(any()))
+				.thenReturn(new PageImpl<>(List.of(entity)));
 
 		var resultPage = appointmentService.findAll(Pageable.unpaged());
-var result = resultPage.stream().toList();
+		var result = resultPage.stream().toList();
 
 		assertThat(result).hasSize(1);
 		assertThat(result.getFirst().id()).isEqualTo(entity.getId());
@@ -166,8 +165,8 @@ var result = resultPage.stream().toList();
 		OffsetDateTime end = start.plusDays(7);
 		AppointmentEntity entity = buildEntity(UUID.randomUUID());
 
-		when(appointmentRepository.findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(any(), any(), any()))
-				.thenReturn(new PageImpl<>(List.of(entity)));
+		when(appointmentRepository.findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(any(), any(),
+				any())).thenReturn(new PageImpl<>(List.of(entity)));
 
 		var result = appointmentService.findByPeriod(start, end, Pageable.unpaged()).stream().toList();
 

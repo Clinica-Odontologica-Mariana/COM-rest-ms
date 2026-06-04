@@ -51,7 +51,8 @@ class MedicalRecordServiceTest {
 		assertThat(created.id()).isNotNull();
 		assertThat(created.patientId()).isEqualTo(patient.getId());
 
-		assertThat(medicalRecordService.findAll(Pageable.unpaged()).getContent()).extracting(MedicalRecordDto::id).contains(created.id());
+		assertThat(medicalRecordService.findAll(Pageable.unpaged()).getContent()).extracting(MedicalRecordDto::id)
+				.contains(created.id());
 
 		MedicalRecordDto foundById = medicalRecordService.findById(created.id());
 		assertThat(foundById.allergies()).isEqualTo("Penicilina");
@@ -65,7 +66,8 @@ class MedicalRecordServiceTest {
 		assertThat(updated.allergies()).isEqualTo("Nenhuma alergia conhecida");
 		assertThat(updated.generalObservations()).isEqualTo("Retorno em seis meses");
 
-		MedicalRecordNoteDto note = medicalRecordService.addNote(patient.getId(), new MedicalRecordNoteCreateDto("Evolucao inicial"));
+		MedicalRecordNoteDto note = medicalRecordService.addNote(patient.getId(),
+				new MedicalRecordNoteCreateDto("Evolucao inicial"));
 
 		assertThat(note.id()).isNotNull();
 		assertThat(note.medicalRecordId()).isEqualTo(created.id());
@@ -158,8 +160,8 @@ class MedicalRecordServiceTest {
 	}
 
 	private void assertStatus(HttpStatus status, Runnable action) {
-		assertThatThrownBy(action::run).isInstanceOf(AppException.class)
-			.extracting(e -> ((AppException) e).getStatus()).isEqualTo(status);
+		assertThatThrownBy(action::run).isInstanceOf(AppException.class).extracting(e -> ((AppException) e).getStatus())
+				.isEqualTo(status);
 	}
 
 	private PatientEntity patient(String fullName, String cpf) {

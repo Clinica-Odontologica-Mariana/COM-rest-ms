@@ -13,8 +13,7 @@ public class JacksonConfig {
 	@Bean
 	@Primary
 	public ObjectMapper objectMapper() {
-		return new ObjectMapper()
-				.registerModule(new JavaTimeModule())
+		return new ObjectMapper().registerModule(new JavaTimeModule())
 				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 	}
 }

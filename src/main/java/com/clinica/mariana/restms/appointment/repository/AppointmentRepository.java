@@ -6,12 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.UUID;
 
 public interface AppointmentRepository extends JpaRepository<AppointmentEntity, UUID> {
 
 	Page<AppointmentEntity> findAllByCancelledAtIsNullOrderByStartDatetimeAsc(Pageable pageable);
 
-	Page<AppointmentEntity> findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(OffsetDateTime start, OffsetDateTime end, Pageable pageable);
+	Page<AppointmentEntity> findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(OffsetDateTime start,
+			OffsetDateTime end, Pageable pageable);
 }

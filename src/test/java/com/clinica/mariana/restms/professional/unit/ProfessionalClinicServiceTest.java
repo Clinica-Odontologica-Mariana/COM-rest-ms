@@ -78,8 +78,7 @@ class ProfessionalClinicServiceTest {
 				.findFirstByIdProfessionalIdAndActiveTrueOrderByPrimaryClinicDescCreatedAtAsc(professionalId))
 				.thenReturn(Optional.empty());
 
-		assertThatThrownBy(() -> service.deactivate(professionalId, clinicId))
-				.isInstanceOf(AppException.class)
+		assertThatThrownBy(() -> service.deactivate(professionalId, clinicId)).isInstanceOf(AppException.class)
 				.hasMessageContaining("Professional must keep at least one active clinic");
 	}
 }

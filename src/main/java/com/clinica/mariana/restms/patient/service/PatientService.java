@@ -14,7 +14,6 @@ import com.clinica.mariana.restms.common.exception.AppException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -113,8 +112,9 @@ public class PatientService {
 	}
 
 	private PatientDto toDto(PatientEntity entity) {
-		return new PatientDto(entity.getId(), entity.getAddressId(), entity.getCreatedByUserId(), entity.getFullName(), entity.getCpf(),
-				entity.getPhone(), entity.getEmail(), entity.getBirthDate(), entity.getEmergencyContactName(),
-				entity.getEmergencyContactPhone(), entity.getNotes(), entity.isActive());
+		return new PatientDto(entity.getId(), entity.getAddressId(), entity.getCreatedByUserId(), entity.getFullName(),
+				entity.getCpf(), entity.getPhone(), entity.getEmail(), entity.getBirthDate(),
+				entity.getEmergencyContactName(), entity.getEmergencyContactPhone(), entity.getNotes(),
+				entity.isActive());
 	}
 }

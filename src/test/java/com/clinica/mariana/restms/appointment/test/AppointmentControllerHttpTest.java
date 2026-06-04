@@ -151,7 +151,8 @@ class AppointmentControllerHttpTest {
 							.content(buildCreatePayload(statusId)))
 					.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
 
-			JsonNode responseNode = objectMapper.readTree(response); JsonNode data = responseNode.get("data");
+			JsonNode responseNode = objectMapper.readTree(response);
+			JsonNode data = responseNode.get("data");
 			AppointmentDto dto = objectMapper.treeToValue(data, AppointmentDto.class);
 			assertThat(dto.id()).isNotNull();
 			return dto;
