@@ -16,10 +16,13 @@ import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.time.OffsetDateTime;
 import java.time.Instant;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,11 +53,11 @@ class MedicalRecordControllerTest {
 				"Radiografia revisada");
 
 		when(medicalRecordService.create(createDto)).thenReturn(dto);
-		when(medicalRecordService.findAll()).thenReturn(List.of(dto));
+		when(medicalRecordService.findAll(any())).thenReturn(new PageImpl<>(List.of(dto)));
 		when(medicalRecordService.findById(id)).thenReturn(dto);
 		when(medicalRecordService.findByPatientId(patientId)).thenReturn(dto);
 		when(medicalRecordService.update(id, updateDto)).thenReturn(dto);
-		when(medicalRecordService.addNote(patientId, createdByUserId, noteCreateDto)).thenReturn(noteDto);
+		when(medicalRecordService.addNote(patientId, noteCreateDto)).thenReturn(noteDto);
 		when(medicalRecordService.findNotesByPatientId(patientId)).thenReturn(List.of(noteDto));
 		when(medicalRecordService.findNoteById(patientId, noteId)).thenReturn(noteDto);
 		when(medicalRecordService.updateNote(patientId, noteId, noteUpdateDto)).thenReturn(noteDto);
@@ -65,7 +68,7 @@ class MedicalRecordControllerTest {
 				.thenReturn(attachmentDto);
 
 		assertThat(controller.create(createDto)).isEqualTo(dto);
-		assertThat(controller.findAll()).containsExactly(dto);
+		assertThat(controller.findAll(Pageable.unpaged()).stream().toList()).containsExactly(dto);
 		assertThat(controller.findById(id)).isEqualTo(dto);
 		assertThat(controller.findByPatientId(patientId)).isEqualTo(dto);
 		assertThat(controller.update(id, updateDto)).isEqualTo(dto);
@@ -94,11 +97,11 @@ class MedicalRecordControllerTest {
 		MedicalRecordNoteCreateDto noteCreateDto = new MedicalRecordNoteCreateDto("Nota");
 		MedicalRecordNoteDto noteDto = noteDto(UUID.randomUUID(), UUID.randomUUID());
 
-		when(medicalRecordService.addNote(patientId, null, noteCreateDto)).thenReturn(noteDto);
+		when(medicalRecordService.addNote(patientId, noteCreateDto)).thenReturn(noteDto);
 
 		assertThat(controller.addNote(patientId, noteCreateDto, null)).isEqualTo(noteDto);
 
-		verify(medicalRecordService).addNote(patientId, null, noteCreateDto);
+		verify(medicalRecordService).addNote(patientId, noteCreateDto);
 	}
 
 	@Test
@@ -107,11 +110,11 @@ class MedicalRecordControllerTest {
 		MedicalRecordNoteCreateDto noteCreateDto = new MedicalRecordNoteCreateDto("Nota");
 		MedicalRecordNoteDto noteDto = noteDto(UUID.randomUUID(), UUID.randomUUID());
 
-		when(medicalRecordService.addNote(patientId, null, noteCreateDto)).thenReturn(noteDto);
+		when(medicalRecordService.addNote(patientId, noteCreateDto)).thenReturn(noteDto);
 
 		assertThat(controller.addNote(patientId, noteCreateDto, jwtWithInvalidSubject())).isEqualTo(noteDto);
 
-		verify(medicalRecordService).addNote(patientId, null, noteCreateDto);
+		verify(medicalRecordService).addNote(patientId, noteCreateDto);
 	}
 
 	private MedicalRecordDto dto(UUID id, UUID patientId) {

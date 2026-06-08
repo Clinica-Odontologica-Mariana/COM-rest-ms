@@ -97,7 +97,7 @@ class PatientControllerIntegrationTest {
 					.andExpect(jsonPath("$.data.notes", is("Observacao atualizada")));
 
 			mockMvc.perform(get(PATIENTS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
-					.andExpect(status().isOk()).andExpect(jsonPath("$.data", hasSize(1)));
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(1)));
 
 			mockMvc.perform(delete(PATIENT_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH)
 					.with(jwtWithRole(ROLE_ADMIN))).andExpect(status().isNoContent());
@@ -107,7 +107,7 @@ class PatientControllerIntegrationTest {
 					.andExpect(status().isOk()).andExpect(jsonPath("$.data.active", is(false)));
 
 			mockMvc.perform(get(PATIENTS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
-					.andExpect(status().isOk()).andExpect(jsonPath("$.data", hasSize(0)));
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(0)));
 		}
 	}
 

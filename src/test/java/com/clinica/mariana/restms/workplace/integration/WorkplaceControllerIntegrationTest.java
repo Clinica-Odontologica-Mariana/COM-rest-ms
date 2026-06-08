@@ -9,7 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.web.server.ResponseStatusException;
+import com.clinica.mariana.restms.common.exception.AppException;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -71,9 +71,9 @@ class WorkplaceControllerIntegrationTest {
 
 		workplaceService.create(new WorkplaceCreateDto(clinicId, "Sala A", "desc"));
 
-		ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+		AppException ex = assertThrows(AppException.class,
 				() -> workplaceService.create(new WorkplaceCreateDto(clinicId, "Sala A", "outra")));
-		assertThat(ex.getStatusCode()).isEqualTo(org.springframework.http.HttpStatus.CONFLICT);
+		assertThat(ex.getStatus()).isEqualTo(org.springframework.http.HttpStatus.CONFLICT);
 	}
 
 	@Test

@@ -25,6 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,8 +51,8 @@ public class MedicalRecordController {
 
 	@GetMapping
 	@RolesAllowed({"ADMIN", "DOCTOR"})
-	public List<MedicalRecordDto> findAll() {
-		return medicalRecordService.findAll();
+	public Page<MedicalRecordDto> findAll(@PageableDefault(size = 20) Pageable pageable) {
+		return medicalRecordService.findAll(pageable);
 	}
 
 	@GetMapping("/{id}")
@@ -82,7 +85,7 @@ public class MedicalRecordController {
 	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public MedicalRecordNoteDto addNote(@PathVariable UUID patientId,
 			@Valid @RequestBody MedicalRecordNoteCreateDto request, @AuthenticationPrincipal Jwt jwt) {
-		return medicalRecordService.addNote(patientId, currentUserId(jwt).orElse(null), request);
+		return medicalRecordService.addNote(patientId, request);
 	}
 
 	@GetMapping("/by-patient/{patientId}/notes")

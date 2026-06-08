@@ -91,7 +91,7 @@ class AddressControllerIntegrationTest {
 					.andExpect(jsonPath("$.data.zipCode", is("70000001")));
 
 			mockMvc.perform(get("/api/v1/addresses").contextPath(CONTEXT_PATH).with(jwtWithRole("DOCTOR")))
-					.andExpect(status().isOk()).andExpect(jsonPath("$.data", hasSize(1)));
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(1)));
 
 			mockMvc.perform(
 					delete("/api/v1/addresses/{id}", created.id()).contextPath(CONTEXT_PATH).with(jwtWithRole("ADMIN")))

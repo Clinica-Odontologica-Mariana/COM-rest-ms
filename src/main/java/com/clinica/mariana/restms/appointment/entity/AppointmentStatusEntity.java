@@ -1,5 +1,9 @@
 package com.clinica.mariana.restms.appointment.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -9,6 +13,9 @@ import jakarta.persistence.Table;
 
 import java.util.UUID;
 
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "appointment_status")
 public class AppointmentStatusEntity {
@@ -29,43 +36,4 @@ public class AppointmentStatusEntity {
 	@Column(name = "final_status", nullable = false)
 	private boolean finalStatus = false;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public void setId(UUID id) {
-		this.id = id;
-	}
-
-	public String getCode() {
-		return code;
-	}
-
-	public void setCode(String code) {
-		this.code = code;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public boolean isBlocksSchedule() {
-		return blocksSchedule;
-	}
-
-	public void setBlocksSchedule(boolean blocksSchedule) {
-		this.blocksSchedule = blocksSchedule;
-	}
-
-	public boolean isFinalStatus() {
-		return finalStatus;
-	}
-
-	public void setFinalStatus(boolean finalStatus) {
-		this.finalStatus = finalStatus;
-	}
 }

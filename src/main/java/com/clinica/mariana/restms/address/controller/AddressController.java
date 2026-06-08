@@ -17,7 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+
 import java.util.UUID;
 
 @RestController
@@ -39,8 +42,8 @@ public class AddressController {
 
 	@GetMapping
 	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
-	public List<AddressDto> findAll() {
-		return addressService.findAll();
+	public Page<AddressDto> findAll(@PageableDefault(size = 20) Pageable pageable) {
+		return addressService.findAll(pageable);
 	}
 
 	@GetMapping("/{id}")

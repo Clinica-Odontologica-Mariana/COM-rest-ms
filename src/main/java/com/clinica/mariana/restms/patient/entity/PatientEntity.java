@@ -1,5 +1,12 @@
 package com.clinica.mariana.restms.patient.entity;
 
+import lombok.Getter;
+import jakarta.persistence.EntityListeners;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.annotation.CreatedBy;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,6 +18,10 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@EntityListeners(AuditingEntityListener.class)
+@Getter
+@NoArgsConstructor
+@Setter
 @Entity
 @Table(name = "patient")
 public class PatientEntity {
@@ -22,7 +33,8 @@ public class PatientEntity {
 	@Column(name = "address_id")
 	private UUID addressId;
 
-	@Column(name = "created_by_user_id")
+	@CreatedBy
+	@Column(name = "created_by_user_id", updatable = false)
 	private UUID createdByUserId;
 
 	@Column(name = "full_name", nullable = false, length = 150)
@@ -55,107 +67,4 @@ public class PatientEntity {
 	@Column(name = "inactivated_at")
 	private OffsetDateTime inactivatedAt;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public void setId(UUID id) {
-		this.id = id;
-	}
-
-	public UUID getAddressId() {
-		return addressId;
-	}
-
-	public void setAddressId(UUID addressId) {
-		this.addressId = addressId;
-	}
-
-	public UUID getCreatedByUserId() {
-		return createdByUserId;
-	}
-
-	public void setCreatedByUserId(UUID createdByUserId) {
-		this.createdByUserId = createdByUserId;
-	}
-
-	public String getFullName() {
-		return fullName;
-	}
-
-	public void setFullName(String fullName) {
-		this.fullName = fullName;
-	}
-
-	public String getCpf() {
-		return cpf;
-	}
-
-	public void setCpf(String cpf) {
-		this.cpf = cpf;
-	}
-
-	public String getPhone() {
-		return phone;
-	}
-
-	public void setPhone(String phone) {
-		this.phone = phone;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public LocalDate getBirthDate() {
-		return birthDate;
-	}
-
-	public void setBirthDate(LocalDate birthDate) {
-		this.birthDate = birthDate;
-	}
-
-	public String getEmergencyContactName() {
-		return emergencyContactName;
-	}
-
-	public void setEmergencyContactName(String emergencyContactName) {
-		this.emergencyContactName = emergencyContactName;
-	}
-
-	public String getEmergencyContactPhone() {
-		return emergencyContactPhone;
-	}
-
-	public void setEmergencyContactPhone(String emergencyContactPhone) {
-		this.emergencyContactPhone = emergencyContactPhone;
-	}
-
-	public String getNotes() {
-		return notes;
-	}
-
-	public void setNotes(String notes) {
-		this.notes = notes;
-	}
-
-	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-
-	public OffsetDateTime getInactivatedAt() {
-		return inactivatedAt;
-	}
-
-	public void setInactivatedAt(OffsetDateTime inactivatedAt) {
-		this.inactivatedAt = inactivatedAt;
-	}
 }
