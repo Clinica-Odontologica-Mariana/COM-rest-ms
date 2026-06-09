@@ -2,6 +2,7 @@ package com.clinica.mariana.restms.users.integration;
 
 import com.clinica.mariana.restms.users.dto.CreateUserRequestDto;
 import com.clinica.mariana.restms.users.dto.CreateUserResponseDto;
+import com.clinica.mariana.restms.users.dto.UserSummaryDto;
 import com.clinica.mariana.restms.users.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -15,10 +16,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -35,6 +38,49 @@ class UserControllerIntegrationTest {
 
 	@MockitoBean
 	private UserService userService;
+
+	@Nested
+	@DisplayName("Given listing users")
+	class ListUsers {
+
+		@Test
+		@DisplayName("When called by ADMIN, then returns users list")
+		void shouldListUsers() throws Exception {
+			doReturn(java.util.List.of(
+					new UserSummaryDto("u-1", "api-admin", "api-admin@rest-ms.local", true, "API", "Admin"),
+					new UserSummaryDto("u-2", "maria.silva", "maria.silva@clinic.local", true, "Maria", "Silva")))
+					.when(userService).listUsers();
+
+			mockMvc.perform(get("/api/v1/users").contextPath(CONTEXT_PATH)
+					.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))).andExpect(status().isOk())
+					.andExpect(jsonPath("$.success").value(true)).andExpect(jsonPath("$.data.length()").value(2))
+					.andExpect(jsonPath("$.data[0].username").value("api-admin"))
+					.andExpect(jsonPath("$.data[1].username").value("maria.silva"));
+
+			verify(userService).listUsers();
+		}
+
+		@Test
+		@DisplayName("When called without token, then returns unauthorized")
+		void shouldReturnUnauthorizedForMissingToken() throws Exception {
+			mockMvc.perform(get("/api/v1/users").contextPath(CONTEXT_PATH)).andExpect(status().isUnauthorized())
+					.andExpect(jsonPath("$.success").value(false))
+					.andExpect(jsonPath("$.error.code").value("UNAUTHORIZED"));
+
+			verifyNoInteractions(userService);
+		}
+
+		@Test
+		@DisplayName("When called with non-admin role, then returns forbidden")
+		void shouldReturnForbiddenForNonAdmin() throws Exception {
+			mockMvc.perform(get("/api/v1/users").contextPath(CONTEXT_PATH)
+					.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"))))
+					.andExpect(status().isForbidden()).andExpect(jsonPath("$.success").value(false))
+					.andExpect(jsonPath("$.error.code").value("FORBIDDEN"));
+
+			verifyNoInteractions(userService);
+		}
+	}
 
 	@Nested
 	@DisplayName("Given a valid create user request")
