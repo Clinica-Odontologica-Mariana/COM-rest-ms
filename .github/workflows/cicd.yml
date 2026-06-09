@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/com-rest-ms
+  IMAGE_NAME: ghcr.io/clinica-odontologica-mariana/com-rest-ms
 
 jobs:
   build-and-test:
@@ -142,6 +142,6 @@ jobs:
     steps:
       - name: Explain current status
         run: |
-          echo "Docker image publication is active on pushes to develop/main."
+          echo "Docker image publication is active on pushes to main."
           echo "Automatic VPS deployment is intentionally not implemented yet."
-          echo "Use the GHCR image with deploy/production/backend/docker-compose.yml on the server."
+          echo "Use the GHCR image with deploy/production/backend/docker-compose.prod.yml on the server."

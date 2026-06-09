@@ -42,3 +42,5 @@ out/
 
 ### Local secrets ###
 .env
+
+/deploy
