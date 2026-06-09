@@ -50,7 +50,7 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	Converter<Jwt, JwtAuthenticationToken> jwtAuthenticationConverter() {
+	public Converter<Jwt, JwtAuthenticationToken> jwtAuthenticationConverter() {
 		return jwt -> new JwtAuthenticationToken(jwt, extractAuthorities(jwt),
 				jwt.getClaimAsString("preferred_username"));
 	}

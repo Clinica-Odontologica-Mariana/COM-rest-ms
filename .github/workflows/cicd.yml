@@ -10,10 +10,14 @@ on:
 permissions:
   contents: read
   id-token: write
+  packages: write
 
 concurrency:
   group: cicd-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/com-rest-ms
 
 jobs:
   build-and-test:
@@ -89,19 +93,45 @@ jobs:
             com-rest-ms:ci
             com-rest-ms:${{ github.sha }}
 
-  publish-placeholder:
-    name: Publish Placeholder (no push)
-    if: github.event_name == 'push'
+  docker-publish:
+    name: Publish Docker Image to GHCR
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: docker-build
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
-      - name: Future registry publication notes
-        run: |
-          echo "Docker image publication is not enabled yet."
-          echo "Future tags: latest, develop/main, ${{ github.sha }} and semantic version tags."
-          echo "Configure secrets before enabling push: REGISTRY_USERNAME, REGISTRY_PASSWORD or GHCR_TOKEN."
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,format=long
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
   release-placeholder:
     name: Future Deploy Placeholder
@@ -112,6 +142,6 @@ jobs:
     steps:
       - name: Explain current status
         run: |
-          echo "Release/deploy is intentionally not implemented yet."
-          echo "This workflow exists as a placeholder for future host deployment integration."
-          echo "Expected future inputs: registry credentials, SSH access, production env vars, domain/HTTPS."
+          echo "Docker image publication is active on pushes to develop/main."
+          echo "Automatic VPS deployment is intentionally not implemented yet."
+          echo "Use the GHCR image with deploy/production/backend/docker-compose.yml on the server."

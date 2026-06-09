@@ -1,9 +1,8 @@
 package com.clinica.mariana.restms.auth.service;
 
-import com.clinica.mariana.restms.auth.dto.LoginRequestDto;
-import com.clinica.mariana.restms.auth.dto.LoginResponseDto;
-import com.clinica.mariana.restms.auth.properties.KeycloakProperties;
-import com.clinica.mariana.restms.common.exception.AppException;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -12,8 +11,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
-import java.util.List;
-import java.util.Map;
+import com.clinica.mariana.restms.auth.dto.LoginRequestDto;
+import com.clinica.mariana.restms.auth.dto.LoginResponseDto;
+import com.clinica.mariana.restms.auth.properties.KeycloakProperties;
+import com.clinica.mariana.restms.common.exception.AppException;
 
 @Service
 public class AuthService {
