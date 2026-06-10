@@ -22,8 +22,7 @@ public class AppUserReferenceRepository {
 				.createNativeQuery(
 						"select id from app_user where keycloak_subject = :keycloakSubject and active = true")
 				.setParameter("keycloakSubject", keycloakSubject).setFlushMode(FlushModeType.COMMIT).getResultStream()
-				.findFirst()
-				.map(value -> new AppUserReference(toUuid(value)));
+				.findFirst().map(value -> new AppUserReference(toUuid(value)));
 	}
 
 	public Optional<AppUserReference> findActiveById(UUID id) {
