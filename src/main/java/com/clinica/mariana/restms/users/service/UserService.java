@@ -1,10 +1,14 @@
 package com.clinica.mariana.restms.users.service;
 
+import com.clinica.mariana.restms.auth.properties.KeycloakProperties;
+import com.clinica.mariana.restms.common.exception.AppException;
+import com.clinica.mariana.restms.users.dto.CreateUserRequestDto;
+import com.clinica.mariana.restms.users.dto.CreateUserResponseDto;
+import com.clinica.mariana.restms.users.dto.UserSummaryDto;
 import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,13 +18,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
-import com.clinica.mariana.restms.auth.properties.KeycloakProperties;
-import com.clinica.mariana.restms.common.exception.AppException;
-import com.clinica.mariana.restms.users.dto.CreateUserRequestDto;
-import com.clinica.mariana.restms.users.dto.CreateUserResponseDto;
-
 @Service
 public class UserService {
+
 	private static final String PASSWORD = "password";
 	private static final String STATUS_PREFIX = "status=";
 
@@ -37,6 +37,13 @@ public class UserService {
 		String userId = createKeycloakUser(adminAccessToken, request);
 		assignRealmRole(adminAccessToken, userId, request.role());
 		return new CreateUserResponseDto(userId, request.username(), request.email(), request.role());
+	}
+
+	public List<UserSummaryDto> listUsers() {
+		String adminAccessToken = requestAdminToken();
+		List<Map<String, Object>> payload = fetchUsers(adminAccessToken);
+
+		return payload.stream().map(this::toUserSummary).toList();
 	}
 
 	private String requestAdminToken() {
@@ -61,6 +68,21 @@ public class UserService {
 			throw new AppException(HttpStatus.UNAUTHORIZED, "KEYCLOAK_AUTH_FAILED",
 					"Invalid credentials or Keycloak authentication error",
 					List.of(STATUS_PREFIX + ex.getStatusCode().value()));
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<Map<String, Object>> fetchUsers(String adminAccessToken) {
+		try {
+			List<?> response = restClient.get().uri("/admin/realms/{realm}/users", keycloakProperties.realm())
+					.headers(headers -> headers.setBearerAuth(adminAccessToken)).retrieve().body(List.class);
+			if (response == null) {
+				return List.of();
+			}
+			return (List<Map<String, Object>>) (List<?>) response;
+		} catch (RestClientResponseException ex) {
+			throw new AppException(HttpStatus.BAD_GATEWAY, "KEYCLOAK_LIST_USERS_FAILED",
+					"Failed to list users from Keycloak", List.of(STATUS_PREFIX + ex.getStatusCode().value()));
 		}
 	}
 
@@ -151,6 +173,22 @@ public class UserService {
 			return text;
 		}
 		throw new AppException(HttpStatus.BAD_GATEWAY, code, message);
+	}
+
+	private UserSummaryDto toUserSummary(Map<String, Object> payload) {
+		return new UserSummaryDto(readString(payload, "id"), readString(payload, "username"),
+				readString(payload, "email"), readBoolean(payload, "enabled"), readString(payload, "firstName"),
+				readString(payload, "lastName"));
+	}
+
+	private String readString(Map<String, Object> payload, String key) {
+		Object value = payload.get(key);
+		return value instanceof String text ? text : null;
+	}
+
+	private boolean readBoolean(Map<String, Object> payload, String key) {
+		Object value = payload.get(key);
+		return value instanceof Boolean bool ? bool : false;
 	}
 
 	private record RoleRepresentation(String id, String name) {
