@@ -39,27 +39,17 @@ class ClinicControllerParameterizedTest {
 	static Stream<Arguments> invalidCreatePayloads() {
 		return Stream.of(Arguments.of("missing required name", """
 				{
-				  "document": "45678912300000",
 				  "phone": "11666666666",
 				  "email": "sem.nome@clinic.com"
 				}
-				"""), Arguments.of("missing document", """
+				"""), Arguments.of("missing phone", """
 				{
-				  "name": "Clinica Documento Invalido",
-				  "phone": "11666666666",
-				  "email": "doc.invalido@clinic.com"
-				}
-				"""), Arguments.of("invalid document format", """
-				{
-				  "name": "Clinica Documento Invalido",
-				  "document": "123",
-				  "phone": "11666666666",
-				  "email": "doc.invalido@clinic.com"
+				  "name": "Clinica Sem Telefone",
+				  "email": "sem.telefone@clinic.com"
 				}
 				"""), Arguments.of("invalid email format", """
 				{
 				  "name": "Clinica Email Invalido",
-				  "document": "45678912300001",
 				  "phone": "11666666666",
 				  "email": "email-invalido"
 				}

@@ -138,8 +138,7 @@ class AppointmentControllerHttpTest {
 		void shouldDeleteAppointment() throws Exception {
 			AppointmentDto created = createAppointment(STATUS_SCHEDULED);
 
-			mockMvc.perform(delete(BASE + "/" + created.id()).with(jwtAsReceptionist()))
-					.andExpect(status().isNoContent());
+			mockMvc.perform(delete(BASE + "/" + created.id()).with(jwtAsDoctor())).andExpect(status().isNoContent());
 
 			mockMvc.perform(get(BASE).with(jwtAsReceptionist())).andExpect(status().isOk())
 					.andExpect(jsonPath(DATA_PATH, hasSize(0)));
@@ -204,12 +203,15 @@ class AppointmentControllerHttpTest {
 		void shouldReturn404OnDelete() throws Exception {
 			UUID nonExistentId = UUID.randomUUID();
 
-			mockMvc.perform(delete(BASE + "/" + nonExistentId).with(jwtAsReceptionist()))
-					.andExpect(status().isNotFound());
+			mockMvc.perform(delete(BASE + "/" + nonExistentId).with(jwtAsDoctor())).andExpect(status().isNotFound());
 		}
 	}
 
 	private org.springframework.test.web.servlet.request.RequestPostProcessor jwtAsReceptionist() {
 		return jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST"));
+	}
+
+	private org.springframework.test.web.servlet.request.RequestPostProcessor jwtAsDoctor() {
+		return jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"));
 	}
 }
