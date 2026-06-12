@@ -10,6 +10,6 @@ import org.springframework.validation.annotation.Validated;
 public record MinioProperties(@NotBlank(message = "MINIO_ENDPOINT is required") String endpoint,
 		@NotBlank(message = "MINIO_ACCESS_KEY is required") String accessKey,
 		@NotBlank(message = "MINIO_SECRET_KEY is required") String secretKey,
-		@NotBlank(message = "MINIO_BUCKET is required") String bucket, String region,
+		@NotBlank(message = "MINIO_BUCKET is required") String bucket, String publicEndpoint, String region,
 		@Min(1) int presignedUrlExpirationSeconds, boolean createBucketIfMissing) {
 }

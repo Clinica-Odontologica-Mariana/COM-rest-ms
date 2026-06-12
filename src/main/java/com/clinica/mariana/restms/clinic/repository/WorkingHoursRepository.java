@@ -13,6 +13,8 @@ public interface WorkingHoursRepository extends JpaRepository<WorkingHoursEntity
 
 	List<WorkingHoursEntity> findAllByClinicIdOrderByDayOfWeekAscStartTimeAsc(UUID clinicId);
 
+	void deleteAllByClinicId(UUID clinicId);
+
 	@Query("""
 			SELECT CASE WHEN COUNT(w) > 0 THEN true ELSE false END
 			FROM WorkingHoursEntity w
