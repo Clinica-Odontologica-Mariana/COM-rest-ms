@@ -40,59 +40,59 @@ public class PatientController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public PatientDto create(@Valid @RequestBody PatientCreateDto request) {
 		return patientService.create(request);
 	}
 
 	@GetMapping
-	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public Page<PatientDto> findAll(@PageableDefault(size = 20) Pageable pageable) {
 		return patientService.findAll(pageable);
 	}
 
 	@GetMapping("/{id}")
-	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public PatientDto findById(@PathVariable UUID id) {
 		return patientService.findById(id);
 	}
 
 	@PutMapping("/{id}")
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public PatientDto update(@PathVariable UUID id, @Valid @RequestBody PatientUpdateDto request) {
 		return patientService.update(id, request);
 	}
 
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	@RolesAllowed("ADMIN")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public void delete(@PathVariable UUID id) {
 		patientService.delete(id);
 	}
 
 	@PostMapping("/{patientId}/clinics")
 	@ResponseStatus(HttpStatus.CREATED)
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public PatientClinicDto addClinic(@PathVariable UUID patientId,
 			@Valid @RequestBody PatientClinicCreateDto request) {
 		return patientClinicService.create(patientId, request);
 	}
 
 	@GetMapping("/{patientId}/clinics")
-	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public List<PatientClinicDto> findClinics(@PathVariable UUID patientId) {
 		return patientClinicService.findByPatient(patientId);
 	}
 
 	@PutMapping("/{patientId}/clinics/{clinicId}/primary")
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public PatientClinicDto setPrimaryClinic(@PathVariable UUID patientId, @PathVariable UUID clinicId) {
 		return patientClinicService.setPrimary(patientId, clinicId);
 	}
 
 	@DeleteMapping("/{patientId}/clinics/{clinicId}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public void removeClinic(@PathVariable UUID patientId, @PathVariable UUID clinicId) {
 		patientClinicService.deactivate(patientId, clinicId);
 	}

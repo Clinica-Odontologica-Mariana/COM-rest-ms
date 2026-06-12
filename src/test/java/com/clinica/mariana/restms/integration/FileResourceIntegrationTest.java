@@ -106,10 +106,11 @@ class FileResourceIntegrationTest {
 	}
 
 	@Test
-	void shouldRejectOtherUserProfilePhotoUploadWithoutAdminRole() throws Exception {
+	void shouldUploadOtherUserProfilePhotoWithDoctorRole() throws Exception {
 		mockMvc.perform(multipart("/api/v1/users/{userId}/profile-photo", OWN_USER_ID).file(profilePhoto())
 				.contextPath(CONTEXT_PATH).with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"))))
-				.andExpect(status().isForbidden());
+				.andExpect(status().isCreated()).andExpect(jsonPath("$.data.userId", is(OWN_USER_ID.toString())))
+				.andExpect(jsonPath("$.data.file.category", is("USER_PROFILE_PHOTO")));
 	}
 
 	@Test

@@ -4,6 +4,7 @@ import com.clinica.mariana.restms.appointment.dto.AppointmentCreateDto;
 import com.clinica.mariana.restms.appointment.dto.AppointmentDto;
 import com.clinica.mariana.restms.appointment.dto.AppointmentUpdateDto;
 import com.clinica.mariana.restms.appointment.service.AppointmentService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -38,16 +39,19 @@ public class AppointmentController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public AppointmentDto create(@Valid @RequestBody AppointmentCreateDto request) {
 		return appointmentService.create(request);
 	}
 
 	@GetMapping
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public Page<AppointmentDto> findAll(@PageableDefault(size = 20) Pageable pageable) {
 		return appointmentService.findAll(pageable);
 	}
 
 	@GetMapping("/period")
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public Page<AppointmentDto> findByPeriod(@PageableDefault(size = 20) Pageable pageable,
 			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime start,
 			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime end) {
@@ -55,12 +59,14 @@ public class AppointmentController {
 	}
 
 	@PutMapping("/{id}")
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public AppointmentDto update(@PathVariable UUID id, @Valid @RequestBody AppointmentUpdateDto request) {
 		return appointmentService.update(id, request);
 	}
 
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public void delete(@PathVariable UUID id) {
 		appointmentService.delete(id);
 	}

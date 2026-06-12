@@ -62,9 +62,8 @@ class SocialLinkControllerIntegrationTest {
 	}
 
 	private void seedReferenceData() {
-		jdbcTemplate.update(
-				"merge into clinic (id, name, document, phone, timezone, active) key(id) values (?, ?, ?, ?, ?, ?)",
-				CLINIC_ID, "Clínica Seed", "12345678000195", "61999999999", "America/Sao_Paulo", true);
+		jdbcTemplate.update("merge into clinic (id, name, phone, timezone, active) key(id) values (?, ?, ?, ?, ?)",
+				CLINIC_ID, "Clínica Seed", "61999999999", "America/Sao_Paulo", true);
 		jdbcTemplate.update("merge into social_platform (id, code, name) key(id) values (?, ?, ?)", PLATFORM_ID,
 				"INSTAGRAM", "Instagram");
 	}

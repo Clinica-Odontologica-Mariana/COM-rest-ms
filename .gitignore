@@ -44,3 +44,5 @@ out/
 .env
 
 /deploy
+# CocoIndex Code (ccc)
+/.cocoindex_code/

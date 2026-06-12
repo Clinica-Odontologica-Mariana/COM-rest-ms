@@ -61,7 +61,7 @@ public class TreatmentPlanController {
 
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	@RolesAllowed("ADMIN")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public void delete(@PathVariable UUID id) {
 		service.delete(id);
 	}

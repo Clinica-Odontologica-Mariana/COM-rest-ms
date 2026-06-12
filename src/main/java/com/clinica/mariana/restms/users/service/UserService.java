@@ -66,8 +66,7 @@ public class UserService {
 			return response == null ? Map.of() : response;
 		} catch (RestClientResponseException ex) {
 			throw new AppException(HttpStatus.UNAUTHORIZED, "KEYCLOAK_AUTH_FAILED",
-					"Invalid credentials or Keycloak authentication error",
-					List.of(STATUS_PREFIX + ex.getStatusCode().value()));
+					"Não foi possível autenticar no Keycloak.", List.of(STATUS_PREFIX + ex.getStatusCode().value()));
 		}
 	}
 
