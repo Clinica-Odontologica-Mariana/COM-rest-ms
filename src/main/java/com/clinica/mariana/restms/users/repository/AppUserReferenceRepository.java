@@ -1,6 +1,7 @@
 package com.clinica.mariana.restms.users.repository;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
 import org.springframework.stereotype.Repository;
 
 import java.nio.ByteBuffer;
@@ -20,13 +21,14 @@ public class AppUserReferenceRepository {
 		return entityManager
 				.createNativeQuery(
 						"select id from app_user where keycloak_subject = :keycloakSubject and active = true")
-				.setParameter("keycloakSubject", keycloakSubject).getResultStream().findFirst()
-				.map(value -> new AppUserReference(toUuid(value)));
+				.setParameter("keycloakSubject", keycloakSubject).setFlushMode(FlushModeType.COMMIT).getResultStream()
+				.findFirst().map(value -> new AppUserReference(toUuid(value)));
 	}
 
 	public Optional<AppUserReference> findActiveById(UUID id) {
 		return entityManager.createNativeQuery("select id from app_user where id = :id and active = true")
-				.setParameter("id", id).getResultStream().findFirst().map(value -> new AppUserReference(toUuid(value)));
+				.setParameter("id", id).setFlushMode(FlushModeType.COMMIT).getResultStream().findFirst()
+				.map(value -> new AppUserReference(toUuid(value)));
 	}
 
 	private UUID toUuid(Object value) {
