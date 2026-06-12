@@ -33,7 +33,7 @@ public class UserController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	@RolesAllowed({"ADMIN", "DOCTOR"})
+	@RolesAllowed({"ADMIN"})
 	public CreateUserResponseDto createUser(@Valid @RequestBody CreateUserRequestDto request) {
 		return userService.createUser(request);
 	}

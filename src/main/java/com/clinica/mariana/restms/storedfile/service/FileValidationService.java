@@ -79,7 +79,8 @@ public class FileValidationService {
 						"O conteúdo do arquivo não corresponde ao tipo enviado.");
 			}
 		} catch (IOException ex) {
-			throw new AppException(HttpStatus.BAD_REQUEST, "FILE_READ_ERROR", "Não foi possível ler o arquivo enviado.");
+			throw new AppException(HttpStatus.BAD_REQUEST, "FILE_READ_ERROR",
+					"Não foi possível ler o arquivo enviado.");
 		}
 	}
 

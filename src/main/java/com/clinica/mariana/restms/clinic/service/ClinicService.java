@@ -176,7 +176,8 @@ public class ClinicService {
 		}
 
 		if (photoFileId != null) {
-			StoredFileEntity photoFile = storedFileService.findActiveByIdAndCategory(photoFileId, FileCategory.CLINIC_PHOTO);
+			StoredFileEntity photoFile = storedFileService.findActiveByIdAndCategory(photoFileId,
+					FileCategory.CLINIC_PHOTO);
 			storedFileService.hardDelete(photoFile);
 		}
 

@@ -121,8 +121,9 @@ class ClinicControllerIntegrationTest {
 					}
 					""");
 
-			mockMvc.perform(delete(CLINIC_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH)
-					.with(jwtWithRole(ROLE_ADMIN))).andExpect(status().isNoContent());
+			mockMvc.perform(
+					delete(CLINIC_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_ADMIN)))
+					.andExpect(status().isNoContent());
 
 			mockMvc.perform(get(CLINICS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
 					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(0)));
@@ -154,8 +155,9 @@ class ClinicControllerIntegrationTest {
 							}
 							""".formatted(created.id()))).andExpect(status().isCreated());
 
-			mockMvc.perform(delete(CLINIC_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH)
-					.with(jwtWithRole(ROLE_ADMIN))).andExpect(status().isNoContent());
+			mockMvc.perform(
+					delete(CLINIC_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_ADMIN)))
+					.andExpect(status().isNoContent());
 
 			mockMvc.perform(get(CLINICS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
 					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(0)));
@@ -186,9 +188,9 @@ class ClinicControllerIntegrationTest {
 					values (?, ?, ?, ?, ?, ?)
 					""", professionalId, userId, created.id(), specialtyId, "CRO-BLOQUEIO-001", true);
 
-			mockMvc.perform(delete(CLINIC_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH)
-					.with(jwtWithRole(ROLE_ADMIN))).andExpect(status().isConflict())
-					.andExpect(jsonPath("$.error.message",
+			mockMvc.perform(
+					delete(CLINIC_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_ADMIN)))
+					.andExpect(status().isConflict()).andExpect(jsonPath("$.error.message",
 							is("Não foi possível excluir a clínica porque há profissionais vinculados a ela.")));
 		}
 
