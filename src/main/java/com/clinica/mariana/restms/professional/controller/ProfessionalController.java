@@ -43,59 +43,59 @@ public class ProfessionalController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public ProfessionalDto create(@Valid @RequestBody ProfessionalCreateDto request) {
 		return professionalService.create(request);
 	}
 
 	@GetMapping
-	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public Page<ProfessionalDto> findAll(@PageableDefault(size = 20) Pageable pageable) {
 		return professionalService.findAll(pageable);
 	}
 
 	@GetMapping("/{id}")
-	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public ProfessionalDto findById(@PathVariable UUID id) {
 		return professionalService.findById(id);
 	}
 
 	@PutMapping("/{id}")
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public ProfessionalDto update(@PathVariable UUID id, @Valid @RequestBody ProfessionalUpdateDto request) {
 		return professionalService.update(id, request);
 	}
 
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	@RolesAllowed("ADMIN")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public void delete(@PathVariable UUID id) {
 		professionalService.delete(id);
 	}
 
 	@PostMapping("/{professionalId}/clinics")
 	@ResponseStatus(HttpStatus.CREATED)
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public ProfessionalClinicDto addClinic(@PathVariable UUID professionalId,
 			@Valid @RequestBody ProfessionalClinicCreateDto request) {
 		return professionalClinicService.create(professionalId, request);
 	}
 
 	@GetMapping("/{professionalId}/clinics")
-	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public List<ProfessionalClinicDto> findClinics(@PathVariable UUID professionalId) {
 		return professionalClinicService.findByProfessional(professionalId);
 	}
 
 	@PutMapping("/{professionalId}/clinics/{clinicId}/primary")
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public ProfessionalClinicDto setPrimaryClinic(@PathVariable UUID professionalId, @PathVariable UUID clinicId) {
 		return professionalClinicService.setPrimary(professionalId, clinicId);
 	}
 
 	@DeleteMapping("/{professionalId}/clinics/{clinicId}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public void removeClinic(@PathVariable UUID professionalId, @PathVariable UUID clinicId) {
 		professionalClinicService.deactivate(professionalId, clinicId);
 	}

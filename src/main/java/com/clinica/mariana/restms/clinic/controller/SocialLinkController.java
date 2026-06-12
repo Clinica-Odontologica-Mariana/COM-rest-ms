@@ -33,28 +33,28 @@ public class SocialLinkController {
 	}
 
 	@PostMapping
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public ResponseEntity<ApiResponse<SocialLinkDto>> create(@Valid @RequestBody SocialLinkCreateDto request) {
 		SocialLinkDto created = socialLinkService.create(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(created));
 	}
 
 	@GetMapping
-	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public ResponseEntity<ApiResponse<List<SocialLinkDto>>> findByClinicId(@RequestParam UUID clinicId) {
 		List<SocialLinkDto> links = socialLinkService.findByClinicId(clinicId);
 		return ResponseEntity.ok(ApiResponse.success(links));
 	}
 
 	@GetMapping("/{id}")
-	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public ResponseEntity<ApiResponse<SocialLinkDto>> findById(@PathVariable UUID id) {
 		SocialLinkDto link = socialLinkService.findById(id);
 		return ResponseEntity.ok(ApiResponse.success(link));
 	}
 
 	@PutMapping("/{id}")
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public ResponseEntity<ApiResponse<SocialLinkDto>> update(@PathVariable UUID id,
 			@Valid @RequestBody SocialLinkUpdateDto request) {
 		SocialLinkDto updated = socialLinkService.update(id, request);
@@ -62,7 +62,7 @@ public class SocialLinkController {
 	}
 
 	@DeleteMapping("/{id}")
-	@RolesAllowed("ADMIN")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
 		socialLinkService.delete(id);
 		return ResponseEntity.ok(ApiResponse.success(null));

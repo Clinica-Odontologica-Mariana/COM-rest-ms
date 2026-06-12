@@ -26,14 +26,14 @@ public class UserController {
 	}
 
 	@GetMapping
-	@RolesAllowed("ADMIN")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public List<UserSummaryDto> listUsers() {
 		return userService.listUsers();
 	}
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	@RolesAllowed("ADMIN")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public CreateUserResponseDto createUser(@Valid @RequestBody CreateUserRequestDto request) {
 		return userService.createUser(request);
 	}

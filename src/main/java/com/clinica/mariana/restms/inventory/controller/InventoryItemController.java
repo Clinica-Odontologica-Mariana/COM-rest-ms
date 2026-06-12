@@ -33,32 +33,32 @@ public class InventoryItemController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public InventoryItemDto create(@Valid @RequestBody InventoryItemCreateDto request) {
 		return service.createItem(request);
 	}
 
 	@GetMapping
-	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public List<InventoryItemDto> findByClinic(@RequestParam UUID clinicId) {
 		return service.findItemsByClinic(clinicId);
 	}
 
 	@GetMapping("/{id}")
-	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public InventoryItemDto findById(@PathVariable UUID id) {
 		return service.findItemById(id);
 	}
 
 	@PutMapping("/{id}")
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public InventoryItemDto update(@PathVariable UUID id, @Valid @RequestBody InventoryItemUpdateDto request) {
 		return service.updateItem(id, request);
 	}
 
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	@RolesAllowed("ADMIN")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public void delete(@PathVariable UUID id) {
 		service.deleteItem(id);
 	}

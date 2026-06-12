@@ -29,13 +29,13 @@ public class StockMovementController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public StockMovementDto create(@Valid @RequestBody StockMovementCreateDto request) {
 		return service.createMovement(request);
 	}
 
 	@GetMapping
-	@RolesAllowed({"ADMIN", "RECEPTIONIST"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public List<StockMovementDto> findByItem(@RequestParam UUID itemId) {
 		return service.findMovementsByItem(itemId);
 	}

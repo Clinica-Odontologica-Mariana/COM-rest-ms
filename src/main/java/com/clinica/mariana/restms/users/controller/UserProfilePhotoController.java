@@ -54,26 +54,26 @@ public class UserProfilePhotoController {
 
 	@PostMapping(value = "/{userId}/profile-photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ResponseStatus(HttpStatus.CREATED)
-	@RolesAllowed("ADMIN")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public UserProfilePhotoDto uploadUserPhoto(@PathVariable UUID userId, @RequestParam MultipartFile file) {
 		return userProfilePhotoService.uploadForUser(userId, null, file);
 	}
 
 	@GetMapping("/{userId}/profile-photo")
-	@RolesAllowed("ADMIN")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public UserProfilePhotoDto findUserPhoto(@PathVariable UUID userId) {
 		return userProfilePhotoService.findForUser(userId);
 	}
 
 	@GetMapping("/{userId}/profile-photo/download-url")
-	@RolesAllowed("ADMIN")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public PresignedUrlDto userDownloadUrl(@PathVariable UUID userId) {
 		return userProfilePhotoService.downloadUrlForUser(userId);
 	}
 
 	@DeleteMapping("/{userId}/profile-photo")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	@RolesAllowed("ADMIN")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public void deleteUserPhoto(@PathVariable UUID userId) {
 		userProfilePhotoService.deleteForUser(userId);
 	}
