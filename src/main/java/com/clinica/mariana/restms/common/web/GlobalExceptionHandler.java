@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
@@ -58,6 +60,23 @@ public class GlobalExceptionHandler {
 		return buildErrorResponse(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", ex.getMessage(), List.of(), request);
 	}
 
+	@ExceptionHandler(MaxUploadSizeExceededException.class)
+	public ResponseEntity<ApiResponse<Object>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex,
+			WebRequest request) {
+		return buildErrorResponse(HttpStatus.PAYLOAD_TOO_LARGE, "FILE_TOO_LARGE",
+				"O arquivo enviado excede o tamanho máximo permitido.", List.of(), request);
+	}
+
+	@ExceptionHandler(MultipartException.class)
+	public ResponseEntity<ApiResponse<Object>> handleMultipartException(MultipartException ex, WebRequest request) {
+		if (isFileTooLarge(ex)) {
+			return buildErrorResponse(HttpStatus.PAYLOAD_TOO_LARGE, "FILE_TOO_LARGE",
+					"O arquivo enviado excede o tamanho máximo permitido.", List.of(), request);
+		}
+		return buildErrorResponse(HttpStatus.BAD_REQUEST, "MULTIPART_ERROR", "Não foi possível processar o upload.",
+				List.of(), request);
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<Object>> handleGeneric(Exception ex, WebRequest request) {
 		LoggerFactory.getLogger(GlobalExceptionHandler.class).error("Unexpected error in request", ex);
@@ -80,5 +99,19 @@ public class GlobalExceptionHandler {
 
 	private String toFieldMessage(FieldError fieldError) {
 		return fieldError.getField() + ": " + fieldError.getDefaultMessage();
+	}
+
+	private boolean isFileTooLarge(Throwable throwable) {
+		Throwable current = throwable;
+		while (current != null) {
+			String className = current.getClass().getSimpleName();
+			String message = current.getMessage();
+			if ("FileSizeLimitExceededException".equals(className)
+					|| (message != null && message.contains("maximum permitted size"))) {
+				return true;
+			}
+			current = current.getCause();
+		}
+		return false;
 	}
 }

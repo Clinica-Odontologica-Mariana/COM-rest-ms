@@ -72,7 +72,8 @@ class AppointmentSecurityTest {
 		@Test
 		@DisplayName("When listing appointments, then 200 is returned")
 		void shouldReturn200OnGetAll() throws Exception {
-			mockMvc.perform(get(BASE).with(jwt())).andExpect(status().isOk());
+			mockMvc.perform(get(BASE).with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"))))
+					.andExpect(status().isOk());
 		}
 
 		@Nested

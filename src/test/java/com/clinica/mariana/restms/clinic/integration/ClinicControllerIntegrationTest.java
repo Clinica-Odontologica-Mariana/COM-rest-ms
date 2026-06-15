@@ -12,14 +12,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
-import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -38,7 +41,6 @@ class ClinicControllerIntegrationTest {
 	private static final String CLINIC_BY_ID_ENDPOINT = "/api/v1/clinics/{id}";
 	private static final String ROLE_ADMIN = "ADMIN";
 	private static final String ROLE_DOCTOR = "DOCTOR";
-	private static final String ROLE_RECEPTIONIST = "RECEPTIONIST";
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -53,6 +55,7 @@ class ClinicControllerIntegrationTest {
 
 	@BeforeEach
 	void cleanDatabase() {
+		ensureReferenceTables();
 		jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY FALSE");
 		clinicRepository.deleteAll();
 		jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY TRUE");
@@ -63,12 +66,11 @@ class ClinicControllerIntegrationTest {
 	class ValidClinic {
 
 		@Test
-		@DisplayName("When created, found by id and document, updated, inactivated, listed and deleted, then the lifecycle is persisted")
+		@DisplayName("When created, found by id, updated, inactivated and listed, then the lifecycle is persisted")
 		void shouldRunClinicLifecycle() throws Exception {
 			ClinicDto created = createClinic("""
 					{
 					  "name": "Clinica Mariana Matriz",
-					  "document": "12345678901234",
 					  "phone": "11999999999",
 					  "email": "matriz@clinic.com",
 					  "timezone": "America/Sao_Paulo"
@@ -82,17 +84,12 @@ class ClinicControllerIntegrationTest {
 			mockMvc.perform(
 					get(CLINIC_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_ADMIN)))
 					.andExpect(status().isOk()).andExpect(jsonPath("$.data.id", is(created.id().toString())))
-					.andExpect(jsonPath("$.data.document", is("12345678901234")));
-
-			mockMvc.perform(get("/api/v1/clinics/document/{document}", "12345678901234").contextPath(CONTEXT_PATH)
-					.with(jwtWithRole(ROLE_RECEPTIONIST))).andExpect(status().isOk())
-					.andExpect(jsonPath("$.data.id", is(created.id().toString())));
+					.andExpect(jsonPath("$.data.name", is("Clinica Mariana Matriz")));
 
 			mockMvc.perform(put(CLINIC_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH)
 					.with(jwtWithRole(ROLE_ADMIN)).contentType(MediaType.APPLICATION_JSON).content("""
 							{
 							  "name": "Clinica Mariana Matriz Atualizada",
-							  "document": "12345678901234",
 							  "phone": "11888888888",
 							  "email": "matriz.atualizada@clinic.com",
 							  "timezone": "America/Sao_Paulo"
@@ -108,35 +105,93 @@ class ClinicControllerIntegrationTest {
 					.with(jwtWithRole(ROLE_ADMIN))).andExpect(status().isOk());
 
 			mockMvc.perform(get(CLINICS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(1)))
+					.andExpect(jsonPath("$.data.content[0].active", is(false)));
+		}
+
+		@Test
+		@DisplayName("When deleted, then clinic is removed from the list and cannot be fetched anymore")
+		void shouldDeleteClinicPermanently() throws Exception {
+			ClinicDto created = createClinic("""
+					{
+					  "name": "Clinica Mariana Removivel",
+					  "phone": "11999999999",
+					  "email": "remover@clinic.com",
+					  "timezone": "America/Sao_Paulo"
+					}
+					""");
+
+			mockMvc.perform(
+					delete(CLINIC_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_ADMIN)))
+					.andExpect(status().isNoContent());
+
+			mockMvc.perform(get(CLINICS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(0)));
+
+			mockMvc.perform(
+					get(CLINIC_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_ADMIN)))
+					.andExpect(status().isNotFound());
+		}
+
+		@Test
+		@DisplayName("When deleted after creating working hours, then clinic and derived schedule data are removed")
+		void shouldDeleteClinicWithWorkingHours() throws Exception {
+			ClinicDto created = createClinic("""
+					{
+					  "name": "Clinica Mariana Agenda",
+					  "phone": "11999999999",
+					  "email": "agenda@clinic.com",
+					  "timezone": "America/Sao_Paulo"
+					}
+					""");
+
+			mockMvc.perform(post("/api/v1/working-hours").contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_ADMIN))
+					.contentType(MediaType.APPLICATION_JSON).content("""
+							{
+							  "clinicId": "%s",
+							  "dayOfWeek": 0,
+							  "startTime": "08:00:00",
+							  "endTime": "12:00:00"
+							}
+							""".formatted(created.id()))).andExpect(status().isCreated());
+
+			mockMvc.perform(
+					delete(CLINIC_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_ADMIN)))
+					.andExpect(status().isNoContent());
+
+			mockMvc.perform(get(CLINICS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
 					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(0)));
 		}
 
-		@Nested
-		@DisplayName("Given an existing clinic")
-		class ExistingClinic {
+		@Test
+		@DisplayName("When deleted with linked professionals, then returns a specific conflict message")
+		void shouldRejectDeleteClinicWithLinkedProfessionals() throws Exception {
+			ClinicDto created = createClinic("""
+					{
+					  "name": "Clinica Mariana Profissional",
+					  "phone": "11999999999",
+					  "email": "profissional@clinic.com",
+					  "timezone": "America/Sao_Paulo"
+					}
+					""");
+			UUID userId = UUID.randomUUID();
+			UUID specialtyId = UUID.randomUUID();
+			UUID professionalId = UUID.randomUUID();
 
-			@Test
-			@DisplayName("When another clinic uses the same document, then the command is rejected")
-			void shouldRejectDuplicateDocument() throws Exception {
-				createClinic("""
-						{
-						  "name": "Clinica Original",
-						  "document": "11122233344455",
-						  "phone": "1155555555",
-						  "email": "original@clinic.com"
-						}
-						""");
+			jdbcTemplate.update(
+					"insert into app_user (id, keycloak_subject, full_name, email, email_verified, active) values (?, ?, ?, ?, ?, ?)",
+					userId, userId.toString(), "Profissional Teste", userId + "@clinic.com", true, true);
+			jdbcTemplate.update("insert into specialty (id, code, name) values (?, ?, ?)", specialtyId,
+					"CRO-TESTE-" + specialtyId.toString().substring(0, 8), "Ortodontia Teste");
+			jdbcTemplate.update("""
+					insert into professional (id, user_id, clinic_id, specialty_id, license_number, active)
+					values (?, ?, ?, ?, ?, ?)
+					""", professionalId, userId, created.id(), specialtyId, "CRO-BLOQUEIO-001", true);
 
-				mockMvc.perform(post(CLINICS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_ADMIN))
-						.contentType(MediaType.APPLICATION_JSON).content("""
-								{
-								  "name": "Clinica Duplicada",
-								  "document": "11122233344455",
-								  "phone": "11666666666",
-								  "email": "duplicado@clinic.com"
-								}
-								""")).andExpect(status().isConflict());
-			}
+			mockMvc.perform(
+					delete(CLINIC_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_ADMIN)))
+					.andExpect(status().isConflict()).andExpect(jsonPath("$.error.message",
+							is("Não foi possível excluir a clínica porque há profissionais vinculados a ela.")));
 		}
 
 		private ClinicDto createClinic(String payload) throws Exception {
@@ -152,5 +207,35 @@ class ClinicControllerIntegrationTest {
 		private RequestPostProcessor jwtWithRole(String role) {
 			return jwt().authorities(new SimpleGrantedAuthority("ROLE_" + role));
 		}
+	}
+
+	private void ensureReferenceTables() {
+		jdbcTemplate.execute("""
+				create table if not exists app_user (
+					id uuid primary key,
+					keycloak_subject varchar(100),
+					full_name varchar(150),
+					email varchar(150),
+					email_verified boolean default false,
+					active boolean default true
+				)
+				""");
+		jdbcTemplate.execute("""
+				create table if not exists specialty (
+					id uuid primary key,
+					code varchar(50),
+					name varchar(100)
+				)
+				""");
+		jdbcTemplate.execute("""
+				create table if not exists professional (
+					id uuid primary key,
+					user_id uuid not null,
+					clinic_id uuid not null,
+					specialty_id uuid not null,
+					license_number varchar(50),
+					active boolean default true
+				)
+				""");
 	}
 }

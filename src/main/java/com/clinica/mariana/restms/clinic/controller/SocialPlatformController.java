@@ -24,21 +24,21 @@ public class SocialPlatformController {
 	}
 
 	@GetMapping
-	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public ResponseEntity<ApiResponse<List<SocialPlatformDto>>> findAll() {
 		List<SocialPlatformDto> platforms = socialPlatformService.findAll();
 		return ResponseEntity.ok(ApiResponse.success(platforms));
 	}
 
 	@GetMapping("/{id}")
-	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public ResponseEntity<ApiResponse<SocialPlatformDto>> findById(@PathVariable UUID id) {
 		SocialPlatformDto platform = socialPlatformService.findById(id);
 		return ResponseEntity.ok(ApiResponse.success(platform));
 	}
 
 	@GetMapping("/code/{code}")
-	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public ResponseEntity<ApiResponse<SocialPlatformDto>> findByCode(@PathVariable String code) {
 		SocialPlatformDto platform = socialPlatformService.findByCode(code);
 		return ResponseEntity.ok(ApiResponse.success(platform));

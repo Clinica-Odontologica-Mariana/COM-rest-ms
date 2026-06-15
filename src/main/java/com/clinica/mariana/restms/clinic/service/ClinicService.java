@@ -1,19 +1,34 @@
 package com.clinica.mariana.restms.clinic.service;
 
+import com.clinica.mariana.restms.address.dto.AddressCreateDto;
+import com.clinica.mariana.restms.address.dto.AddressDto;
+import com.clinica.mariana.restms.address.entity.AddressEntity;
 import com.clinica.mariana.restms.address.repository.AddressRepository;
 import com.clinica.mariana.restms.clinic.dto.ClinicCreateDto;
 import com.clinica.mariana.restms.clinic.dto.ClinicDto;
 import com.clinica.mariana.restms.clinic.dto.ClinicUpdateDto;
+import com.clinica.mariana.restms.clinic.dto.WorkingHoursDto;
 import com.clinica.mariana.restms.clinic.entity.ClinicEntity;
+import com.clinica.mariana.restms.clinic.entity.WorkingHoursEntity;
 import com.clinica.mariana.restms.clinic.repository.ClinicRepository;
+import com.clinica.mariana.restms.clinic.repository.EquipmentRepository;
+import com.clinica.mariana.restms.clinic.repository.SocialLinkRepository;
+import com.clinica.mariana.restms.clinic.repository.WorkingHoursRepository;
+import com.clinica.mariana.restms.common.exception.AppException;
+import com.clinica.mariana.restms.professional.repository.ProfessionalRepository;
+import com.clinica.mariana.restms.storedfile.entity.StoredFileEntity;
+import com.clinica.mariana.restms.storedfile.model.FileCategory;
+import com.clinica.mariana.restms.storedfile.service.StoredFileService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.clinica.mariana.restms.common.exception.AppException;
+import org.springframework.web.multipart.MultipartFile;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -24,30 +39,49 @@ public class ClinicService {
 
 	private final ClinicRepository clinicRepository;
 	private final AddressRepository addressRepository;
+	private final WorkingHoursRepository workingHoursRepository;
+	private final SocialLinkRepository socialLinkRepository;
+	private final EquipmentRepository equipmentRepository;
+	private final ProfessionalRepository professionalRepository;
+	private final StoredFileService storedFileService;
 
-	public ClinicService(ClinicRepository clinicRepository, AddressRepository addressRepository) {
+	public ClinicService(ClinicRepository clinicRepository, AddressRepository addressRepository,
+			WorkingHoursRepository workingHoursRepository, SocialLinkRepository socialLinkRepository,
+			EquipmentRepository equipmentRepository, ProfessionalRepository professionalRepository,
+			StoredFileService storedFileService) {
 		this.clinicRepository = clinicRepository;
 		this.addressRepository = addressRepository;
+		this.workingHoursRepository = workingHoursRepository;
+		this.socialLinkRepository = socialLinkRepository;
+		this.equipmentRepository = equipmentRepository;
+		this.professionalRepository = professionalRepository;
+		this.storedFileService = storedFileService;
 	}
 
 	@Transactional
 	public ClinicDto create(ClinicCreateDto request) {
-		validateAddress(request.addressId());
-		if (clinicRepository.existsByDocument(request.document())) {
-			throw new AppException(HttpStatus.CONFLICT, "CLINIC_DOCUMENT_ALREADY_EXISTS",
-					"Clinic document already exists");
-		}
+		return create(request, null);
+	}
+
+	@Transactional
+	public ClinicDto create(ClinicCreateDto request, MultipartFile photo) {
 		ClinicEntity entity = new ClinicEntity();
-		apply(entity, request.addressId(), request.name(), request.document(), request.phone(), request.email(),
-				request.timezone(), request.description());
+		UUID addressId = resolveAddressIdForCreate(request.addressId(), request.address());
+		apply(entity, addressId, request.name(), request.phone(), request.email(), request.timezone(),
+				request.whatsapp(), request.instagram(), request.inactiveType(), request.inactiveFrom(),
+				request.inactiveTo());
 		entity.setActive(true);
 		entity.setInactivatedAt(null);
-		return toDto(clinicRepository.save(entity));
+		ClinicEntity savedEntity = clinicRepository.save(entity);
+		if (photo != null && !photo.isEmpty()) {
+			savedEntity = replaceClinicPhoto(savedEntity, photo);
+		}
+		return toDto(savedEntity);
 	}
 
 	@Transactional(readOnly = true)
 	public Page<ClinicDto> findAll(Pageable pageable) {
-		return clinicRepository.findAllByActiveTrueOrderByNameAsc(pageable).map(this::toDto);
+		return clinicRepository.findAll(pageable).map(this::toDto);
 	}
 
 	@Transactional(readOnly = true)
@@ -55,47 +89,132 @@ public class ClinicService {
 		return toDto(findEntity(id));
 	}
 
-	@Transactional(readOnly = true)
-	public ClinicDto findByDocument(String document) {
-		return clinicRepository.findByDocument(document).map(this::toDto)
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", CLINIC_NOT_FOUND));
+	@Transactional
+	public ClinicDto update(UUID id, ClinicUpdateDto request) {
+		return update(id, request, null);
 	}
 
 	@Transactional
-	public ClinicDto update(UUID id, ClinicUpdateDto request) {
+	public ClinicDto update(UUID id, ClinicUpdateDto request, MultipartFile photo) {
 		ClinicEntity entity = findEntity(id);
-		validateAddress(request.addressId());
-		if (clinicRepository.existsByDocumentAndIdNot(request.document(), id)) {
-			throw new AppException(HttpStatus.CONFLICT, "CLINIC_DOCUMENT_ALREADY_EXISTS",
-					"Clinic document already exists");
+		UUID addressId = resolveAddressIdForUpdate(entity, request.addressId(), request.address());
+		apply(entity, addressId, request.name(), request.phone(), request.email(), request.timezone(),
+				request.whatsapp(), request.instagram(), request.inactiveType(), request.inactiveFrom(),
+				request.inactiveTo());
+		ClinicEntity savedEntity = clinicRepository.save(entity);
+		if (photo != null && !photo.isEmpty()) {
+			savedEntity = replaceClinicPhoto(savedEntity, photo);
 		}
-		apply(entity, request.addressId(), request.name(), request.document(), request.phone(), request.email(),
-				request.timezone(), request.description());
-		return toDto(clinicRepository.save(entity));
+		return toDto(savedEntity);
+	}
+
+	@Transactional
+	public ClinicDto uploadPhoto(UUID id, MultipartFile file) {
+		return toDto(replaceClinicPhoto(findEntity(id), file));
+	}
+
+	@Transactional
+	public ClinicDto deletePhoto(UUID id) {
+		ClinicEntity entity = findEntity(id);
+		UUID oldPhotoFileId = entity.getClinicPhotoFileId();
+
+		if (oldPhotoFileId == null) {
+			return toDto(entity);
+		}
+
+		entity.setClinicPhotoFileId(null);
+		ClinicEntity savedEntity = clinicRepository.saveAndFlush(entity);
+		StoredFileEntity oldFile = storedFileService.findActiveByIdAndCategory(oldPhotoFileId,
+				FileCategory.CLINIC_PHOTO);
+		storedFileService.hardDelete(oldFile);
+		return toDto(savedEntity);
 	}
 
 	@Transactional
 	public ClinicDto inactivate(UUID id) {
 		ClinicEntity entity = findEntity(id);
 		entity.setActive(false);
+		entity.setInactiveType(null);
+		entity.setInactiveFrom(null);
+		entity.setInactiveTo(null);
 		entity.setInactivatedAt(OffsetDateTime.now());
+		return toDto(clinicRepository.save(entity));
+	}
+
+	@Transactional
+	public ClinicDto activate(UUID id) {
+		ClinicEntity entity = findEntity(id);
+		entity.setActive(true);
+		entity.setInactiveType(null);
+		entity.setInactiveFrom(null);
+		entity.setInactiveTo(null);
+		entity.setInactivatedAt(null);
 		return toDto(clinicRepository.save(entity));
 	}
 
 	@Transactional
 	public void delete(UUID id) {
 		ClinicEntity entity = findEntity(id);
-		if (!entity.isActive()) {
-			return;
+		validateClinicDeletion(id);
+		UUID photoFileId = entity.getClinicPhotoFileId();
+		UUID addressId = entity.getAddressId();
+
+		entity.setWorkingHours(List.of());
+		workingHoursRepository.deleteAllByClinicId(id);
+		workingHoursRepository.flush();
+		socialLinkRepository.deleteAllByClinicId(id);
+		socialLinkRepository.flush();
+		equipmentRepository.deleteAllByClinicId(id);
+		equipmentRepository.flush();
+
+		try {
+			clinicRepository.delete(entity);
+			clinicRepository.flush();
+		} catch (DataIntegrityViolationException ex) {
+			throw new AppException(HttpStatus.CONFLICT, "CLINIC_DELETE_BLOCKED",
+					"Não foi possível excluir a clínica porque ela possui vínculos com outros registros.");
 		}
-		entity.setActive(false);
-		entity.setInactivatedAt(OffsetDateTime.now());
-		clinicRepository.save(entity);
+
+		if (photoFileId != null) {
+			StoredFileEntity photoFile = storedFileService.findActiveByIdAndCategory(photoFileId,
+					FileCategory.CLINIC_PHOTO);
+			storedFileService.hardDelete(photoFile);
+		}
+
+		if (addressId != null && !clinicRepository.existsByAddressId(addressId)) {
+			addressRepository.deleteById(addressId);
+		}
+	}
+
+	private void validateClinicDeletion(UUID clinicId) {
+		if (professionalRepository.existsByClinicId(clinicId)) {
+			throw new AppException(HttpStatus.CONFLICT, "CLINIC_DELETE_BLOCKED",
+					"Não foi possível excluir a clínica porque há profissionais vinculados a ela.");
+		}
 	}
 
 	private ClinicEntity findEntity(UUID id) {
 		return clinicRepository.findById(id)
 				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", CLINIC_NOT_FOUND));
+	}
+
+	private UUID resolveAddressIdForCreate(UUID addressId, AddressCreateDto address) {
+		if (address != null) {
+			return saveAddress(null, address).getId();
+		}
+		validateAddress(addressId);
+		return addressId;
+	}
+
+	private UUID resolveAddressIdForUpdate(ClinicEntity entity, UUID addressId, AddressCreateDto address) {
+		if (address != null) {
+			return saveAddress(entity.getAddressId(), address).getId();
+		}
+		if (addressId != null) {
+			validateAddress(addressId);
+			return addressId;
+		}
+		return entity.getAddressId();
 	}
 
 	private void validateAddress(UUID addressId) {
@@ -104,20 +223,87 @@ public class ClinicService {
 		}
 	}
 
-	private void apply(ClinicEntity entity, UUID addressId, String name, String document, String phone, String email,
-			String timezone, String description) {
+	private AddressEntity saveAddress(UUID addressId, AddressCreateDto address) {
+		AddressEntity entity = addressId == null
+				? new AddressEntity()
+				: addressRepository.findById(addressId).orElseThrow(
+						() -> new AppException(HttpStatus.NOT_FOUND, "ADDRESS_NOT_FOUND", "Address not found"));
+		entity.setStreet(address.street());
+		entity.setNumber(address.number());
+		entity.setComplement(address.complement());
+		entity.setNeighborhood(address.neighborhood());
+		entity.setCity(address.city());
+		entity.setState(address.state());
+		entity.setZipCode(address.zipCode());
+		return addressRepository.save(entity);
+	}
+
+	private ClinicEntity replaceClinicPhoto(ClinicEntity entity, MultipartFile file) {
+		UUID oldPhotoFileId = entity.getClinicPhotoFileId();
+		StoredFileEntity storedFile = storedFileService.upload(file, FileCategory.CLINIC_PHOTO, entity.getId(), null,
+				"Clinic photo");
+		entity.setClinicPhotoFileId(storedFile.getId());
+		ClinicEntity savedEntity = clinicRepository.saveAndFlush(entity);
+
+		if (oldPhotoFileId != null) {
+			StoredFileEntity oldFile = storedFileService.findActiveByIdAndCategory(oldPhotoFileId,
+					FileCategory.CLINIC_PHOTO);
+			storedFileService.hardDelete(oldFile);
+		}
+
+		return savedEntity;
+	}
+
+	private void apply(ClinicEntity entity, UUID addressId, String name, String phone, String email, String timezone,
+			String whatsapp, String instagram, String inactiveType, java.time.LocalDate inactiveFrom,
+			java.time.LocalDate inactiveTo) {
 		entity.setAddressId(addressId);
 		entity.setName(name);
-		entity.setDocument(document);
 		entity.setPhone(phone);
 		entity.setEmail(email);
 		entity.setTimezone(timezone == null || timezone.isBlank() ? DEFAULT_TIMEZONE : timezone);
-		entity.setDescription(description);
+		entity.setWhatsapp(whatsapp);
+		entity.setInstagram(instagram);
+		entity.setInactiveType(inactiveType);
+		entity.setInactiveFrom(inactiveFrom);
+		entity.setInactiveTo(inactiveTo);
 	}
 
 	private ClinicDto toDto(ClinicEntity entity) {
-		return new ClinicDto(entity.getId(), entity.getAddressId(), entity.getName(), entity.getDocument(),
-				entity.getPhone(), entity.getEmail(), entity.getTimezone(), entity.getDescription(), entity.isActive(),
-				entity.getCreatedAt(), entity.getUpdatedAt());
+		String clinicPhotoUrl = entity.getClinicPhotoFileId() == null
+				? null
+				: storedFileService.presignedDownloadUrl(entity.getClinicPhotoFileId(), FileCategory.CLINIC_PHOTO)
+						.url();
+		AddressDto address = toAddressDto(entity);
+		List<WorkingHoursDto> workingHours = toWorkingHoursDto(entity);
+		return new ClinicDto(entity.getId(), entity.getAddressId(), entity.getName(), entity.getPhone(),
+				entity.getEmail(), entity.getTimezone(), entity.getWhatsapp(), entity.getInstagram(),
+				entity.getClinicPhotoFileId(), clinicPhotoUrl, entity.getInactiveType(), entity.getInactiveFrom(),
+				entity.getInactiveTo(), entity.isActive(), entity.getCreatedAt(), entity.getUpdatedAt(), address,
+				workingHours);
+	}
+
+	private AddressDto toAddressDto(ClinicEntity entity) {
+		AddressEntity address = entity.getAddress();
+		if (address == null && entity.getAddressId() != null) {
+			address = addressRepository.findById(entity.getAddressId()).orElse(null);
+		}
+		if (address == null) {
+			return null;
+		}
+		return new AddressDto(address.getId(), address.getStreet(), address.getNumber(), address.getComplement(),
+				address.getNeighborhood(), address.getCity(), address.getState(), address.getZipCode());
+	}
+
+	private List<WorkingHoursDto> toWorkingHoursDto(ClinicEntity entity) {
+		if (entity.getWorkingHours() == null || entity.getWorkingHours().isEmpty()) {
+			return List.of();
+		}
+		return entity.getWorkingHours().stream().map(this::toWorkingHoursDto).toList();
+	}
+
+	private WorkingHoursDto toWorkingHoursDto(WorkingHoursEntity entity) {
+		return new WorkingHoursDto(entity.getId(), entity.getClinicId(), entity.getDayOfWeek(), entity.getStartTime(),
+				entity.getEndTime());
 	}
 }

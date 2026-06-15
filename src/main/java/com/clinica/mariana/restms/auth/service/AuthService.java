@@ -50,8 +50,7 @@ public class AuthService {
 					.contentType(MediaType.APPLICATION_FORM_URLENCODED).body(formData).retrieve().body(Map.class);
 			return response == null ? Map.of() : response;
 		} catch (RestClientResponseException ex) {
-			throw new AppException(HttpStatus.UNAUTHORIZED, "KEYCLOAK_AUTH_FAILED",
-					"Invalid credentials or Keycloak authentication error",
+			throw new AppException(HttpStatus.UNAUTHORIZED, "KEYCLOAK_AUTH_FAILED", "Usuário ou senha inválidos.",
 					List.of("status=" + ex.getStatusCode().value()));
 		}
 	}

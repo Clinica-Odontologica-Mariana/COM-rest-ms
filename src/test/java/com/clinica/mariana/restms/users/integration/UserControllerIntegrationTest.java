@@ -71,14 +71,18 @@ class UserControllerIntegrationTest {
 		}
 
 		@Test
-		@DisplayName("When called with non-admin role, then returns forbidden")
-		void shouldReturnForbiddenForNonAdmin() throws Exception {
-			mockMvc.perform(get("/api/v1/users").contextPath(CONTEXT_PATH)
-					.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"))))
-					.andExpect(status().isForbidden()).andExpect(jsonPath("$.success").value(false))
-					.andExpect(jsonPath("$.error.code").value("FORBIDDEN"));
+		@DisplayName("When called by DOCTOR, then returns users list")
+		void shouldListUsersForDoctor() throws Exception {
+			doReturn(java.util.List
+					.of(new UserSummaryDto("u-1", "api-admin", "api-admin@rest-ms.local", true, "API", "Admin")))
+					.when(userService).listUsers();
 
-			verifyNoInteractions(userService);
+			mockMvc.perform(get("/api/v1/users").contextPath(CONTEXT_PATH)
+					.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR")))).andExpect(status().isOk())
+					.andExpect(jsonPath("$.success").value(true)).andExpect(jsonPath("$.data.length()").value(1))
+					.andExpect(jsonPath("$.data[0].username").value("api-admin"));
+
+			verify(userService).listUsers();
 		}
 	}
 
@@ -131,8 +135,8 @@ class UserControllerIntegrationTest {
 		}
 
 		@Test
-		@DisplayName("When called with non-admin role, then returns forbidden")
-		void shouldReturnForbiddenForNonAdmin() throws Exception {
+		@DisplayName("When called by DOCTOR, then returns 403 Forbidden")
+		void shouldReturn403ForDoctor() throws Exception {
 			mockMvc.perform(post("/api/v1/users").contextPath(CONTEXT_PATH)
 					.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR")))
 					.contentType(MediaType.APPLICATION_JSON).content("""

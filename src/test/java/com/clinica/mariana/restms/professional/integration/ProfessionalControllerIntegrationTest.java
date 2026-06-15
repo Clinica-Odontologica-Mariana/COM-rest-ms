@@ -283,8 +283,8 @@ class ProfessionalControllerIntegrationTest {
 		}
 
 		@Test
-		@DisplayName("When create is called by DOCTOR, then returns forbidden")
-		void shouldRejectDoctorCreate() throws Exception {
+		@DisplayName("When create is called by DOCTOR, then returns created professional")
+		void shouldAllowDoctorCreate() throws Exception {
 			mockMvc.perform(post("/api/v1/professionals").contextPath(CONTEXT_PATH).with(jwtWithRole("DOCTOR"))
 					.contentType(MediaType.APPLICATION_JSON).content("""
 							{
@@ -293,8 +293,8 @@ class ProfessionalControllerIntegrationTest {
 							  "specialtyId": "%s",
 							  "licenseNumber": "CRO-DF-50001"
 							}
-							""".formatted(VALID_USER_ID, CLINIC_ID, SPECIALTY_ID))).andExpect(status().isForbidden())
-					.andExpect(jsonPath("$.error.code", is("FORBIDDEN")));
+							""".formatted(VALID_USER_ID, CLINIC_ID, SPECIALTY_ID))).andExpect(status().isCreated())
+					.andExpect(jsonPath("$.data.licenseNumber", is("CRO-DF-50001")));
 		}
 	}
 
@@ -323,8 +323,8 @@ class ProfessionalControllerIntegrationTest {
 		insertReference("app_user", OTHER_USER_ID);
 		insertReference("app_user", THIRD_USER_ID);
 		insertReference("app_user", FOURTH_USER_ID);
-		insertClinic(CLINIC_ID, "Clinica Principal", "00000000000001");
-		insertClinic(OTHER_CLINIC_ID, "Clinica Secundaria", "00000000000002");
+		insertClinic(CLINIC_ID, "Clinica Principal");
+		insertClinic(OTHER_CLINIC_ID, "Clinica Secundaria");
 		insertReference("specialty", SPECIALTY_ID);
 	}
 
@@ -332,11 +332,11 @@ class ProfessionalControllerIntegrationTest {
 		jdbcTemplate.update("merge into " + tableName + " (id) key(id) values (?)", id);
 	}
 
-	private void insertClinic(UUID id, String name, String document) {
+	private void insertClinic(UUID id, String name) {
 		jdbcTemplate.update("""
-				merge into clinic (id, name, document, phone, timezone, active)
+				merge into clinic (id, name, phone, timezone, active)
 				key(id)
-				values (?, ?, ?, ?, ?, ?)
-				""", id, name, document, "61999999999", "America/Sao_Paulo", true);
+				values (?, ?, ?, ?, ?)
+				""", id, name, "61999999999", "America/Sao_Paulo", true);
 	}
 }

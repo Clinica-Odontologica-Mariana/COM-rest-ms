@@ -10,6 +10,8 @@ public interface SocialLinkRepository extends JpaRepository<SocialLinkEntity, UU
 
 	List<SocialLinkEntity> findAllByClinicIdOrderByCreatedAtAsc(UUID clinicId);
 
+	void deleteAllByClinicId(UUID clinicId);
+
 	boolean existsByClinicIdAndPlatformId(UUID clinicId, UUID platformId);
 
 	boolean existsByClinicIdAndPlatformIdAndIdNot(UUID clinicId, UUID platformId, UUID id);

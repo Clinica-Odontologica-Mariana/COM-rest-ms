@@ -4,6 +4,7 @@ import com.clinica.mariana.restms.workplace.dto.WorkplaceCreateDto;
 import com.clinica.mariana.restms.workplace.dto.WorkplaceDto;
 import com.clinica.mariana.restms.workplace.dto.WorkplaceUpdateDto;
 import com.clinica.mariana.restms.workplace.service.WorkplaceService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,32 +33,38 @@ public class WorkplaceController {
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public WorkplaceDto create(@Valid @RequestBody WorkplaceCreateDto request) {
 		return workplaceService.create(request);
 	}
 
 	@GetMapping
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public List<WorkplaceDto> list(@RequestParam UUID clinicId) {
 		return workplaceService.findAllByClinic(clinicId);
 	}
 
 	@GetMapping("/{id}")
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public WorkplaceDto findById(@PathVariable UUID id) {
 		return workplaceService.findById(id);
 	}
 
 	@GetMapping("/clinic/{clinicId}")
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public List<WorkplaceDto> findAllByClinic(@PathVariable UUID clinicId) {
 		return workplaceService.findAllByClinic(clinicId);
 	}
 
 	@PutMapping("/{id}")
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public WorkplaceDto update(@PathVariable UUID id, @Valid @RequestBody WorkplaceUpdateDto request) {
 		return workplaceService.update(id, request);
 	}
 
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public void delete(@PathVariable UUID id) {
 		workplaceService.delete(id);
 	}

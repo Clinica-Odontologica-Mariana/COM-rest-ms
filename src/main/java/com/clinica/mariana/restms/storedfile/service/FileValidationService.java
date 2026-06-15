@@ -3,14 +3,13 @@ package com.clinica.mariana.restms.storedfile.service;
 import com.clinica.mariana.restms.common.exception.AppException;
 import com.clinica.mariana.restms.storedfile.config.FileValidationProperties;
 import com.clinica.mariana.restms.storedfile.model.FileCategory;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HexFormat;
 import java.util.Set;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class FileValidationService {
@@ -25,19 +24,20 @@ public class FileValidationService {
 
 	public void validate(FileCategory category, MultipartFile file) {
 		if (file == null || file.isEmpty()) {
-			throw new AppException(HttpStatus.BAD_REQUEST, "EMPTY_FILE", "File must not be empty");
+			throw new AppException(HttpStatus.BAD_REQUEST, "EMPTY_FILE", "O arquivo enviado está vazio.");
 		}
 
 		FileValidationProperties.FilePolicy policy = policyFor(category);
 		if (file.getSize() > policy.maxSizeBytes()) {
-			throw new AppException(HttpStatus.PAYLOAD_TOO_LARGE, "FILE_TOO_LARGE", "File exceeds configured limit");
+			throw new AppException(HttpStatus.PAYLOAD_TOO_LARGE, "FILE_TOO_LARGE",
+					"O arquivo enviado excede o tamanho máximo permitido.");
 		}
 
 		String mimeType = file.getContentType();
 		Set<String> allowedMimeTypes = policy.allowedMimeTypeSet();
 		if (mimeType == null || !allowedMimeTypes.contains(mimeType)) {
 			throw new AppException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "UNSUPPORTED_FILE_TYPE",
-					"File MIME type is not allowed");
+					"O tipo de arquivo enviado não é permitido.");
 		}
 
 		validateSignature(mimeType, file);
@@ -56,7 +56,7 @@ public class FileValidationService {
 			throw new AppException(HttpStatus.BAD_REQUEST, "UNSUPPORTED_FILE_CATEGORY", "File category is required");
 		}
 		return switch (category) {
-			case USER_PROFILE_PHOTO -> properties.profilePhoto();
+			case USER_PROFILE_PHOTO, CLINIC_PHOTO -> properties.profilePhoto();
 			case ODONTOGRAM -> properties.odontogram();
 			case MEDICAL_RECORD_ATTACHMENT -> throw new AppException(HttpStatus.BAD_REQUEST,
 					"UNSUPPORTED_FILE_CATEGORY", "Medical record attachments cannot be uploaded through this endpoint");
@@ -69,17 +69,18 @@ public class FileValidationService {
 		try {
 			byte[] signature = file.getBytes();
 			if (signature.length == 0) {
-				throw new AppException(HttpStatus.BAD_REQUEST, "EMPTY_FILE", "File must not be empty");
+				throw new AppException(HttpStatus.BAD_REQUEST, "EMPTY_FILE", "O arquivo enviado está vazio.");
 			}
 			int length = Math.min(signature.length, SIGNATURE_BYTES);
 			byte[] header = new byte[length];
 			System.arraycopy(signature, 0, header, 0, length);
 			if (!matchesSignature(mimeType, header)) {
 				throw new AppException(HttpStatus.BAD_REQUEST, "INVALID_FILE_SIGNATURE",
-						"File content does not match MIME type");
+						"O conteúdo do arquivo não corresponde ao tipo enviado.");
 			}
 		} catch (IOException ex) {
-			throw new AppException(HttpStatus.BAD_REQUEST, "FILE_READ_ERROR", "Failed to read uploaded file");
+			throw new AppException(HttpStatus.BAD_REQUEST, "FILE_READ_ERROR",
+					"Não foi possível ler o arquivo enviado.");
 		}
 	}
 

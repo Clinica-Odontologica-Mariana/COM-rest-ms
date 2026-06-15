@@ -17,5 +17,7 @@ public interface ProfessionalRepository extends JpaRepository<ProfessionalEntity
 
 	boolean existsByClinicIdAndLicenseNumberAndIdNot(UUID clinicId, String licenseNumber, UUID id);
 
+	boolean existsByClinicId(UUID clinicId);
+
 	Page<ProfessionalEntity> findAllByActiveTrueOrderByLicenseNumberAsc(Pageable pageable);
 }

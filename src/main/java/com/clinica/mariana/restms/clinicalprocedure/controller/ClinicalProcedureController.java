@@ -41,13 +41,13 @@ public class ClinicalProcedureController {
 	}
 
 	@GetMapping
-	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public Page<ClinicalProcedureDto> findAll(@PageableDefault(size = 20) Pageable pageable) {
 		return service.findAll(pageable);
 	}
 
 	@GetMapping("/{id}")
-	@RolesAllowed({"ADMIN", "RECEPTIONIST", "DOCTOR"})
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public ClinicalProcedureDto findById(@PathVariable UUID id) {
 		return service.findById(id);
 	}
@@ -60,7 +60,7 @@ public class ClinicalProcedureController {
 
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	@RolesAllowed("ADMIN")
+	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public void delete(@PathVariable UUID id) {
 		service.delete(id);
 	}

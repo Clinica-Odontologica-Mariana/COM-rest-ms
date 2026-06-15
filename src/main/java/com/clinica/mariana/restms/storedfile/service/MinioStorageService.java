@@ -11,6 +11,7 @@ import io.minio.RemoveObjectArgs;
 import io.minio.http.Method;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayInputStream;
 import java.time.OffsetDateTime;
@@ -21,10 +22,12 @@ import java.util.concurrent.TimeUnit;
 public class MinioStorageService {
 
 	private final MinioClient minioClient;
+	private final MinioClient presignClient;
 	private final MinioProperties properties;
 
 	public MinioStorageService(MinioClient minioClient, MinioProperties properties) {
 		this.minioClient = minioClient;
+		this.presignClient = buildPresignClient(properties);
 		this.properties = properties;
 	}
 
@@ -42,7 +45,7 @@ public class MinioStorageService {
 
 	public PresignedObjectUrl presignedDownloadUrl(String objectKey) {
 		try {
-			String url = minioClient.getPresignedObjectUrl(
+			String url = presignClient.getPresignedObjectUrl(
 					GetPresignedObjectUrlArgs.builder().method(Method.GET).bucket(properties.bucket()).object(objectKey)
 							.expiry(properties.presignedUrlExpirationSeconds(), TimeUnit.SECONDS).build());
 			return new PresignedObjectUrl(url,
@@ -75,6 +78,16 @@ public class MinioStorageService {
 			throw new AppException(HttpStatus.BAD_GATEWAY, "MINIO_BUCKET_CHECK_FAILED",
 					"Failed to prepare storage bucket", List.of(rootCause(ex)));
 		}
+	}
+
+	private MinioClient buildPresignClient(MinioProperties properties) {
+		MinioClient.Builder builder = MinioClient.builder().endpoint(
+				StringUtils.hasText(properties.publicEndpoint()) ? properties.publicEndpoint() : properties.endpoint())
+				.credentials(properties.accessKey(), properties.secretKey());
+		if (StringUtils.hasText(properties.region())) {
+			builder.region(properties.region());
+		}
+		return builder.build();
 	}
 
 	private String rootCause(Exception ex) {
