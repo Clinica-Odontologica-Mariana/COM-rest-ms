@@ -16,7 +16,8 @@ class SecurityConfigTest {
 
 	private final SecurityConfig securityConfig = new SecurityConfig(
 			new RestAuthenticationEntryPoint(new ObjectMapper().findAndRegisterModules()),
-			new RestAccessDeniedHandler(new ObjectMapper().findAndRegisterModules()));
+			new RestAccessDeniedHandler(new ObjectMapper().findAndRegisterModules()),
+			List.of("http://localhost:4200", "https://marianadias.odo.br"));
 
 	@Test
 	void shouldMapRealmRolesToSpringAuthorities() {
