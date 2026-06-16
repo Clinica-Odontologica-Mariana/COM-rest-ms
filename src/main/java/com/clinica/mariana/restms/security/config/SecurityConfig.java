@@ -34,8 +34,7 @@ public class SecurityConfig {
 
 	public SecurityConfig(RestAuthenticationEntryPoint restAuthenticationEntryPoint,
 			RestAccessDeniedHandler restAccessDeniedHandler,
-			@Value("${app.cors.allowed-origins:http://localhost:4200,https://marianadias.odo.br}")
-			List<String> allowedOrigins) {
+			@Value("${app.cors.allowed-origins:http://localhost:4200,https://marianadias.odo.br}") List<String> allowedOrigins) {
 		this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
 		this.restAccessDeniedHandler = restAccessDeniedHandler;
 		this.allowedOrigins = allowedOrigins;
@@ -45,12 +44,11 @@ public class SecurityConfig {
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.csrf(AbstractHttpConfigurer::disable).cors(Customizer.withDefaults())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(
-						auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-								.requestMatchers("/actuator/health", "/swagger-ui/**", "/swagger-ui.html",
-										"/v3/api-docs.yaml", "/v3/api-docs", "/v3/api-docs/**", "/auth/login",
-										"/api/v1/auth/login", "/error", "/api/v1/error")
-								.permitAll().anyRequest().authenticated())
+				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+						.requestMatchers("/actuator/health", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs.yaml",
+								"/v3/api-docs", "/v3/api-docs/**", "/auth/login", "/api/v1/auth/login", "/error",
+								"/api/v1/error")
+						.permitAll().anyRequest().authenticated())
 				.exceptionHandling(
 						exceptionHandling -> exceptionHandling.authenticationEntryPoint(restAuthenticationEntryPoint)
 								.accessDeniedHandler(restAccessDeniedHandler))
