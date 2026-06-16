@@ -334,9 +334,9 @@ class ProfessionalControllerIntegrationTest {
 
 	private void insertClinic(UUID id, String name) {
 		jdbcTemplate.update("""
-				merge into clinic (id, name, phone, timezone, active)
+				merge into clinic (id, name, phone, timezone, working_hours_json, active)
 				key(id)
-				values (?, ?, ?, ?, ?)
-				""", id, name, "61999999999", "America/Sao_Paulo", true);
+				values (?, ?, ?, ?, ?, ?)
+				""", id, name, "61999999999", "America/Sao_Paulo", "[]", true);
 	}
 }

@@ -1,26 +1,17 @@
 package com.clinica.mariana.restms.clinic.entity;
 
-import com.clinica.mariana.restms.address.entity.AddressEntity;
-import jakarta.persistence.FetchType;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
-
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.UUID;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @NoArgsConstructor
@@ -32,18 +23,6 @@ public class ClinicEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
 	private UUID id;
-
-	@Column(name = "address_id")
-	private UUID addressId;
-
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "address_id", insertable = false, updatable = false)
-	private AddressEntity address;
-
-	@OneToMany(fetch = FetchType.LAZY)
-	@JoinColumn(name = "clinic_id", referencedColumnName = "id", insertable = false, updatable = false)
-	@OrderBy("dayOfWeek ASC, startTime ASC")
-	private List<WorkingHoursEntity> workingHours;
 
 	@Column(name = "name", nullable = false, length = 150)
 	private String name;
@@ -62,6 +41,30 @@ public class ClinicEntity {
 
 	@Column(name = "instagram", length = 80)
 	private String instagram;
+
+	@Column(name = "street", length = 150)
+	private String street;
+
+	@Column(name = "number", length = 20)
+	private String number;
+
+	@Column(name = "complement", length = 100)
+	private String complement;
+
+	@Column(name = "neighborhood", length = 100)
+	private String neighborhood;
+
+	@Column(name = "city", length = 100)
+	private String city;
+
+	@Column(name = "state", length = 2)
+	private String state;
+
+	@Column(name = "zip_code", length = 8)
+	private String zipCode;
+
+	@Column(name = "working_hours_json", nullable = false)
+	private String workingHoursJson = "[]";
 
 	@Column(name = "clinic_photo_file_id")
 	private UUID clinicPhotoFileId;

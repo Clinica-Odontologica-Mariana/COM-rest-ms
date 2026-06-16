@@ -1,20 +1,18 @@
 package com.clinica.mariana.restms.clinic.unit;
 
 import com.clinica.mariana.restms.address.dto.AddressCreateDto;
-import com.clinica.mariana.restms.address.entity.AddressEntity;
-import com.clinica.mariana.restms.address.repository.AddressRepository;
 import com.clinica.mariana.restms.clinic.dto.ClinicCreateDto;
+import com.clinica.mariana.restms.clinic.dto.ClinicWorkingHoursSaveDto;
 import com.clinica.mariana.restms.clinic.entity.ClinicEntity;
 import com.clinica.mariana.restms.clinic.repository.ClinicRepository;
-import com.clinica.mariana.restms.clinic.repository.EquipmentRepository;
-import com.clinica.mariana.restms.clinic.repository.SocialLinkRepository;
-import com.clinica.mariana.restms.clinic.repository.WorkingHoursRepository;
+import com.clinica.mariana.restms.clinic.service.ClinicWorkingHoursJsonSupport;
 import com.clinica.mariana.restms.clinic.service.ClinicService;
 import com.clinica.mariana.restms.professional.repository.ProfessionalRepository;
 import com.clinica.mariana.restms.storedfile.dto.PresignedUrlDto;
 import com.clinica.mariana.restms.storedfile.entity.StoredFileEntity;
 import com.clinica.mariana.restms.storedfile.model.FileCategory;
 import com.clinica.mariana.restms.storedfile.service.StoredFileService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +21,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.time.OffsetDateTime;
+import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,19 +39,7 @@ class ClinicServiceTest {
 	private ClinicRepository clinicRepository;
 
 	@Mock
-	private AddressRepository addressRepository;
-
-	@Mock
 	private StoredFileService storedFileService;
-
-	@Mock
-	private WorkingHoursRepository workingHoursRepository;
-
-	@Mock
-	private SocialLinkRepository socialLinkRepository;
-
-	@Mock
-	private EquipmentRepository equipmentRepository;
 
 	@Mock
 	private ProfessionalRepository professionalRepository;
@@ -59,17 +47,6 @@ class ClinicServiceTest {
 	@Test
 	void shouldCreateClinicWithEmbeddedAddress() {
 		ClinicService service = service();
-		UUID addressId = UUID.randomUUID();
-		AddressEntity address = new AddressEntity();
-		address.setId(addressId);
-		address.setStreet("Rua das Flores");
-		address.setNumber("123");
-		address.setNeighborhood("Centro");
-		address.setCity("Brasilia");
-		address.setState("DF");
-		address.setZipCode("70000000");
-		when(addressRepository.save(any())).thenReturn(address);
-		when(addressRepository.findById(addressId)).thenReturn(Optional.of(address));
 		when(clinicRepository.save(any())).thenAnswer(invocation -> {
 			ClinicEntity entity = invocation.getArgument(0);
 			entity.setId(UUID.randomUUID());
@@ -79,16 +56,19 @@ class ClinicServiceTest {
 		var result = service.create(new ClinicCreateDto(null, "Clínica Jardim", "11999999999", "jardim@clinic.com",
 				null, "11988888888", "@clinicajardim", "temporary", java.time.LocalDate.parse("2026-06-01"),
 				java.time.LocalDate.parse("2026-06-10"),
-				new AddressCreateDto("Rua das Flores", "123", null, "Centro", "Brasilia", "DF", "70000000")));
+				new AddressCreateDto("Rua das Flores", "123", null, "Centro", "Brasilia", "DF", "70000000"),
+				List.of(new ClinicWorkingHoursSaveDto(1, LocalTime.parse("08:00:00"), LocalTime.parse("18:00:00")))));
 
 		assertThat(result.id()).isNotNull();
-		assertThat(result.addressId()).isEqualTo(addressId);
+		assertThat(result.addressId()).isNull();
 		assertThat(result.address()).isNotNull();
 		assertThat(result.address().street()).isEqualTo("Rua das Flores");
 		assertThat(result.timezone()).isEqualTo("America/Sao_Paulo");
 		assertThat(result.whatsapp()).isEqualTo("11988888888");
 		assertThat(result.instagram()).isEqualTo("@clinicajardim");
 		assertThat(result.inactiveType()).isEqualTo("temporary");
+		assertThat(result.workingHours()).hasSize(1);
+		assertThat(result.workingHours().get(0).dayOfWeek()).isEqualTo(1);
 	}
 
 	@Test
@@ -169,17 +149,14 @@ class ClinicServiceTest {
 
 		service.delete(clinicId);
 
-		verify(workingHoursRepository).deleteAllByClinicId(clinicId);
-		verify(socialLinkRepository).deleteAllByClinicId(clinicId);
-		verify(equipmentRepository).deleteAllByClinicId(clinicId);
 		verify(clinicRepository).delete(clinic);
 		verify(clinicRepository).flush();
 		verify(storedFileService).hardDelete(storedFile);
 	}
 
 	private ClinicService service() {
-		return new ClinicService(clinicRepository, addressRepository, workingHoursRepository, socialLinkRepository,
-				equipmentRepository, professionalRepository, storedFileService);
+		return new ClinicService(clinicRepository, professionalRepository, storedFileService,
+				new ClinicWorkingHoursJsonSupport(new ObjectMapper().findAndRegisterModules()));
 	}
 
 	private ClinicEntity activeClinic(UUID id, UUID photoFileId) {
