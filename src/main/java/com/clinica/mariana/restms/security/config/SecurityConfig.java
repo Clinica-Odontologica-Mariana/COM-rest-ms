@@ -30,14 +30,14 @@ public class SecurityConfig {
 
 	private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 	private final RestAccessDeniedHandler restAccessDeniedHandler;
-	private final List<String> allowedOrigins;
+	private final List<String> allowedOriginPatterns;
 
 	public SecurityConfig(RestAuthenticationEntryPoint restAuthenticationEntryPoint,
 			RestAccessDeniedHandler restAccessDeniedHandler,
-			@Value("${app.cors.allowed-origins:http://localhost:4200,https://marianadias.odo.br}") List<String> allowedOrigins) {
+			@Value("${app.cors.allowed-origins:http://localhost:*,http://127.0.0.1:*,https://marianadias.odo.br,http://marianadias.odo.br}") List<String> allowedOriginPatterns) {
 		this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
 		this.restAccessDeniedHandler = restAccessDeniedHandler;
-		this.allowedOrigins = allowedOrigins;
+		this.allowedOriginPatterns = allowedOriginPatterns;
 	}
 
 	@Bean
@@ -61,7 +61,7 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(allowedOrigins);
+		configuration.setAllowedOriginPatterns(allowedOriginPatterns);
 		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 		configuration.setAllowedHeaders(List.of("*"));
 		configuration.setExposedHeaders(List.of("Authorization", "Content-Disposition", "Location"));

@@ -2,34 +2,30 @@ package com.clinica.mariana.restms.clinic.service;
 
 import com.clinica.mariana.restms.address.dto.AddressCreateDto;
 import com.clinica.mariana.restms.address.dto.AddressDto;
-import com.clinica.mariana.restms.address.entity.AddressEntity;
-import com.clinica.mariana.restms.address.repository.AddressRepository;
 import com.clinica.mariana.restms.clinic.dto.ClinicCreateDto;
 import com.clinica.mariana.restms.clinic.dto.ClinicDto;
 import com.clinica.mariana.restms.clinic.dto.ClinicUpdateDto;
+import com.clinica.mariana.restms.clinic.dto.ClinicWorkingHoursSaveDto;
 import com.clinica.mariana.restms.clinic.dto.WorkingHoursDto;
 import com.clinica.mariana.restms.clinic.entity.ClinicEntity;
-import com.clinica.mariana.restms.clinic.entity.WorkingHoursEntity;
+import com.clinica.mariana.restms.clinic.model.ClinicStoredWorkingHours;
 import com.clinica.mariana.restms.clinic.repository.ClinicRepository;
-import com.clinica.mariana.restms.clinic.repository.EquipmentRepository;
-import com.clinica.mariana.restms.clinic.repository.SocialLinkRepository;
-import com.clinica.mariana.restms.clinic.repository.WorkingHoursRepository;
 import com.clinica.mariana.restms.common.exception.AppException;
 import com.clinica.mariana.restms.professional.repository.ProfessionalRepository;
 import com.clinica.mariana.restms.storedfile.entity.StoredFileEntity;
 import com.clinica.mariana.restms.storedfile.model.FileCategory;
 import com.clinica.mariana.restms.storedfile.service.StoredFileService;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 public class ClinicService {
@@ -38,24 +34,16 @@ public class ClinicService {
 	private static final String CLINIC_NOT_FOUND = "Clinic not found";
 
 	private final ClinicRepository clinicRepository;
-	private final AddressRepository addressRepository;
-	private final WorkingHoursRepository workingHoursRepository;
-	private final SocialLinkRepository socialLinkRepository;
-	private final EquipmentRepository equipmentRepository;
 	private final ProfessionalRepository professionalRepository;
 	private final StoredFileService storedFileService;
+	private final ClinicWorkingHoursJsonSupport workingHoursJsonSupport;
 
-	public ClinicService(ClinicRepository clinicRepository, AddressRepository addressRepository,
-			WorkingHoursRepository workingHoursRepository, SocialLinkRepository socialLinkRepository,
-			EquipmentRepository equipmentRepository, ProfessionalRepository professionalRepository,
-			StoredFileService storedFileService) {
+	public ClinicService(ClinicRepository clinicRepository, ProfessionalRepository professionalRepository,
+			StoredFileService storedFileService, ClinicWorkingHoursJsonSupport workingHoursJsonSupport) {
 		this.clinicRepository = clinicRepository;
-		this.addressRepository = addressRepository;
-		this.workingHoursRepository = workingHoursRepository;
-		this.socialLinkRepository = socialLinkRepository;
-		this.equipmentRepository = equipmentRepository;
 		this.professionalRepository = professionalRepository;
 		this.storedFileService = storedFileService;
+		this.workingHoursJsonSupport = workingHoursJsonSupport;
 	}
 
 	@Transactional
@@ -66,10 +54,9 @@ public class ClinicService {
 	@Transactional
 	public ClinicDto create(ClinicCreateDto request, MultipartFile photo) {
 		ClinicEntity entity = new ClinicEntity();
-		UUID addressId = resolveAddressIdForCreate(request.addressId(), request.address());
-		apply(entity, addressId, request.name(), request.phone(), request.email(), request.timezone(),
-				request.whatsapp(), request.instagram(), request.inactiveType(), request.inactiveFrom(),
-				request.inactiveTo());
+		apply(entity, request.name(), request.phone(), request.email(), request.timezone(), request.whatsapp(),
+				request.instagram(), request.inactiveType(), request.inactiveFrom(), request.inactiveTo(),
+				request.address(), request.workingHours());
 		entity.setActive(true);
 		entity.setInactivatedAt(null);
 		ClinicEntity savedEntity = clinicRepository.save(entity);
@@ -97,10 +84,9 @@ public class ClinicService {
 	@Transactional
 	public ClinicDto update(UUID id, ClinicUpdateDto request, MultipartFile photo) {
 		ClinicEntity entity = findEntity(id);
-		UUID addressId = resolveAddressIdForUpdate(entity, request.addressId(), request.address());
-		apply(entity, addressId, request.name(), request.phone(), request.email(), request.timezone(),
-				request.whatsapp(), request.instagram(), request.inactiveType(), request.inactiveFrom(),
-				request.inactiveTo());
+		apply(entity, request.name(), request.phone(), request.email(), request.timezone(), request.whatsapp(),
+				request.instagram(), request.inactiveType(), request.inactiveFrom(), request.inactiveTo(),
+				request.address(), request.workingHours());
 		ClinicEntity savedEntity = clinicRepository.save(entity);
 		if (photo != null && !photo.isEmpty()) {
 			savedEntity = replaceClinicPhoto(savedEntity, photo);
@@ -157,15 +143,6 @@ public class ClinicService {
 		ClinicEntity entity = findEntity(id);
 		validateClinicDeletion(id);
 		UUID photoFileId = entity.getClinicPhotoFileId();
-		UUID addressId = entity.getAddressId();
-
-		entity.setWorkingHours(List.of());
-		workingHoursRepository.deleteAllByClinicId(id);
-		workingHoursRepository.flush();
-		socialLinkRepository.deleteAllByClinicId(id);
-		socialLinkRepository.flush();
-		equipmentRepository.deleteAllByClinicId(id);
-		equipmentRepository.flush();
 
 		try {
 			clinicRepository.delete(entity);
@@ -180,10 +157,6 @@ public class ClinicService {
 					FileCategory.CLINIC_PHOTO);
 			storedFileService.hardDelete(photoFile);
 		}
-
-		if (addressId != null && !clinicRepository.existsByAddressId(addressId)) {
-			addressRepository.deleteById(addressId);
-		}
 	}
 
 	private void validateClinicDeletion(UUID clinicId) {
@@ -196,46 +169,6 @@ public class ClinicService {
 	private ClinicEntity findEntity(UUID id) {
 		return clinicRepository.findById(id)
 				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "CLINIC_NOT_FOUND", CLINIC_NOT_FOUND));
-	}
-
-	private UUID resolveAddressIdForCreate(UUID addressId, AddressCreateDto address) {
-		if (address != null) {
-			return saveAddress(null, address).getId();
-		}
-		validateAddress(addressId);
-		return addressId;
-	}
-
-	private UUID resolveAddressIdForUpdate(ClinicEntity entity, UUID addressId, AddressCreateDto address) {
-		if (address != null) {
-			return saveAddress(entity.getAddressId(), address).getId();
-		}
-		if (addressId != null) {
-			validateAddress(addressId);
-			return addressId;
-		}
-		return entity.getAddressId();
-	}
-
-	private void validateAddress(UUID addressId) {
-		if (addressId != null && !addressRepository.existsById(addressId)) {
-			throw new AppException(HttpStatus.NOT_FOUND, "ADDRESS_NOT_FOUND", "Address not found");
-		}
-	}
-
-	private AddressEntity saveAddress(UUID addressId, AddressCreateDto address) {
-		AddressEntity entity = addressId == null
-				? new AddressEntity()
-				: addressRepository.findById(addressId).orElseThrow(
-						() -> new AppException(HttpStatus.NOT_FOUND, "ADDRESS_NOT_FOUND", "Address not found"));
-		entity.setStreet(address.street());
-		entity.setNumber(address.number());
-		entity.setComplement(address.complement());
-		entity.setNeighborhood(address.neighborhood());
-		entity.setCity(address.city());
-		entity.setState(address.state());
-		entity.setZipCode(address.zipCode());
-		return addressRepository.save(entity);
 	}
 
 	private ClinicEntity replaceClinicPhoto(ClinicEntity entity, MultipartFile file) {
@@ -254,10 +187,9 @@ public class ClinicService {
 		return savedEntity;
 	}
 
-	private void apply(ClinicEntity entity, UUID addressId, String name, String phone, String email, String timezone,
-			String whatsapp, String instagram, String inactiveType, java.time.LocalDate inactiveFrom,
-			java.time.LocalDate inactiveTo) {
-		entity.setAddressId(addressId);
+	private void apply(ClinicEntity entity, String name, String phone, String email, String timezone, String whatsapp,
+			String instagram, String inactiveType, LocalDate inactiveFrom, LocalDate inactiveTo, AddressCreateDto address,
+			List<ClinicWorkingHoursSaveDto> workingHours) {
 		entity.setName(name);
 		entity.setPhone(phone);
 		entity.setEmail(email);
@@ -267,6 +199,34 @@ public class ClinicService {
 		entity.setInactiveType(inactiveType);
 		entity.setInactiveFrom(inactiveFrom);
 		entity.setInactiveTo(inactiveTo);
+		applyAddress(entity, address);
+		entity.setWorkingHoursJson(writeWorkingHours(workingHours));
+	}
+
+	private void applyAddress(ClinicEntity entity, AddressCreateDto address) {
+		if (address == null) {
+			entity.setStreet(null);
+			entity.setNumber(null);
+			entity.setComplement(null);
+			entity.setNeighborhood(null);
+			entity.setCity(null);
+			entity.setState(null);
+			entity.setZipCode(null);
+			return;
+		}
+
+		entity.setStreet(address.street());
+		entity.setNumber(address.number());
+		entity.setComplement(address.complement());
+		entity.setNeighborhood(address.neighborhood());
+		entity.setCity(address.city());
+		entity.setState(address.state());
+		entity.setZipCode(address.zipCode());
+	}
+
+	private String writeWorkingHours(List<ClinicWorkingHoursSaveDto> workingHours) {
+		List<ClinicStoredWorkingHours> normalized = workingHoursJsonSupport.fromSaveDtos(workingHours);
+		return workingHoursJsonSupport.write(normalized);
 	}
 
 	private ClinicDto toDto(ClinicEntity entity) {
@@ -275,35 +235,21 @@ public class ClinicService {
 				: storedFileService.presignedDownloadUrl(entity.getClinicPhotoFileId(), FileCategory.CLINIC_PHOTO)
 						.url();
 		AddressDto address = toAddressDto(entity);
-		List<WorkingHoursDto> workingHours = toWorkingHoursDto(entity);
-		return new ClinicDto(entity.getId(), entity.getAddressId(), entity.getName(), entity.getPhone(),
-				entity.getEmail(), entity.getTimezone(), entity.getWhatsapp(), entity.getInstagram(),
-				entity.getClinicPhotoFileId(), clinicPhotoUrl, entity.getInactiveType(), entity.getInactiveFrom(),
-				entity.getInactiveTo(), entity.isActive(), entity.getCreatedAt(), entity.getUpdatedAt(), address,
-				workingHours);
+		List<WorkingHoursDto> workingHours = workingHoursJsonSupport.toDtos(entity.getId(), entity.getWorkingHoursJson());
+		return new ClinicDto(entity.getId(), null, entity.getName(), entity.getPhone(), entity.getEmail(),
+				entity.getTimezone(), entity.getWhatsapp(), entity.getInstagram(), entity.getClinicPhotoFileId(),
+				clinicPhotoUrl, entity.getInactiveType(), entity.getInactiveFrom(), entity.getInactiveTo(),
+				entity.isActive(), entity.getCreatedAt(), entity.getUpdatedAt(), address, workingHours);
 	}
 
 	private AddressDto toAddressDto(ClinicEntity entity) {
-		AddressEntity address = entity.getAddress();
-		if (address == null && entity.getAddressId() != null) {
-			address = addressRepository.findById(entity.getAddressId()).orElse(null);
-		}
-		if (address == null) {
+		if (entity.getStreet() == null && entity.getNumber() == null && entity.getNeighborhood() == null
+				&& entity.getCity() == null && entity.getState() == null && entity.getZipCode() == null
+				&& entity.getComplement() == null) {
 			return null;
 		}
-		return new AddressDto(address.getId(), address.getStreet(), address.getNumber(), address.getComplement(),
-				address.getNeighborhood(), address.getCity(), address.getState(), address.getZipCode());
-	}
 
-	private List<WorkingHoursDto> toWorkingHoursDto(ClinicEntity entity) {
-		if (entity.getWorkingHours() == null || entity.getWorkingHours().isEmpty()) {
-			return List.of();
-		}
-		return entity.getWorkingHours().stream().map(this::toWorkingHoursDto).toList();
-	}
-
-	private WorkingHoursDto toWorkingHoursDto(WorkingHoursEntity entity) {
-		return new WorkingHoursDto(entity.getId(), entity.getClinicId(), entity.getDayOfWeek(), entity.getStartTime(),
-				entity.getEndTime());
+		return new AddressDto(null, entity.getStreet(), entity.getNumber(), entity.getComplement(),
+				entity.getNeighborhood(), entity.getCity(), entity.getState(), entity.getZipCode());
 	}
 }

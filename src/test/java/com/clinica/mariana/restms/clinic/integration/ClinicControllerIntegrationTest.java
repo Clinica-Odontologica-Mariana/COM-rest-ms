@@ -134,26 +134,25 @@ class ClinicControllerIntegrationTest {
 		}
 
 		@Test
-		@DisplayName("When deleted after creating working hours, then clinic and derived schedule data are removed")
+		@DisplayName("When deleted with embedded working hours, then clinic and schedule data are removed")
 		void shouldDeleteClinicWithWorkingHours() throws Exception {
 			ClinicDto created = createClinic("""
 					{
 					  "name": "Clinica Mariana Agenda",
 					  "phone": "11999999999",
 					  "email": "agenda@clinic.com",
-					  "timezone": "America/Sao_Paulo"
+					  "timezone": "America/Sao_Paulo",
+					  "workingHours": [
+					    {
+					      "dayOfWeek": 0,
+					      "startTime": "08:00:00",
+					      "endTime": "12:00:00"
+					    }
+					  ]
 					}
 					""");
-
-			mockMvc.perform(post("/api/v1/working-hours").contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_ADMIN))
-					.contentType(MediaType.APPLICATION_JSON).content("""
-							{
-							  "clinicId": "%s",
-							  "dayOfWeek": 0,
-							  "startTime": "08:00:00",
-							  "endTime": "12:00:00"
-							}
-							""".formatted(created.id()))).andExpect(status().isCreated());
+			assertThat(created.workingHours()).hasSize(1);
+			assertThat(created.workingHours().get(0).dayOfWeek()).isEqualTo(0);
 
 			mockMvc.perform(
 					delete(CLINIC_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_ADMIN)))
