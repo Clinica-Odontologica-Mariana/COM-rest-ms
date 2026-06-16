@@ -133,15 +133,52 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  release-placeholder:
-    name: Future Deploy Placeholder
-    if: github.event_name == 'workflow_dispatch'
+  deploy-production:
+    name: Deploy to VPS
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: docker-publish
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
-      - name: Explain current status
-        run: |
-          echo "Docker image publication is active on pushes to main."
-          echo "Automatic VPS deployment is intentionally not implemented yet."
-          echo "Use the GHCR image with deploy/production/backend/docker-compose.prod.yml on the server."
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure remote deploy directory exists
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          script: mkdir -p /opt/marianadias/backend
+
+      - name: Upload deploy files to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          source: deploy/production/backend/*
+          target: /opt/marianadias/backend
+          strip_components: 3
+
+      - name: Update containers on VPS
+        uses: appleboy/ssh-action@v1.2.2
+        env:
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          envs: GHCR_USERNAME,GHCR_TOKEN
+          script: |
+            set -eu
+            cd /opt/marianadias/backend
+            test -f .env.production
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            docker compose --env-file .env.production -f docker-compose.prod.yml pull
+            docker compose --env-file .env.production -f docker-compose.prod.yml up -d

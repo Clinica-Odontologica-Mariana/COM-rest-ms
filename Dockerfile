@@ -19,6 +19,9 @@ WORKDIR /app
 
 # Copy only the Spring Boot executable jar (ignore the plain jar when present).
 RUN set -eux; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends curl; \
+	rm -rf /var/lib/apt/lists/*; \
 	groupadd --system spring; \
 	useradd --system --gid spring --create-home spring
 

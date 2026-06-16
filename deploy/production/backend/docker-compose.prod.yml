@@ -1,0 +1,184 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: marianadias-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.1
+    container_name: marianadias-keycloak
+    restart: unless-stopped
+    depends_on:
+      keycloak-import:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    command:
+      - start
+      - --http-enabled=true
+      - --hostname=${KEYCLOAK_PUBLIC_URL}
+      - --proxy-headers=xforwarded
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_BOOTSTRAP_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_DB_SCHEMA: ${KEYCLOAK_DB_SCHEMA}
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "exec 3<>/dev/tcp/127.0.0.1/9000; printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3; grep '200' <&3",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+    networks:
+      - internal
+      - webproxy
+
+  keycloak-schema:
+    image: postgres:17-alpine
+    container_name: marianadias-keycloak-schema
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGDATABASE: ${POSTGRES_DB}
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_DB_SCHEMA: ${KEYCLOAK_DB_SCHEMA}
+    command:
+      - sh
+      - -ec
+      - psql -v ON_ERROR_STOP=1 -c "CREATE SCHEMA IF NOT EXISTS \"$${KEYCLOAK_DB_SCHEMA}\" AUTHORIZATION \"$${PGUSER}\";"
+    networks:
+      - internal
+
+  keycloak-import:
+    image: quay.io/keycloak/keycloak:26.6.1
+    container_name: marianadias-keycloak-import
+    restart: "no"
+    depends_on:
+      keycloak-schema:
+        condition: service_completed_successfully
+    command:
+      - import
+      - --dir=/opt/keycloak/data/import
+      - --override=false
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_DB_SCHEMA: ${KEYCLOAK_DB_SCHEMA}
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./keycloak/rest-ms-realm.json:/opt/keycloak/data/import/rest-ms-realm.json:ro
+    networks:
+      - internal
+
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    container_name: marianadias-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+    networks:
+      - internal
+      - webproxy
+
+  rest-ms:
+    image: ${REST_MS_IMAGE}
+    container_name: marianadias-rest-ms
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "false"
+
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${KEYCLOAK_PUBLIC_URL}/realms/${KEYCLOAK_REALM}
+
+      KEYCLOAK_BASE_URL: http://keycloak:8080
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET}
+      MINIO_REGION: ${MINIO_REGION}
+      MINIO_PRESIGNED_URL_EXPIRATION_SECONDS: ${MINIO_PRESIGNED_URL_EXPIRATION_SECONDS}
+
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REFRESH_TOKEN: ${GOOGLE_REFRESH_TOKEN}
+      GOOGLE_CALENDAR_ID: ${GOOGLE_CALENDAR_ID:-primary}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://127.0.0.1:8080/api/v1/actuator/health | grep '\"status\":\"UP\"' >/dev/null || exit 1",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+    networks:
+      - internal
+      - webproxy
+
+volumes:
+  postgres_data:
+  keycloak_data:
+  minio_data:
+
+networks:
+  internal:
+    driver: bridge
+  webproxy:
+    external: true

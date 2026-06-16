@@ -1,4 +1,7 @@
 ALTER TABLE stored_file
+    DROP CONSTRAINT IF EXISTS chk_stored_file_category;
+
+ALTER TABLE stored_file
     ADD COLUMN IF NOT EXISTS file_category VARCHAR(50),
     ADD COLUMN IF NOT EXISTS description TEXT;
 
@@ -21,7 +24,15 @@ ALTER TABLE stored_file
 
 ALTER TABLE stored_file
     ADD CONSTRAINT chk_stored_file_category
-        CHECK (file_category IN ('ODONTOGRAM', 'USER_PROFILE_PHOTO', 'LEGACY'));
+        CHECK (
+            file_category IN (
+                'ODONTOGRAM',
+                'USER_PROFILE_PHOTO',
+                'MEDICAL_RECORD_ATTACHMENT',
+                'CERTIFICATE',
+                'LEGACY'
+            )
+        );
 
 CREATE TABLE IF NOT EXISTS odontogram_file
 (
