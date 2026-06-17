@@ -12,6 +12,7 @@ import com.clinica.mariana.restms.appointment.repository.AppointmentStatusReposi
 import com.clinica.mariana.restms.appointment.repository.CalendarProviderRepository;
 import com.clinica.mariana.restms.appointment.repository.CalendarSyncStatusRepository;
 import com.clinica.mariana.restms.common.exception.AppException;
+import jakarta.persistence.EntityManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +21,9 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 @Service
@@ -31,24 +34,31 @@ public class AppointmentService {
 	private final CalendarProviderRepository calendarProviderRepository;
 	private final CalendarSyncStatusRepository calendarSyncStatusRepository;
 	private final GoogleCalendarSyncService googleCalendarSyncService;
+	private final EntityManager entityManager;
 
 	public AppointmentService(AppointmentRepository appointmentRepository,
 			AppointmentStatusRepository appointmentStatusRepository,
 			CalendarProviderRepository calendarProviderRepository,
 			CalendarSyncStatusRepository calendarSyncStatusRepository,
-			GoogleCalendarSyncService googleCalendarSyncService) {
+			GoogleCalendarSyncService googleCalendarSyncService,
+			EntityManager entityManager) {
 		this.appointmentRepository = appointmentRepository;
 		this.appointmentStatusRepository = appointmentStatusRepository;
 		this.calendarProviderRepository = calendarProviderRepository;
 		this.calendarSyncStatusRepository = calendarSyncStatusRepository;
 		this.googleCalendarSyncService = googleCalendarSyncService;
+		this.entityManager = entityManager;
 	}
 
 	@Transactional
 	public AppointmentDto create(AppointmentCreateDto request) {
-		AppointmentStatusEntity status = appointmentStatusRepository.findById(request.statusId())
-				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "APPOINTMENT_STATUS_NOT_FOUND",
-						"Appointment status not found"));
+		AppointmentStatusEntity status = request.statusId() != null
+				? appointmentStatusRepository.findById(request.statusId())
+						.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "APPOINTMENT_STATUS_NOT_FOUND",
+								"Appointment status not found"))
+				: appointmentStatusRepository.findByCode("SCHEDULED")
+						.orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "CONFIGURATION_ERROR",
+								"Default appointment status not configured"));
 
 		CalendarProviderEntity googleProvider = calendarProviderRepository.findByCode("GOOGLE")
 				.orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "CONFIGURATION_ERROR",
@@ -57,6 +67,8 @@ public class AppointmentService {
 		CalendarSyncStatusEntity pendingSync = calendarSyncStatusRepository.findByCode("PENDING")
 				.orElseThrow(() -> new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "CONFIGURATION_ERROR",
 						"Calendar sync status not configured"));
+
+		ensurePatientClinicLink(request.patientId(), request.clinicId());
 
 		AppointmentEntity entity = new AppointmentEntity();
 		entity.setPatientId(request.patientId());
@@ -67,8 +79,8 @@ public class AppointmentService {
 		entity.setCalendarProvider(googleProvider);
 		entity.setCalendarSyncStatus(pendingSync);
 		entity.setBlocksSchedule(request.blocksSchedule());
-		entity.setStartDatetime(request.startDatetime());
-		entity.setEndDatetime(request.endDatetime());
+		entity.setStartDatetime(toOffsetUtc(request.startDatetime()));
+		entity.setEndDatetime(toOffsetUtc(request.endDatetime()));
 		entity.setNotes(request.notes());
 
 		AppointmentEntity saved = appointmentRepository.save(entity);
@@ -110,8 +122,8 @@ public class AppointmentService {
 						"Appointment status not found"));
 
 		entity.setStatus(status);
-		entity.setStartDatetime(request.startDatetime());
-		entity.setEndDatetime(request.endDatetime());
+		entity.setStartDatetime(toOffsetUtc(request.startDatetime()));
+		entity.setEndDatetime(toOffsetUtc(request.endDatetime()));
 		entity.setNotes(request.notes());
 		entity.setBlocksSchedule(request.blocksSchedule());
 
@@ -119,8 +131,8 @@ public class AppointmentService {
 
 		if (saved.getExternalCalendarEventId() != null) {
 			String notes = request.notes();
-			OffsetDateTime start = request.startDatetime();
-			OffsetDateTime end = request.endDatetime();
+			OffsetDateTime start = toOffsetUtc(request.startDatetime());
+			OffsetDateTime end = toOffsetUtc(request.endDatetime());
 
 			if (TransactionSynchronizationManager.isSynchronizationActive()) {
 				TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -168,9 +180,45 @@ public class AppointmentService {
 		}
 	}
 
+	private void ensurePatientClinicLink(UUID patientId, UUID clinicId) {
+		entityManager.createNativeQuery(
+				"INSERT INTO patient_clinic (patient_id, clinic_id, primary_clinic, active) " +
+				"VALUES (:patientId, :clinicId, false, true) ON CONFLICT DO NOTHING")
+				.setParameter("patientId", patientId)
+				.setParameter("clinicId", clinicId)
+				.executeUpdate();
+	}
+
+	private OffsetDateTime toOffsetUtc(LocalDateTime ldt) {
+		return ldt == null ? null : ldt.atOffset(ZoneOffset.UTC);
+	}
+
+	private String fetchPatientName(UUID patientId) {
+		if (patientId == null) return null;
+		try {
+			return (String) entityManager.createNativeQuery("SELECT full_name FROM patient WHERE id = :id")
+					.setParameter("id", patientId).getSingleResult();
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	private String fetchProfessionalName(UUID professionalId) {
+		if (professionalId == null) return null;
+		try {
+			return (String) entityManager.createNativeQuery(
+					"SELECT u.full_name FROM app_user u JOIN professional p ON p.user_id = u.id WHERE p.id = :id")
+					.setParameter("id", professionalId).getSingleResult();
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
 	private AppointmentDto toDto(AppointmentEntity entity) {
-		return new AppointmentDto(entity.getId(), entity.getPatientId(), entity.getClinicId(), entity.getWorkplaceId(),
-				entity.getProfessionalId(), entity.getStatus() != null ? entity.getStatus().getCode() : null,
+		return new AppointmentDto(entity.getId(), entity.getPatientId(), fetchPatientName(entity.getPatientId()),
+				entity.getClinicId(), entity.getWorkplaceId(), entity.getProfessionalId(),
+				fetchProfessionalName(entity.getProfessionalId()),
+				entity.getStatus() != null ? entity.getStatus().getCode() : null,
 				entity.getStatus() != null ? entity.getStatus().getName() : null,
 				entity.getCalendarSyncStatus() != null ? entity.getCalendarSyncStatus().getCode() : null,
 				entity.getExternalCalendarEventId(), entity.getLastSyncedAt(), entity.isBlocksSchedule(),
