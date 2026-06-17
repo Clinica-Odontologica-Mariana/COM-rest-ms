@@ -188,8 +188,8 @@ public class ClinicService {
 	}
 
 	private void apply(ClinicEntity entity, String name, String phone, String email, String timezone, String whatsapp,
-			String instagram, String inactiveType, LocalDate inactiveFrom, LocalDate inactiveTo, AddressCreateDto address,
-			List<ClinicWorkingHoursSaveDto> workingHours) {
+			String instagram, String inactiveType, LocalDate inactiveFrom, LocalDate inactiveTo,
+			AddressCreateDto address, List<ClinicWorkingHoursSaveDto> workingHours) {
 		entity.setName(name);
 		entity.setPhone(phone);
 		entity.setEmail(email);
@@ -235,7 +235,8 @@ public class ClinicService {
 				: storedFileService.presignedDownloadUrl(entity.getClinicPhotoFileId(), FileCategory.CLINIC_PHOTO)
 						.url();
 		AddressDto address = toAddressDto(entity);
-		List<WorkingHoursDto> workingHours = workingHoursJsonSupport.toDtos(entity.getId(), entity.getWorkingHoursJson());
+		List<WorkingHoursDto> workingHours = workingHoursJsonSupport.toDtos(entity.getId(),
+				entity.getWorkingHoursJson());
 		return new ClinicDto(entity.getId(), null, entity.getName(), entity.getPhone(), entity.getEmail(),
 				entity.getTimezone(), entity.getWhatsapp(), entity.getInstagram(), entity.getClinicPhotoFileId(),
 				clinicPhotoUrl, entity.getInactiveType(), entity.getInactiveFrom(), entity.getInactiveTo(),

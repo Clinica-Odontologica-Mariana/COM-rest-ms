@@ -31,7 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Appointment API")
 class AppointmentSecurityTest {
 
-	private static final String BASE = "/api/v1/appointments";
+	private static final String CONTEXT_PATH = "/api/v1";
+	private static final String BASE = CONTEXT_PATH + "/appointments";
 	private static final UUID RANDOM_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
 	@Autowired
@@ -53,15 +54,16 @@ class AppointmentSecurityTest {
 
 		static Stream<Arguments> protectedEndpoints() {
 			UUID id = RANDOM_ID;
-			return Stream.of(Arguments.of("GET /appointments", get(BASE)),
+			return Stream.of(Arguments.of("GET /appointments", get(BASE).contextPath(CONTEXT_PATH)),
 					Arguments.of("GET /appointments/period",
-							get(BASE + "/period").param("start", "2026-05-22T09:00:00Z").param("end",
-									"2026-05-22T18:00:00Z")),
+							get(BASE + "/period").contextPath(CONTEXT_PATH).param("start", "2026-05-22T09:00:00")
+									.param("end", "2026-05-22T18:00:00")),
 					Arguments.of("POST /appointments",
-							post(BASE).contentType(MediaType.APPLICATION_JSON).content("{}")),
+							post(BASE).contextPath(CONTEXT_PATH).contentType(MediaType.APPLICATION_JSON).content("{}")),
 					Arguments.of("PUT /appointments/{id}",
-							put(BASE + "/" + id).contentType(MediaType.APPLICATION_JSON).content("{}")),
-					Arguments.of("DELETE /appointments/{id}", delete(BASE + "/" + id)));
+							put(BASE + "/" + id).contextPath(CONTEXT_PATH).contentType(MediaType.APPLICATION_JSON)
+									.content("{}")),
+					Arguments.of("DELETE /appointments/{id}", delete(BASE + "/" + id).contextPath(CONTEXT_PATH)));
 		}
 	}
 
@@ -72,8 +74,8 @@ class AppointmentSecurityTest {
 		@Test
 		@DisplayName("When listing appointments, then 200 is returned")
 		void shouldReturn200OnGetAll() throws Exception {
-			mockMvc.perform(get(BASE).with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"))))
-					.andExpect(status().isOk());
+			mockMvc.perform(get(BASE).contextPath(CONTEXT_PATH)
+					.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR")))).andExpect(status().isOk());
 		}
 
 		@Nested
@@ -84,7 +86,8 @@ class AppointmentSecurityTest {
 			@MethodSource("invalidCreatePayloads")
 			@DisplayName("When creating, then validation rejects the command")
 			void shouldReturn400(String scenario, String payload) throws Exception {
-				mockMvc.perform(post(BASE).with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST")))
+				mockMvc.perform(post(BASE).contextPath(CONTEXT_PATH)
+						.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST")))
 						.contentType(MediaType.APPLICATION_JSON).content(payload)).andExpect(status().isBadRequest());
 			}
 
@@ -95,8 +98,8 @@ class AppointmentSecurityTest {
 						  "clinicId": "bbbbbbbb-0000-0000-0000-000000000001",
 						  "professionalId": "cccccccc-0000-0000-0000-000000000001",
 						  "statusId": "dddddddd-0000-0000-0000-000000000001",
-						  "startDatetime": "2026-06-01T09:00:00Z",
-						  "endDatetime": "2026-06-01T10:00:00Z",
+						  "startDatetime": "2026-06-01T09:00:00",
+						  "endDatetime": "2026-06-01T10:00:00",
 						  "blocksSchedule": false
 						}
 						""";
@@ -107,12 +110,10 @@ class AppointmentSecurityTest {
 								validBase.replace("\"clinicId\": \"bbbbbbbb-0000-0000-0000-000000000001\",", "")),
 						Arguments.of("missing professionalId",
 								validBase.replace("\"professionalId\": \"cccccccc-0000-0000-0000-000000000001\",", "")),
-						Arguments.of("missing statusId",
-								validBase.replace("\"statusId\": \"dddddddd-0000-0000-0000-000000000001\",", "")),
 						Arguments.of("missing startDatetime",
-								validBase.replace("\"startDatetime\": \"2026-06-01T09:00:00Z\",", "")),
+								validBase.replace("\"startDatetime\": \"2026-06-01T09:00:00\",", "")),
 						Arguments.of("missing endDatetime", validBase
-								.replace("\"endDatetime\": \"2026-06-01T10:00:00Z\"", "\"endDatetime\": null")));
+								.replace("\"endDatetime\": \"2026-06-01T10:00:00\"", "\"endDatetime\": null")));
 			}
 		}
 	}

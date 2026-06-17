@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,11 +25,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/appointments")
+@RequestMapping("/appointments")
 @PreAuthorize("isAuthenticated()")
 public class AppointmentController {
 
@@ -53,9 +54,9 @@ public class AppointmentController {
 	@GetMapping("/period")
 	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public Page<AppointmentDto> findByPeriod(@PageableDefault(size = 20) Pageable pageable,
-			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime start,
-			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime end) {
-		return appointmentService.findByPeriod(start, end, pageable);
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+		return appointmentService.findByPeriod(start.atOffset(ZoneOffset.UTC), end.atOffset(ZoneOffset.UTC), pageable);
 	}
 
 	@PutMapping("/{id}")
