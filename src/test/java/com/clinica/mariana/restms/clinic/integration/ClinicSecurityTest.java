@@ -2,6 +2,7 @@ package com.clinica.mariana.restms.clinic.integration;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -40,17 +41,22 @@ class ClinicSecurityTest {
 	@DisplayName("Given an unauthenticated request")
 	class UnauthenticatedRequest {
 
+		@Test
+		@DisplayName("When listing clinics, then 200 is returned")
+		void shouldAllowPublicClinicListing() throws Exception {
+			mockMvc.perform(get(BASE).contextPath(CONTEXT_PATH)).andExpect(status().isOk());
+		}
+
 		@ParameterizedTest(name = "{0}")
 		@MethodSource("protectedEndpoints")
-		@DisplayName("When accessing any endpoint, then 401 is returned")
+		@DisplayName("When accessing protected endpoints, then 401 is returned")
 		void shouldReturn401(String label, MockHttpServletRequestBuilder request) throws Exception {
 			mockMvc.perform(request.contextPath(CONTEXT_PATH)).andExpect(status().isUnauthorized());
 		}
 
 		static Stream<Arguments> protectedEndpoints() {
 			UUID id = RANDOM_ID;
-			return Stream.of(Arguments.of("GET /clinics", get(BASE)),
-					Arguments.of("GET /clinics/{id}", get(BASE + "/" + id)),
+			return Stream.of(Arguments.of("GET /clinics/{id}", get(BASE + "/" + id)),
 					Arguments.of("POST /clinics", post(BASE).contentType(MediaType.APPLICATION_JSON).content("{}")),
 					Arguments.of("PUT /clinics/{id}",
 							put(BASE + "/" + id).contentType(MediaType.APPLICATION_JSON).content("{}")),
@@ -94,8 +100,7 @@ class ClinicSecurityTest {
 
 		static Stream<Arguments> protectedEndpoints() {
 			UUID id = RANDOM_ID;
-			return Stream.of(Arguments.of("GET /clinics", get(BASE)),
-					Arguments.of("GET /clinics/{id}", get(BASE + "/" + id)),
+			return Stream.of(Arguments.of("GET /clinics/{id}", get(BASE + "/" + id)),
 					Arguments.of("DELETE /clinics/{id}", delete(BASE + "/" + id)),
 					Arguments.of("PATCH /clinics/{id}/inactivate", patch(BASE + "/" + id + "/inactivate")));
 		}

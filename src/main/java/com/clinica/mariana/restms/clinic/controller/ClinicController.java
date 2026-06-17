@@ -52,7 +52,6 @@ public class ClinicController {
 	}
 
 	@GetMapping
-	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public Page<ClinicDto> findAll(@PageableDefault(size = 20) Pageable pageable) {
 		return clinicService.findAll(pageable);
 	}
