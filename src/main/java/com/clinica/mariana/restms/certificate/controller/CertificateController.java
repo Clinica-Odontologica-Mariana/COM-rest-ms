@@ -49,12 +49,6 @@ public class CertificateController {
 		return service.findById(id);
 	}
 
-	@GetMapping("/by-patient/{patientId}")
-	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
-	public List<CertificateDto> findByPatient(@PathVariable UUID patientId) {
-		return service.findByPatient(patientId);
-	}
-
 	@PutMapping("/{id}")
 	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public CertificateDto update(@PathVariable UUID id, @Valid @RequestBody CertificateUpdateDto request) {

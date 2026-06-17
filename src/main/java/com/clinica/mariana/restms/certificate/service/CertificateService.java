@@ -5,7 +5,6 @@ import com.clinica.mariana.restms.certificate.dto.CertificateDto;
 import com.clinica.mariana.restms.certificate.dto.CertificateUpdateDto;
 import com.clinica.mariana.restms.certificate.entity.CertificateEntity;
 import com.clinica.mariana.restms.certificate.repository.CertificateRepository;
-import com.clinica.mariana.restms.patient.repository.PatientRepository;
 import com.clinica.mariana.restms.professional.repository.ProfessionalRepository;
 import com.clinica.mariana.restms.storedfile.repository.StoredFileRepository;
 import org.springframework.http.HttpStatus;
@@ -23,14 +22,12 @@ public class CertificateService {
 	private static final String CERTIFICATE_NOT_FOUND = "Certificate not found";
 
 	private final CertificateRepository certificateRepository;
-	private final PatientRepository patientRepository;
 	private final ProfessionalRepository professionalRepository;
 	private final StoredFileRepository storedFileRepository;
 
-	public CertificateService(CertificateRepository certificateRepository, PatientRepository patientRepository,
+	public CertificateService(CertificateRepository certificateRepository,
 			ProfessionalRepository professionalRepository, StoredFileRepository storedFileRepository) {
 		this.certificateRepository = certificateRepository;
-		this.patientRepository = patientRepository;
 		this.professionalRepository = professionalRepository;
 		this.storedFileRepository = storedFileRepository;
 	}
@@ -53,21 +50,12 @@ public class CertificateService {
 
 	@Transactional(readOnly = true)
 	public CertificateDto findById(UUID id) {
-		return toDto(findEntity(id));
-	}
-
-	@Transactional(readOnly = true)
-	public List<CertificateDto> findByPatient(UUID patientId) {
-		if (!patientRepository.existsById(patientId)) {
-			throw new AppException(HttpStatus.NOT_FOUND, "PATIENT_NOT_FOUND", "Patient not found");
-		}
-		return certificateRepository.findAllByPatientIdAndActiveTrueOrderByIssuedAtDesc(patientId).stream()
-				.map(this::toDto).toList();
+		return toDto(findActiveEntity(id));
 	}
 
 	@Transactional
 	public CertificateDto update(UUID id, CertificateUpdateDto request) {
-		CertificateEntity entity = findEntity(id);
+		CertificateEntity entity = findActiveEntity(id);
 		validateReferences(request.professionalId(), request.storedFileId());
 		apply(entity, request.professionalId(), request.title(), request.certificateType(), request.content(),
 				request.issuedAt(), request.storedFileId());
@@ -87,6 +75,11 @@ public class CertificateService {
 
 	private CertificateEntity findEntity(UUID id) {
 		return certificateRepository.findById(id).orElseThrow(
+				() -> new AppException(HttpStatus.NOT_FOUND, "CERTIFICATE_NOT_FOUND", CERTIFICATE_NOT_FOUND));
+	}
+
+	private CertificateEntity findActiveEntity(UUID id) {
+		return certificateRepository.findByIdAndActiveTrue(id).orElseThrow(
 				() -> new AppException(HttpStatus.NOT_FOUND, "CERTIFICATE_NOT_FOUND", CERTIFICATE_NOT_FOUND));
 	}
 
@@ -110,7 +103,7 @@ public class CertificateService {
 	}
 
 	private CertificateDto toDto(CertificateEntity entity) {
-		return new CertificateDto(entity.getId(), entity.getPatientId(), entity.getProfessionalId(), entity.getTitle(),
+		return new CertificateDto(entity.getId(), entity.getProfessionalId(), entity.getTitle(),
 				entity.getCertificateType(), entity.getContent(), entity.getIssuedAt(), entity.getStoredFileId(),
 				entity.isActive(), entity.getRevokedAt(), entity.getCreatedAt(), entity.getUpdatedAt());
 	}
