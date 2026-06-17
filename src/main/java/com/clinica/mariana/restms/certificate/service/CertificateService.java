@@ -2,6 +2,7 @@ package com.clinica.mariana.restms.certificate.service;
 
 import com.clinica.mariana.restms.certificate.dto.CertificateCreateDto;
 import com.clinica.mariana.restms.certificate.dto.CertificateDto;
+import com.clinica.mariana.restms.certificate.dto.CertificatePublicDto;
 import com.clinica.mariana.restms.certificate.dto.CertificateUpdateDto;
 import com.clinica.mariana.restms.certificate.entity.CertificateEntity;
 import com.clinica.mariana.restms.certificate.repository.CertificateRepository;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import com.clinica.mariana.restms.common.exception.AppException;
 
@@ -57,16 +59,18 @@ public class CertificateService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<CertificateDto> findFeatured() {
-		return certificateRepository.findAllByFeaturedTrueAndActiveTrueOrderByIssuedAtDesc().stream().map(this::toDto)
-				.toList();
+	public List<CertificatePublicDto> findFeatured() {
+		return certificateRepository.findAllByFeaturedTrueAndActiveTrueOrderByIssuedAtDesc().stream()
+				.map(this::toPublicDto).toList();
 	}
 
-	@Transactional
+	@Transactional(isolation = Isolation.SERIALIZABLE)
 	public CertificateDto setFeatured(UUID id, boolean featured) {
 		CertificateEntity entity = findActiveEntity(id);
-		if (featured && !entity.isFeatured()
-				&& certificateRepository.countByFeaturedTrueAndActiveTrue() >= MAX_FEATURED) {
+		if (entity.isFeatured() == featured) {
+			return toDto(entity);
+		}
+		if (featured && certificateRepository.countByFeaturedTrueAndActiveTrue() >= MAX_FEATURED) {
 			throw new AppException(HttpStatus.UNPROCESSABLE_ENTITY, "FEATURED_LIMIT_REACHED",
 					"Máximo de " + MAX_FEATURED + " certificados em destaque");
 		}
@@ -90,6 +94,7 @@ public class CertificateService {
 			return;
 		}
 		entity.setActive(false);
+		entity.setFeatured(false);
 		entity.setRevokedAt(OffsetDateTime.now());
 		certificateRepository.save(entity);
 	}
@@ -128,5 +133,10 @@ public class CertificateService {
 				entity.getCertificateType(), entity.getContent(), entity.getIssuedAt(), entity.getStoredFileId(),
 				entity.isActive(), entity.isFeatured(), entity.getRevokedAt(), entity.getCreatedAt(),
 				entity.getUpdatedAt());
+	}
+
+	private CertificatePublicDto toPublicDto(CertificateEntity entity) {
+		return new CertificatePublicDto(entity.getId(), entity.getTitle(), entity.getCertificateType(),
+				entity.getIssuedAt());
 	}
 }

@@ -2,9 +2,13 @@ package com.clinica.mariana.restms.certificate.controller;
 
 import com.clinica.mariana.restms.certificate.dto.CertificateCreateDto;
 import com.clinica.mariana.restms.certificate.dto.CertificateDto;
-import com.clinica.mariana.restms.certificate.dto.CertificateFeaturedDto;
+import com.clinica.mariana.restms.certificate.dto.CertificateFeaturedRequest;
+import com.clinica.mariana.restms.certificate.dto.CertificatePublicDto;
 import com.clinica.mariana.restms.certificate.dto.CertificateUpdateDto;
 import com.clinica.mariana.restms.certificate.service.CertificateService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -49,7 +53,7 @@ public class CertificateController {
 	}
 
 	@GetMapping("/featured")
-	public List<CertificateDto> findFeatured() {
+	public List<CertificatePublicDto> findFeatured() {
 		return service.findFeatured();
 	}
 
@@ -61,7 +65,13 @@ public class CertificateController {
 
 	@PatchMapping("/{id}/featured")
 	@RolesAllowed("ADMIN")
-	public CertificateDto setFeatured(@PathVariable UUID id, @RequestBody CertificateFeaturedDto request) {
+	@Operation(summary = "Marca ou remove destaque de um certificado")
+	@ApiResponses({@ApiResponse(responseCode = "200", description = "Destaque atualizado com sucesso"),
+			@ApiResponse(responseCode = "401", description = "Não autenticado"),
+			@ApiResponse(responseCode = "403", description = "Sem permissão"),
+			@ApiResponse(responseCode = "404", description = "Certificado não encontrado"),
+			@ApiResponse(responseCode = "422", description = "Limite de destaques atingido (FEATURED_LIMIT_REACHED)")})
+	public CertificateDto setFeatured(@PathVariable UUID id, @Valid @RequestBody CertificateFeaturedRequest request) {
 		return service.setFeatured(id, request.featured());
 	}
 
