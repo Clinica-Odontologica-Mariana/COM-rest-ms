@@ -51,17 +51,16 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
 		ZoneId zone = ZoneId.of(calendarTimezone);
 
 		// The stored OffsetDateTime uses UTC offset but represents local clinic time.
-		// Re-interpret the local time components as the clinic's timezone before sending
+		// Re-interpret the local time components as the clinic's timezone before
+		// sending
 		// to Google Calendar, so the event appears at the correct local hour.
 		ZonedDateTime startZoned = start.toLocalDateTime().atZone(zone);
 		ZonedDateTime endZoned = end.toLocalDateTime().atZone(zone);
 
-		EventDateTime startDt = new EventDateTime()
-				.setDateTime(new DateTime(startZoned.toInstant().toEpochMilli()))
+		EventDateTime startDt = new EventDateTime().setDateTime(new DateTime(startZoned.toInstant().toEpochMilli()))
 				.setTimeZone(calendarTimezone);
 
-		EventDateTime endDt = new EventDateTime()
-				.setDateTime(new DateTime(endZoned.toInstant().toEpochMilli()))
+		EventDateTime endDt = new EventDateTime().setDateTime(new DateTime(endZoned.toInstant().toEpochMilli()))
 				.setTimeZone(calendarTimezone);
 
 		return new Event().setSummary(summary).setDescription(description).setStart(startDt).setEnd(endDt);
