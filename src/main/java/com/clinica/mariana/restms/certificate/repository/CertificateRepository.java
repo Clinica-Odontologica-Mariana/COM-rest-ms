@@ -8,5 +8,7 @@ import java.util.UUID;
 
 public interface CertificateRepository extends JpaRepository<CertificateEntity, UUID> {
 
+	List<CertificateEntity> findAllByActiveTrueOrderByIssuedAtDesc();
+
 	List<CertificateEntity> findAllByPatientIdAndActiveTrueOrderByIssuedAtDesc(UUID patientId);
 }

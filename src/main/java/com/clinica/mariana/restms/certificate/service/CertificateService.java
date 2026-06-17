@@ -37,14 +37,18 @@ public class CertificateService {
 
 	@Transactional
 	public CertificateDto create(CertificateCreateDto request) {
-		validateReferences(request.patientId(), request.professionalId(), request.storedFileId());
+		validateReferences(request.professionalId(), request.storedFileId());
 		CertificateEntity entity = new CertificateEntity();
-		entity.setPatientId(request.patientId());
 		apply(entity, request.professionalId(), request.title(), request.certificateType(), request.content(),
 				request.issuedAt(), request.storedFileId());
 		entity.setActive(true);
 		entity.setRevokedAt(null);
 		return toDto(certificateRepository.save(entity));
+	}
+
+	@Transactional(readOnly = true)
+	public List<CertificateDto> findAll() {
+		return certificateRepository.findAllByActiveTrueOrderByIssuedAtDesc().stream().map(this::toDto).toList();
 	}
 
 	@Transactional(readOnly = true)
@@ -64,7 +68,7 @@ public class CertificateService {
 	@Transactional
 	public CertificateDto update(UUID id, CertificateUpdateDto request) {
 		CertificateEntity entity = findEntity(id);
-		validateReferences(entity.getPatientId(), request.professionalId(), request.storedFileId());
+		validateReferences(request.professionalId(), request.storedFileId());
 		apply(entity, request.professionalId(), request.title(), request.certificateType(), request.content(),
 				request.issuedAt(), request.storedFileId());
 		return toDto(certificateRepository.save(entity));
@@ -86,10 +90,7 @@ public class CertificateService {
 				() -> new AppException(HttpStatus.NOT_FOUND, "CERTIFICATE_NOT_FOUND", CERTIFICATE_NOT_FOUND));
 	}
 
-	private void validateReferences(UUID patientId, UUID professionalId, UUID storedFileId) {
-		if (!patientRepository.existsById(patientId)) {
-			throw new AppException(HttpStatus.NOT_FOUND, "PATIENT_NOT_FOUND", "Patient not found");
-		}
+	private void validateReferences(UUID professionalId, UUID storedFileId) {
 		if (professionalId != null && !professionalRepository.existsById(professionalId)) {
 			throw new AppException(HttpStatus.NOT_FOUND, "PROFESSIONAL_NOT_FOUND", "Professional not found");
 		}

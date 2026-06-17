@@ -37,6 +37,12 @@ public class CertificateController {
 		return service.create(request);
 	}
 
+	@GetMapping
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
+	public List<CertificateDto> findAll() {
+		return service.findAll();
+	}
+
 	@GetMapping("/{id}")
 	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public CertificateDto findById(@PathVariable UUID id) {
