@@ -25,7 +25,7 @@ public class CertificateEntity {
 	@GeneratedValue(strategy = GenerationType.UUID)
 	private UUID id;
 
-	@Column(name = "patient_id", nullable = false)
+	@Column(name = "patient_id")
 	private UUID patientId;
 
 	@Column(name = "professional_id")

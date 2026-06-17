@@ -4,6 +4,7 @@ import com.clinica.mariana.restms.appointment.entity.AppointmentEntity;
 import com.clinica.mariana.restms.appointment.entity.CalendarSyncStatusEntity;
 import com.clinica.mariana.restms.appointment.repository.AppointmentRepository;
 import com.clinica.mariana.restms.appointment.repository.CalendarSyncStatusRepository;
+import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -21,12 +22,15 @@ public class GoogleCalendarSyncService {
 	private final AppointmentRepository appointmentRepository;
 	private final CalendarSyncStatusRepository calendarSyncStatusRepository;
 	private final GoogleCalendarService googleCalendarService;
+	private final EntityManager entityManager;
 
 	public GoogleCalendarSyncService(AppointmentRepository appointmentRepository,
-			CalendarSyncStatusRepository calendarSyncStatusRepository, GoogleCalendarService googleCalendarService) {
+			CalendarSyncStatusRepository calendarSyncStatusRepository, GoogleCalendarService googleCalendarService,
+			EntityManager entityManager) {
 		this.appointmentRepository = appointmentRepository;
 		this.calendarSyncStatusRepository = calendarSyncStatusRepository;
 		this.googleCalendarService = googleCalendarService;
+		this.entityManager = entityManager;
 	}
 
 	@Async
@@ -38,7 +42,8 @@ public class GoogleCalendarSyncService {
 		}
 
 		try {
-			String eventId = googleCalendarService.createEvent("Consulta", entity.getNotes(), entity.getStartDatetime(),
+			String summary = buildSummary(entity.getPatientId());
+			String eventId = googleCalendarService.createEvent(summary, entity.getNotes(), entity.getStartDatetime(),
 					entity.getEndDatetime());
 
 			entity.setExternalCalendarEventId(eventId);
@@ -61,7 +66,8 @@ public class GoogleCalendarSyncService {
 		}
 
 		try {
-			googleCalendarService.updateEvent(entity.getExternalCalendarEventId(), "Consulta", notes, start, end);
+			String summary = buildSummary(entity.getPatientId());
+			googleCalendarService.updateEvent(entity.getExternalCalendarEventId(), summary, notes, start, end);
 			entity.setCalendarSyncStatus(findSyncStatus("SYNCED"));
 			entity.setLastSyncedAt(OffsetDateTime.now());
 		} catch (Exception e) {
@@ -95,5 +101,23 @@ public class GoogleCalendarSyncService {
 	private CalendarSyncStatusEntity findSyncStatus(String code) {
 		return calendarSyncStatusRepository.findByCode(code)
 				.orElseThrow(() -> new IllegalStateException("Calendar sync status not configured: " + code));
+	}
+
+	private String buildSummary(UUID patientId) {
+		String patientName = fetchPatientName(patientId);
+		return patientName != null ? "Consulta - " + patientName : "Consulta";
+	}
+
+	private String fetchPatientName(UUID patientId) {
+		if (patientId == null) {
+			return null;
+		}
+		try {
+			return (String) entityManager.createNativeQuery("SELECT full_name FROM patient WHERE id = :id")
+					.setParameter("id", patientId).getSingleResult();
+		} catch (Exception e) {
+			LOGGER.warn("Could not fetch patient name for id {}", patientId, e);
+			return null;
+		}
 	}
 }

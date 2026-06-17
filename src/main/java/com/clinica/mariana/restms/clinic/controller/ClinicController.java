@@ -2,6 +2,7 @@ package com.clinica.mariana.restms.clinic.controller;
 
 import com.clinica.mariana.restms.clinic.dto.ClinicCreateDto;
 import com.clinica.mariana.restms.clinic.dto.ClinicDto;
+import com.clinica.mariana.restms.clinic.dto.PublicClinicDto;
 import com.clinica.mariana.restms.clinic.dto.ClinicUpdateDto;
 import com.clinica.mariana.restms.clinic.service.ClinicService;
 import jakarta.annotation.security.RolesAllowed;
@@ -55,6 +56,11 @@ public class ClinicController {
 	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public Page<ClinicDto> findAll(@PageableDefault(size = 20) Pageable pageable) {
 		return clinicService.findAll(pageable);
+	}
+
+	@GetMapping("/public")
+	public Page<PublicClinicDto> findAllPublic(@PageableDefault(size = 20) Pageable pageable) {
+		return clinicService.findAllPublic(pageable);
 	}
 
 	@GetMapping("/{id}")

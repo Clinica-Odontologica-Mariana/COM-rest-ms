@@ -4,6 +4,11 @@ import com.clinica.mariana.restms.appointment.dto.AppointmentCreateDto;
 import com.clinica.mariana.restms.appointment.dto.AppointmentDto;
 import com.clinica.mariana.restms.appointment.dto.AppointmentUpdateDto;
 import com.clinica.mariana.restms.appointment.service.AppointmentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -30,6 +35,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/appointments")
 @PreAuthorize("isAuthenticated()")
+@Tag(name = "Appointments", description = "Gestão de consultas")
 public class AppointmentController {
 
 	private final AppointmentService appointmentService;
@@ -41,18 +47,33 @@ public class AppointmentController {
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
+	@Operation(summary = "Criar consulta", description = "Cria uma nova consulta e sincroniza com o Google Calendar se disponível")
+	@ApiResponses({@ApiResponse(responseCode = "201", description = "Consulta criada com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+			@ApiResponse(responseCode = "401", description = "Não autenticado"),
+			@ApiResponse(responseCode = "403", description = "Sem permissão"),
+			@ApiResponse(responseCode = "404", description = "Paciente, clínica, profissional ou status não encontrado")})
 	public AppointmentDto create(@Valid @RequestBody AppointmentCreateDto request) {
 		return appointmentService.create(request);
 	}
 
 	@GetMapping
 	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
+	@Operation(summary = "Listar consultas", description = "Retorna todas as consultas não canceladas, com paginação")
+	@ApiResponses({@ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
+			@ApiResponse(responseCode = "401", description = "Não autenticado"),
+			@ApiResponse(responseCode = "403", description = "Sem permissão")})
 	public Page<AppointmentDto> findAll(@PageableDefault(size = 20) Pageable pageable) {
 		return appointmentService.findAll(pageable);
 	}
 
 	@GetMapping("/period")
 	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
+	@Operation(summary = "Listar consultas por período", description = "Retorna consultas não canceladas dentro de um intervalo de datas")
+	@ApiResponses({@ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Datas inválidas"),
+			@ApiResponse(responseCode = "401", description = "Não autenticado"),
+			@ApiResponse(responseCode = "403", description = "Sem permissão")})
 	public Page<AppointmentDto> findByPeriod(@PageableDefault(size = 20) Pageable pageable,
 			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
 			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
@@ -61,14 +82,26 @@ public class AppointmentController {
 
 	@PutMapping("/{id}")
 	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
-	public AppointmentDto update(@PathVariable UUID id, @Valid @RequestBody AppointmentUpdateDto request) {
+	@Operation(summary = "Atualizar consulta")
+	@ApiResponses({@ApiResponse(responseCode = "200", description = "Consulta atualizada com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+			@ApiResponse(responseCode = "401", description = "Não autenticado"),
+			@ApiResponse(responseCode = "403", description = "Sem permissão"),
+			@ApiResponse(responseCode = "404", description = "Consulta ou status não encontrado")})
+	public AppointmentDto update(@Parameter(description = "ID da consulta") @PathVariable UUID id,
+			@Valid @RequestBody AppointmentUpdateDto request) {
 		return appointmentService.update(id, request);
 	}
 
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@RolesAllowed({"ADMIN", "DOCTOR"})
-	public void delete(@PathVariable UUID id) {
+	@Operation(summary = "Cancelar consulta", description = "Marca a consulta como cancelada e remove do Google Calendar se sincronizado")
+	@ApiResponses({@ApiResponse(responseCode = "204", description = "Consulta cancelada com sucesso"),
+			@ApiResponse(responseCode = "401", description = "Não autenticado"),
+			@ApiResponse(responseCode = "403", description = "Sem permissão"),
+			@ApiResponse(responseCode = "404", description = "Consulta não encontrada")})
+	public void delete(@Parameter(description = "ID da consulta") @PathVariable UUID id) {
 		appointmentService.delete(id);
 	}
 }
