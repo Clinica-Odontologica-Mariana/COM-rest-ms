@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 @Service
 public class GoogleCalendarServiceImpl implements GoogleCalendarService {
@@ -17,6 +19,9 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
 
 	@Value("${google.calendar.calendar-id:primary}")
 	private String calendarId;
+
+	@Value("${google.calendar.timezone:America/Sao_Paulo}")
+	private String calendarTimezone;
 
 	public GoogleCalendarServiceImpl(Calendar calendar) {
 		this.calendar = calendar;
@@ -43,11 +48,21 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
 	}
 
 	private Event buildEvent(String summary, String description, OffsetDateTime start, OffsetDateTime end) {
-		EventDateTime startDt = new EventDateTime().setDateTime(new DateTime(start.toInstant().toEpochMilli()))
-				.setTimeZone("UTC");
+		ZoneId zone = ZoneId.of(calendarTimezone);
 
-		EventDateTime endDt = new EventDateTime().setDateTime(new DateTime(end.toInstant().toEpochMilli()))
-				.setTimeZone("UTC");
+		// The stored OffsetDateTime uses UTC offset but represents local clinic time.
+		// Re-interpret the local time components as the clinic's timezone before sending
+		// to Google Calendar, so the event appears at the correct local hour.
+		ZonedDateTime startZoned = start.toLocalDateTime().atZone(zone);
+		ZonedDateTime endZoned = end.toLocalDateTime().atZone(zone);
+
+		EventDateTime startDt = new EventDateTime()
+				.setDateTime(new DateTime(startZoned.toInstant().toEpochMilli()))
+				.setTimeZone(calendarTimezone);
+
+		EventDateTime endDt = new EventDateTime()
+				.setDateTime(new DateTime(endZoned.toInstant().toEpochMilli()))
+				.setTimeZone(calendarTimezone);
 
 		return new Event().setSummary(summary).setDescription(description).setStart(startDt).setEnd(endDt);
 	}
