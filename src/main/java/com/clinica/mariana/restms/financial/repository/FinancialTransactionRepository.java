@@ -11,23 +11,24 @@ import java.util.UUID;
 
 public interface FinancialTransactionRepository extends JpaRepository<FinancialTransactionEntity, UUID> {
 
-	List<FinancialTransactionEntity> findAllByClinicIdOrderByTransactionDateDescCreatedAtDesc(UUID clinicId);
+	List<FinancialTransactionEntity> findAllByClinicIdAndStatusNotOrderByTransactionDateDescCreatedAtDesc(
+			UUID clinicId, String status);
 
-	List<FinancialTransactionEntity> findAllByClinicIdAndTransactionDateBetweenOrderByTransactionDateDesc(UUID clinicId,
-			LocalDate start, LocalDate end);
+	List<FinancialTransactionEntity> findAllByClinicIdAndStatusNotAndTransactionDateBetweenOrderByTransactionDateDesc(
+			UUID clinicId, String status, LocalDate start, LocalDate end);
 
 	@Query("""
 			SELECT EXTRACT(YEAR  FROM f.transactionDate) AS year,
-			       EXTRACT(MONTH FROM f.transactionDate) AS month,
-			       f.type,
-			       SUM(f.amount) AS total
+				   EXTRACT(MONTH FROM f.transactionDate) AS month,
+				   f.type,
+				   SUM(f.amount) AS total
 			FROM FinancialTransactionEntity f
 			WHERE f.clinicId = :clinicId
 			  AND f.transactionDate >= :start
 			  AND f.transactionDate <= :end
 			  AND f.status <> 'CANCELLED'
-			GROUP BY year, month, f.type
-			ORDER BY year ASC, month ASC
+			GROUP BY EXTRACT(YEAR FROM f.transactionDate), EXTRACT(MONTH FROM f.transactionDate), f.type
+			ORDER BY EXTRACT(YEAR FROM f.transactionDate) ASC, EXTRACT(MONTH FROM f.transactionDate) ASC
 			""")
 	List<Object[]> findMonthlyTrend(@Param("clinicId") UUID clinicId, @Param("start") LocalDate start,
 			@Param("end") LocalDate end);

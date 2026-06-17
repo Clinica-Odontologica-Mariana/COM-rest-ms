@@ -43,9 +43,8 @@ public class FinancialTransactionController {
 	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public FinancialTransactionDto create(@Valid @RequestBody FinancialTransactionCreateDto request,
 			@AuthenticationPrincipal Jwt jwt) {
-		UUID userId = currentUserId(jwt).orElse(null);
 
-		return service.create(request, userId);
+		return service.create(request);
 	}
 
 	@GetMapping("/{id}")

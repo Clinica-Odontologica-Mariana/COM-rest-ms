@@ -51,10 +51,13 @@ class FinancialTransactionServiceTest {
 		when(repository.save(any(FinancialTransactionEntity.class))).thenAnswer(invocation -> {
 			FinancialTransactionEntity entity = invocation.getArgument(0);
 			entity.setId(UUID.randomUUID());
+
+			entity.setCreatedByUserId(userId);
+
 			return entity;
 		});
 
-		var result = service.create(dto, userId);
+		var result = service.create(dto);
 
 		assertThat(result.id()).isNotNull();
 		assertThat(result.clinicId()).isEqualTo(clinicId);
@@ -73,7 +76,8 @@ class FinancialTransactionServiceTest {
 
 		when(clinicRepository.existsById(clinicId)).thenReturn(false);
 
-		assertThatThrownBy(() -> service.create(dto, UUID.randomUUID())).isInstanceOf(AppException.class)
+		assertThatThrownBy(() -> service.create(dto))
+				.isInstanceOf(AppException.class)
 				.hasMessageContaining("Clinic not found");
 	}
 

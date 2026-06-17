@@ -39,11 +39,9 @@ public class FinancialTransactionService {
 	}
 
 	@Transactional
-	public FinancialTransactionDto create(FinancialTransactionCreateDto request, UUID userId) {
+	public FinancialTransactionDto create(FinancialTransactionCreateDto request) {
 		validateClinic(request.clinicId());
 		FinancialTransactionEntity entity = new FinancialTransactionEntity();
-
-		entity.setCreatedByUserId(userId);
 
 		entity.setClinicId(request.clinicId());
 		entity.setAppointmentId(request.appointmentId());
@@ -67,20 +65,25 @@ public class FinancialTransactionService {
 	@Transactional(readOnly = true)
 	public List<FinancialTransactionDto> findByClinic(UUID clinicId) {
 		validateClinic(clinicId);
-		return repository.findAllByClinicIdOrderByTransactionDateDescCreatedAtDesc(clinicId).stream().map(this::toDto)
-				.toList();
+		return repository.findAllByClinicIdAndStatusNotOrderByTransactionDateDescCreatedAtDesc(clinicId, "CANCELLED")
+				.stream().map(this::toDto).toList();
 	}
 
 	@Transactional(readOnly = true)
 	public List<FinancialTransactionDto> findByClinicAndPeriod(UUID clinicId, LocalDate start, LocalDate end) {
 		validateClinic(clinicId);
-		return repository.findAllByClinicIdAndTransactionDateBetweenOrderByTransactionDateDesc(clinicId, start, end)
+		return repository.findAllByClinicIdAndStatusNotAndTransactionDateBetweenOrderByTransactionDateDesc(clinicId, "CANCELLED",start, end)
 				.stream().map(this::toDto).toList();
 	}
 
 	@Transactional
 	public FinancialTransactionDto update(UUID id, FinancialTransactionUpdateDto request) {
 		FinancialTransactionEntity entity = findEntity(id);
+		if("CANCELLED".equals(entity.getStatus())) {
+			throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT,
+					"TRANSACTION_CANCELLED",
+					"Não é possível atualizar uma transação cancelada");
+		}
 		entity.setDescription(request.description());
 		entity.setType(request.type());
 		entity.setCategory(request.category());
@@ -138,7 +141,8 @@ public class FinancialTransactionService {
 	public List<RevenueByServiceDto> getRevenueByService(UUID clinicId, LocalDate start, LocalDate end) {
 		validateClinic(clinicId);
 		return repository.findRevenueByCategory(clinicId, start, end).stream()
-				.map(row -> new RevenueByServiceDto(row[0] != null ? (String) row[0] : "Outros", (BigDecimal) row[1]))
+				.map(row -> new RevenueByServiceDto(row[0] != null ? (String) row[0] : "Outros",
+						row[1] != null ? (BigDecimal) row[1] : BigDecimal.ZERO))
 				.toList();
 	}
 
