@@ -44,7 +44,8 @@ public class ClinicWorkingHoursJsonSupport {
 
 	public String write(List<ClinicStoredWorkingHours> workingHours) {
 		try {
-			return objectMapper.writeValueAsString(workingHours == null ? List.of() : workingHours.stream().sorted(SORT).toList());
+			return objectMapper
+					.writeValueAsString(workingHours == null ? List.of() : workingHours.stream().sorted(SORT).toList());
 		} catch (JsonProcessingException ex) {
 			throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "CLINIC_WORKING_HOURS_SERIALIZATION_FAILED",
 					"Failed to serialize clinic working hours");
@@ -69,10 +70,8 @@ public class ClinicWorkingHoursJsonSupport {
 	}
 
 	public List<WorkingHoursDto> toDtos(UUID clinicId, List<ClinicStoredWorkingHours> workingHours) {
-		return workingHours.stream().sorted(SORT)
-				.map(hours -> new WorkingHoursDto(hours.id(), clinicId, hours.dayOfWeek(), hours.startTime(),
-						hours.endTime()))
-				.toList();
+		return workingHours.stream().sorted(SORT).map(hours -> new WorkingHoursDto(hours.id(), clinicId,
+				hours.dayOfWeek(), hours.startTime(), hours.endTime())).toList();
 	}
 
 	public void validateNoOverlap(List<ClinicStoredWorkingHours> workingHours) {
