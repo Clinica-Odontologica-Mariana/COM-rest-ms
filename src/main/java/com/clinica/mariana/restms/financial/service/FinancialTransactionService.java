@@ -72,16 +72,15 @@ public class FinancialTransactionService {
 	@Transactional(readOnly = true)
 	public List<FinancialTransactionDto> findByClinicAndPeriod(UUID clinicId, LocalDate start, LocalDate end) {
 		validateClinic(clinicId);
-		return repository.findAllByClinicIdAndStatusNotAndTransactionDateBetweenOrderByTransactionDateDesc(clinicId, "CANCELLED",start, end)
-				.stream().map(this::toDto).toList();
+		return repository.findAllByClinicIdAndStatusNotAndTransactionDateBetweenOrderByTransactionDateDesc(clinicId,
+				"CANCELLED", start, end).stream().map(this::toDto).toList();
 	}
 
 	@Transactional
 	public FinancialTransactionDto update(UUID id, FinancialTransactionUpdateDto request) {
 		FinancialTransactionEntity entity = findEntity(id);
-		if("CANCELLED".equals(entity.getStatus())) {
-			throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT,
-					"TRANSACTION_CANCELLED",
+		if ("CANCELLED".equals(entity.getStatus())) {
+			throw new AppException(HttpStatus.UNPROCESSABLE_CONTENT, "TRANSACTION_CANCELLED",
 					"Não é possível atualizar uma transação cancelada");
 		}
 		entity.setDescription(request.description());

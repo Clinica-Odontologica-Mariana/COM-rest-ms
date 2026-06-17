@@ -76,8 +76,7 @@ class FinancialTransactionServiceTest {
 
 		when(clinicRepository.existsById(clinicId)).thenReturn(false);
 
-		assertThatThrownBy(() -> service.create(dto))
-				.isInstanceOf(AppException.class)
+		assertThatThrownBy(() -> service.create(dto)).isInstanceOf(AppException.class)
 				.hasMessageContaining("Clinic not found");
 	}
 

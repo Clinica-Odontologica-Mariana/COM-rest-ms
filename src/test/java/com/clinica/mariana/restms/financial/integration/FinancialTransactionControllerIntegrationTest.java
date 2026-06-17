@@ -131,36 +131,36 @@ class FinancialTransactionControllerIntegrationTest {
 		@DisplayName("When updated, then the request is rejected and the transaction stays cancelled")
 		void shouldRejectUpdateOfCancelledTransaction() throws Exception {
 			FinancialTransactionDto created = createTransaction("""
-				{
-				  "clinicId": "%s",
-				  "description": "Limpeza Dental",
-				  "type": "RECEITA",
-				  "category": "PROCEDIMENTO",
-				  "amount": 150.00,
-				  "status": "PENDING",
-				  "transactionDate": "2026-06-15",
-				  "notes": "Paciente deve pagar depois"
-				}
-				""".formatted(defaultClinicId));
+					{
+					  "clinicId": "%s",
+					  "description": "Limpeza Dental",
+					  "type": "RECEITA",
+					  "category": "PROCEDIMENTO",
+					  "amount": 150.00,
+					  "status": "PENDING",
+					  "transactionDate": "2026-06-15",
+					  "notes": "Paciente deve pagar depois"
+					}
+					""".formatted(defaultClinicId));
 
 			mockMvc.perform(delete(TRANSACTION_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH)
 					.with(jwtWithRole(ROLE_ADMIN))).andExpect(status().isNoContent());
 
 			mockMvc.perform(put(TRANSACTION_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH)
 					.with(jwtWithRole(ROLE_ADMIN)).contentType(MediaType.APPLICATION_JSON).content("""
-						{
-						  "description": "Tentativa de reativação",
-						  "type": "RECEITA",
-						  "category": "PROCEDIMENTO",
-						  "amount": 200.00,
-						  "status": "PAID",
-						  "transactionDate": "2026-06-15",
-						  "notes": "Não deveria ser aplicado"
-						}
-						""")).andExpect(status().isUnprocessableContent());
+							{
+							  "description": "Tentativa de reativação",
+							  "type": "RECEITA",
+							  "category": "PROCEDIMENTO",
+							  "amount": 200.00,
+							  "status": "PAID",
+							  "transactionDate": "2026-06-15",
+							  "notes": "Não deveria ser aplicado"
+							}
+							""")).andExpect(status().isUnprocessableContent());
 
 			mockMvc.perform(get(TRANSACTION_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH)
-							.with(jwtWithRole(ROLE_ADMIN))).andExpect(status().isOk())
+					.with(jwtWithRole(ROLE_ADMIN))).andExpect(status().isOk())
 					.andExpect(jsonPath("$.data.status", is("CANCELLED")))
 					.andExpect(jsonPath("$.data.description", is("Limpeza Dental")));
 		}

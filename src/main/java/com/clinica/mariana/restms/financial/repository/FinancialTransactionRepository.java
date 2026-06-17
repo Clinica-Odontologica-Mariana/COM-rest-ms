@@ -11,8 +11,8 @@ import java.util.UUID;
 
 public interface FinancialTransactionRepository extends JpaRepository<FinancialTransactionEntity, UUID> {
 
-	List<FinancialTransactionEntity> findAllByClinicIdAndStatusNotOrderByTransactionDateDescCreatedAtDesc(
-			UUID clinicId, String status);
+	List<FinancialTransactionEntity> findAllByClinicIdAndStatusNotOrderByTransactionDateDescCreatedAtDesc(UUID clinicId,
+			String status);
 
 	List<FinancialTransactionEntity> findAllByClinicIdAndStatusNotAndTransactionDateBetweenOrderByTransactionDateDesc(
 			UUID clinicId, String status, LocalDate start, LocalDate end);
