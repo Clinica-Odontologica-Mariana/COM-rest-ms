@@ -209,16 +209,12 @@ class ClinicControllerIntegrationTest {
 	}
 
 	private void ensureReferenceTables() {
-		jdbcTemplate.execute("""
-				create table if not exists app_user (
-					id uuid primary key,
-					keycloak_subject varchar(100),
-					full_name varchar(150),
-					email varchar(150),
-					email_verified boolean default false,
-					active boolean default true
-				)
-				""");
+		jdbcTemplate.execute("create table if not exists app_user (id uuid primary key)");
+		jdbcTemplate.execute("alter table app_user add column if not exists keycloak_subject varchar(100)");
+		jdbcTemplate.execute("alter table app_user add column if not exists full_name varchar(150)");
+		jdbcTemplate.execute("alter table app_user add column if not exists email varchar(150)");
+		jdbcTemplate.execute("alter table app_user add column if not exists email_verified boolean default false");
+		jdbcTemplate.execute("alter table app_user add column if not exists active boolean default true");
 		jdbcTemplate.execute("""
 				create table if not exists specialty (
 					id uuid primary key,

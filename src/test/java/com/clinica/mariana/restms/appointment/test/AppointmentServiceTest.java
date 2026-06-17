@@ -20,10 +20,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.clinica.mariana.restms.common.exception.AppException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +35,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -66,6 +71,12 @@ class AppointmentServiceTest {
 	@Mock
 	private GoogleCalendarSyncService googleCalendarSyncService;
 
+	@Mock
+	private EntityManager entityManager;
+
+	@Mock
+	private Query nativeQuery;
+
 	@InjectMocks
 	private AppointmentService appointmentService;
 
@@ -90,6 +101,10 @@ class AppointmentServiceTest {
 		syncedSync = buildSyncStatus(UUID.randomUUID(), SYNCED);
 		failedSync = buildSyncStatus(UUID.randomUUID(), FAILED);
 		notSyncedSync = buildSyncStatus(UUID.randomUUID(), NOT_SYNCED);
+
+		lenient().when(entityManager.createNativeQuery(any())).thenReturn(nativeQuery);
+		lenient().when(nativeQuery.setParameter(anyString(), any())).thenReturn(nativeQuery);
+		lenient().when(nativeQuery.executeUpdate()).thenReturn(1);
 	}
 
 	@Test
@@ -181,7 +196,7 @@ class AppointmentServiceTest {
 		entity.setCalendarSyncStatus(syncedSync);
 
 		AppointmentUpdateDto request = new AppointmentUpdateDto(scheduledStatus.getId(),
-				OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusHours(1), UPDATED_NOTES, true);
+				LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(1).plusHours(1), UPDATED_NOTES, true);
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
@@ -199,7 +214,7 @@ class AppointmentServiceTest {
 		entity.setExternalCalendarEventId(null);
 
 		AppointmentUpdateDto request = new AppointmentUpdateDto(scheduledStatus.getId(),
-				OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusHours(1), UPDATED_NOTES, true);
+				LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(1).plusHours(1), UPDATED_NOTES, true);
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
@@ -217,7 +232,7 @@ class AppointmentServiceTest {
 		entity.setCalendarSyncStatus(syncedSync);
 
 		AppointmentUpdateDto request = new AppointmentUpdateDto(scheduledStatus.getId(),
-				OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusHours(1), UPDATED_NOTES, true);
+				LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(1).plusHours(1), UPDATED_NOTES, true);
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.of(entity));
 		when(appointmentStatusRepository.findById(request.statusId())).thenReturn(Optional.of(scheduledStatus));
@@ -231,8 +246,8 @@ class AppointmentServiceTest {
 	@Test
 	void shouldThrowNotFoundWhenUpdatingNonExistentAppointment() {
 		UUID id = UUID.randomUUID();
-		AppointmentUpdateDto request = new AppointmentUpdateDto(scheduledStatus.getId(), OffsetDateTime.now(),
-				OffsetDateTime.now().plusHours(1), null, true);
+		AppointmentUpdateDto request = new AppointmentUpdateDto(scheduledStatus.getId(), LocalDateTime.now(),
+				LocalDateTime.now().plusHours(1), null, true);
 
 		when(appointmentRepository.findById(id)).thenReturn(Optional.empty());
 
@@ -296,8 +311,8 @@ class AppointmentServiceTest {
 
 	private AppointmentCreateDto buildCreateDto() {
 		return new AppointmentCreateDto(UUID.randomUUID(), UUID.randomUUID(), null, UUID.randomUUID(),
-				scheduledStatus.getId(), OffsetDateTime.now().plusDays(1),
-				OffsetDateTime.now().plusDays(1).plusHours(1), "Consulta de rotina", true);
+				scheduledStatus.getId(), LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(1).plusHours(1),
+				"Consulta de rotina", true);
 	}
 
 	private AppointmentEntity buildEntity(UUID id) {
