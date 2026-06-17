@@ -194,7 +194,9 @@ public class AppointmentService {
 	}
 
 	private String fetchPatientName(UUID patientId) {
-		if (patientId == null) return null;
+		if (patientId == null) {
+			return null;
+		}
 		try {
 			return (String) entityManager.createNativeQuery("SELECT full_name FROM patient WHERE id = :id")
 					.setParameter("id", patientId).getSingleResult();
@@ -204,7 +206,9 @@ public class AppointmentService {
 	}
 
 	private String fetchProfessionalName(UUID professionalId) {
-		if (professionalId == null) return null;
+		if (professionalId == null) {
+			return null;
+		}
 		try {
 			return (String) entityManager.createNativeQuery(
 					"SELECT u.full_name FROM app_user u JOIN professional p ON p.user_id = u.id WHERE p.id = :id")
