@@ -2,7 +2,7 @@ package com.clinica.mariana.restms.appointment.dto;
 
 import jakarta.validation.constraints.NotNull;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record AppointmentCreateDto(
@@ -15,11 +15,11 @@ public record AppointmentCreateDto(
 
 		@NotNull(message = "professionalId is required") UUID professionalId,
 
-		@NotNull(message = "statusId is required") UUID statusId,
+		UUID statusId,
 
-		@NotNull(message = "startDatetime is required") OffsetDateTime startDatetime,
+		@NotNull(message = "startDatetime is required") LocalDateTime startDatetime,
 
-		@NotNull(message = "endDatetime is required") OffsetDateTime endDatetime,
+		@NotNull(message = "endDatetime is required") LocalDateTime endDatetime,
 
 		String notes,
 
