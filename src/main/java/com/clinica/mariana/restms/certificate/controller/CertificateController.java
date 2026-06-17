@@ -2,6 +2,7 @@ package com.clinica.mariana.restms.certificate.controller;
 
 import com.clinica.mariana.restms.certificate.dto.CertificateCreateDto;
 import com.clinica.mariana.restms.certificate.dto.CertificateDto;
+import com.clinica.mariana.restms.certificate.dto.CertificateFeaturedDto;
 import com.clinica.mariana.restms.certificate.dto.CertificateUpdateDto;
 import com.clinica.mariana.restms.certificate.service.CertificateService;
 import jakarta.annotation.security.RolesAllowed;
@@ -12,6 +13,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -45,10 +48,21 @@ public class CertificateController {
 		return service.findAll(pageable);
 	}
 
+	@GetMapping("/featured")
+	public List<CertificateDto> findFeatured() {
+		return service.findFeatured();
+	}
+
 	@GetMapping("/{id}")
 	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public CertificateDto findById(@PathVariable UUID id) {
 		return service.findById(id);
+	}
+
+	@PatchMapping("/{id}/featured")
+	@RolesAllowed("ADMIN")
+	public CertificateDto setFeatured(@PathVariable UUID id, @RequestBody CertificateFeaturedDto request) {
+		return service.setFeatured(id, request.featured());
 	}
 
 	@PutMapping("/{id}")

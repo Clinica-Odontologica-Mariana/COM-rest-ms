@@ -15,12 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.clinica.mariana.restms.common.exception.AppException;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 public class CertificateService {
 
 	private static final String CERTIFICATE_NOT_FOUND = "Certificate not found";
+	private static final long MAX_FEATURED = 3;
 
 	private final CertificateRepository certificateRepository;
 	private final ProfessionalRepository professionalRepository;
@@ -52,6 +54,24 @@ public class CertificateService {
 	@Transactional(readOnly = true)
 	public CertificateDto findById(UUID id) {
 		return toDto(findActiveEntity(id));
+	}
+
+	@Transactional(readOnly = true)
+	public List<CertificateDto> findFeatured() {
+		return certificateRepository.findAllByFeaturedTrueAndActiveTrueOrderByIssuedAtDesc().stream().map(this::toDto)
+				.toList();
+	}
+
+	@Transactional
+	public CertificateDto setFeatured(UUID id, boolean featured) {
+		CertificateEntity entity = findActiveEntity(id);
+		if (featured && !entity.isFeatured()
+				&& certificateRepository.countByFeaturedTrueAndActiveTrue() >= MAX_FEATURED) {
+			throw new AppException(HttpStatus.UNPROCESSABLE_ENTITY, "FEATURED_LIMIT_REACHED",
+					"Máximo de " + MAX_FEATURED + " certificados em destaque");
+		}
+		entity.setFeatured(featured);
+		return toDto(certificateRepository.save(entity));
 	}
 
 	@Transactional
@@ -106,6 +126,7 @@ public class CertificateService {
 	private CertificateDto toDto(CertificateEntity entity) {
 		return new CertificateDto(entity.getId(), entity.getProfessionalId(), entity.getTitle(),
 				entity.getCertificateType(), entity.getContent(), entity.getIssuedAt(), entity.getStoredFileId(),
-				entity.isActive(), entity.getRevokedAt(), entity.getCreatedAt(), entity.getUpdatedAt());
+				entity.isActive(), entity.isFeatured(), entity.getRevokedAt(), entity.getCreatedAt(),
+				entity.getUpdatedAt());
 	}
 }
