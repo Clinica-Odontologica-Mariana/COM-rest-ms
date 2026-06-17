@@ -91,8 +91,7 @@ class AppointmentControllerHttpTest {
 		jdbcTemplate.update(
 				"merge into patient (id, full_name, cpf, phone, birth_date, active) key(id) values (?, ?, ?, ?, ?, ?)",
 				PATIENT_ID, "Paciente HTTP", "12345678902", "61988888888", LocalDate.of(1990, 1, 1), true);
-		jdbcTemplate.update("merge into app_user (id, full_name) key(id) values (?, ?)", USER_ID,
-				"Profissional HTTP");
+		jdbcTemplate.update("merge into app_user (id, full_name) key(id) values (?, ?)", USER_ID, "Profissional HTTP");
 		jdbcTemplate.update(
 				"merge into professional (id, user_id, clinic_id, specialty_id, license_number, active) key(id) values (?, ?, ?, ?, ?, ?)",
 				PROFESSIONAL_ID, USER_ID, CLINIC_ID, SPECIALTY_ID, "CRO-HTTP-001", true);
@@ -106,9 +105,9 @@ class AppointmentControllerHttpTest {
 		@Test
 		@DisplayName("When created, then 201 is returned with appointment data")
 		void shouldCreateAndReturnAppointment() throws Exception {
-			mockMvc.perform(post(BASE).contextPath(CONTEXT_PATH).with(jwtAsReceptionist()).contentType(MediaType.APPLICATION_JSON)
-					.content(buildCreatePayload(STATUS_SCHEDULED))).andExpect(status().isCreated())
-					.andExpect(jsonPath("$.data.id", notNullValue()))
+			mockMvc.perform(post(BASE).contextPath(CONTEXT_PATH).with(jwtAsReceptionist())
+					.contentType(MediaType.APPLICATION_JSON).content(buildCreatePayload(STATUS_SCHEDULED)))
+					.andExpect(status().isCreated()).andExpect(jsonPath("$.data.id", notNullValue()))
 					.andExpect(jsonPath("$.data.statusCode", is(SCHEDULED)))
 					.andExpect(jsonPath("$.data.notes", is(CONSULTA_DE_ROTINA)))
 					.andExpect(jsonPath("$.data.id", notNullValue()));
@@ -134,8 +133,7 @@ class AppointmentControllerHttpTest {
 			mockMvc.perform(get(BASE + "/period").contextPath(CONTEXT_PATH).with(jwtAsReceptionist())
 					.param("start", start.toLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
 					.param("end", end.toLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath(DATA_PATH, hasSize(greaterThanOrEqualTo(1))))
+					.andExpect(status().isOk()).andExpect(jsonPath(DATA_PATH, hasSize(greaterThanOrEqualTo(1))))
 					.andExpect(jsonPath("$.data.content[0].id", is(created.id().toString())));
 		}
 
@@ -157,8 +155,10 @@ class AppointmentControllerHttpTest {
 							  "notes": "%s",
 							  "blocksSchedule": true
 							}
-							""".formatted(STATUS_CONFIRMED, newStart.toLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-							newEnd.toLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), CONSULTA_CONFIRMADA)))
+							""".formatted(STATUS_CONFIRMED,
+							newStart.toLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+							newEnd.toLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+							CONSULTA_CONFIRMADA)))
 					.andExpect(status().isOk()).andExpect(jsonPath("$.data.statusCode", is(CONFIRMED)))
 					.andExpect(jsonPath("$.data.notes", is(CONSULTA_CONFIRMADA)));
 		}
@@ -177,8 +177,8 @@ class AppointmentControllerHttpTest {
 
 		private AppointmentDto createAppointment(String statusId) throws Exception {
 			String response = mockMvc
-					.perform(post(BASE).contextPath(CONTEXT_PATH).with(jwtAsReceptionist()).contentType(MediaType.APPLICATION_JSON)
-							.content(buildCreatePayload(statusId)))
+					.perform(post(BASE).contextPath(CONTEXT_PATH).with(jwtAsReceptionist())
+							.contentType(MediaType.APPLICATION_JSON).content(buildCreatePayload(statusId)))
 					.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
 
 			JsonNode responseNode = objectMapper.readTree(response);

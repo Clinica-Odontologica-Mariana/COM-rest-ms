@@ -40,8 +40,7 @@ public class AppointmentService {
 			AppointmentStatusRepository appointmentStatusRepository,
 			CalendarProviderRepository calendarProviderRepository,
 			CalendarSyncStatusRepository calendarSyncStatusRepository,
-			GoogleCalendarSyncService googleCalendarSyncService,
-			EntityManager entityManager) {
+			GoogleCalendarSyncService googleCalendarSyncService, EntityManager entityManager) {
 		this.appointmentRepository = appointmentRepository;
 		this.appointmentStatusRepository = appointmentStatusRepository;
 		this.calendarProviderRepository = calendarProviderRepository;
@@ -181,12 +180,10 @@ public class AppointmentService {
 	}
 
 	private void ensurePatientClinicLink(UUID patientId, UUID clinicId) {
-		entityManager.createNativeQuery(
-				"INSERT INTO patient_clinic (patient_id, clinic_id, primary_clinic, active) " +
-				"VALUES (:patientId, :clinicId, false, true) ON CONFLICT DO NOTHING")
-				.setParameter("patientId", patientId)
-				.setParameter("clinicId", clinicId)
-				.executeUpdate();
+		entityManager
+				.createNativeQuery("INSERT INTO patient_clinic (patient_id, clinic_id, primary_clinic, active) "
+						+ "VALUES (:patientId, :clinicId, false, true) ON CONFLICT DO NOTHING")
+				.setParameter("patientId", patientId).setParameter("clinicId", clinicId).executeUpdate();
 	}
 
 	private OffsetDateTime toOffsetUtc(LocalDateTime ldt) {
