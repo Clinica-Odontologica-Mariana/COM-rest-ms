@@ -6,6 +6,7 @@ import com.clinica.mariana.restms.clinic.dto.ClinicCreateDto;
 import com.clinica.mariana.restms.clinic.dto.ClinicDto;
 import com.clinica.mariana.restms.clinic.dto.ClinicUpdateDto;
 import com.clinica.mariana.restms.clinic.dto.ClinicWorkingHoursSaveDto;
+import com.clinica.mariana.restms.clinic.dto.PublicClinicDto;
 import com.clinica.mariana.restms.clinic.dto.WorkingHoursDto;
 import com.clinica.mariana.restms.clinic.entity.ClinicEntity;
 import com.clinica.mariana.restms.clinic.model.ClinicStoredWorkingHours;
@@ -69,6 +70,11 @@ public class ClinicService {
 	@Transactional(readOnly = true)
 	public Page<ClinicDto> findAll(Pageable pageable) {
 		return clinicRepository.findAll(pageable).map(this::toDto);
+	}
+
+	@Transactional(readOnly = true)
+	public Page<PublicClinicDto> findAllPublic(Pageable pageable) {
+		return clinicRepository.findByActiveTrue(pageable).map(this::toPublicDto);
 	}
 
 	@Transactional(readOnly = true)
@@ -240,6 +246,17 @@ public class ClinicService {
 				entity.getTimezone(), entity.getWhatsapp(), entity.getInstagram(), entity.getClinicPhotoFileId(),
 				clinicPhotoUrl, entity.getInactiveType(), entity.getInactiveFrom(), entity.getInactiveTo(),
 				entity.isActive(), entity.getCreatedAt(), entity.getUpdatedAt(), address, workingHours);
+	}
+
+	private PublicClinicDto toPublicDto(ClinicEntity entity) {
+		String clinicPhotoUrl = entity.getClinicPhotoFileId() == null
+				? null
+				: storedFileService.presignedDownloadUrl(entity.getClinicPhotoFileId(), FileCategory.CLINIC_PHOTO)
+						.url();
+		AddressDto address = toAddressDto(entity);
+		List<WorkingHoursDto> workingHours = workingHoursJsonSupport.toDtos(entity.getId(), entity.getWorkingHoursJson());
+		return new PublicClinicDto(entity.getId(), entity.getName(), entity.getPhone(), entity.getEmail(),
+				entity.getWhatsapp(), entity.getInstagram(), clinicPhotoUrl, address, workingHours);
 	}
 
 	private AddressDto toAddressDto(ClinicEntity entity) {

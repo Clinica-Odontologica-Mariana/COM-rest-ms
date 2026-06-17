@@ -38,6 +38,7 @@ class ClinicControllerIntegrationTest {
 
 	private static final String CONTEXT_PATH = "/api/v1";
 	private static final String CLINICS_ENDPOINT = "/api/v1/clinics";
+	private static final String PUBLIC_CLINICS_ENDPOINT = "/api/v1/clinics/public";
 	private static final String CLINIC_BY_ID_ENDPOINT = "/api/v1/clinics/{id}";
 	private static final String ROLE_ADMIN = "ADMIN";
 	private static final String ROLE_DOCTOR = "DOCTOR";
@@ -107,6 +108,42 @@ class ClinicControllerIntegrationTest {
 			mockMvc.perform(get(CLINICS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
 					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(1)))
 					.andExpect(jsonPath("$.data.content[0].active", is(false)));
+		}
+
+		@Test
+		@DisplayName("When public clinics are listed, then only active clinics and public fields are returned")
+		void shouldListOnlyActiveClinicsForPublicPage() throws Exception {
+			ClinicDto activeClinic = createClinic("""
+					{
+					  "name": "Clinica Mariana Publica",
+					  "phone": "11999999999",
+					  "email": "publica@clinic.com",
+					  "timezone": "America/Sao_Paulo"
+					}
+					""");
+			ClinicDto inactiveClinic = createClinic("""
+					{
+					  "name": "Clinica Mariana Inativa",
+					  "phone": "11888888888",
+					  "email": "inativa@clinic.com",
+					  "timezone": "America/Sao_Paulo"
+					}
+					""");
+
+			mockMvc.perform(patch("/api/v1/clinics/{id}/inactivate", inactiveClinic.id()).contextPath(CONTEXT_PATH)
+					.with(jwtWithRole(ROLE_ADMIN))).andExpect(status().isOk());
+
+			mockMvc.perform(get(PUBLIC_CLINICS_ENDPOINT).contextPath(CONTEXT_PATH)).andExpect(status().isOk())
+					.andExpect(jsonPath("$.data.content", hasSize(1)))
+					.andExpect(jsonPath("$.data.content[0].id", is(activeClinic.id().toString())))
+					.andExpect(jsonPath("$.data.content[0].name", is("Clinica Mariana Publica")))
+					.andExpect(jsonPath("$.data.content[0].clinicPhotoFileId").doesNotExist())
+					.andExpect(jsonPath("$.data.content[0].inactiveType").doesNotExist())
+					.andExpect(jsonPath("$.data.content[0].inactiveFrom").doesNotExist())
+					.andExpect(jsonPath("$.data.content[0].inactiveTo").doesNotExist())
+					.andExpect(jsonPath("$.data.content[0].active").doesNotExist())
+					.andExpect(jsonPath("$.data.content[0].createdAt").doesNotExist())
+					.andExpect(jsonPath("$.data.content[0].updatedAt").doesNotExist());
 		}
 
 		@Test

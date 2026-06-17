@@ -32,6 +32,7 @@ class ClinicSecurityTest {
 
 	private static final String CONTEXT_PATH = "/api/v1";
 	private static final String BASE = "/api/v1/clinics";
+	private static final String PUBLIC_BASE = "/api/v1/clinics/public";
 	private static final UUID RANDOM_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
 	@Autowired
@@ -42,9 +43,9 @@ class ClinicSecurityTest {
 	class UnauthenticatedRequest {
 
 		@Test
-		@DisplayName("When listing clinics, then 200 is returned")
-		void shouldAllowPublicClinicListing() throws Exception {
-			mockMvc.perform(get(BASE).contextPath(CONTEXT_PATH)).andExpect(status().isOk());
+		@DisplayName("When listing public clinics, then 200 is returned")
+		void shouldAllowPublicActiveClinicListing() throws Exception {
+			mockMvc.perform(get(PUBLIC_BASE).contextPath(CONTEXT_PATH)).andExpect(status().isOk());
 		}
 
 		@ParameterizedTest(name = "{0}")
@@ -56,7 +57,8 @@ class ClinicSecurityTest {
 
 		static Stream<Arguments> protectedEndpoints() {
 			UUID id = RANDOM_ID;
-			return Stream.of(Arguments.of("GET /clinics/{id}", get(BASE + "/" + id)),
+			return Stream.of(Arguments.of("GET /clinics", get(BASE)),
+					Arguments.of("GET /clinics/{id}", get(BASE + "/" + id)),
 					Arguments.of("POST /clinics", post(BASE).contentType(MediaType.APPLICATION_JSON).content("{}")),
 					Arguments.of("PUT /clinics/{id}",
 							put(BASE + "/" + id).contentType(MediaType.APPLICATION_JSON).content("{}")),
@@ -100,7 +102,8 @@ class ClinicSecurityTest {
 
 		static Stream<Arguments> protectedEndpoints() {
 			UUID id = RANDOM_ID;
-			return Stream.of(Arguments.of("GET /clinics/{id}", get(BASE + "/" + id)),
+			return Stream.of(Arguments.of("GET /clinics", get(BASE)),
+					Arguments.of("GET /clinics/{id}", get(BASE + "/" + id)),
 					Arguments.of("DELETE /clinics/{id}", delete(BASE + "/" + id)),
 					Arguments.of("PATCH /clinics/{id}/inactivate", patch(BASE + "/" + id + "/inactivate")));
 		}
