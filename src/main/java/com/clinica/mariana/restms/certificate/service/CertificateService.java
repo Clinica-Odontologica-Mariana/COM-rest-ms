@@ -7,13 +7,14 @@ import com.clinica.mariana.restms.certificate.entity.CertificateEntity;
 import com.clinica.mariana.restms.certificate.repository.CertificateRepository;
 import com.clinica.mariana.restms.professional.repository.ProfessionalRepository;
 import com.clinica.mariana.restms.storedfile.repository.StoredFileRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.clinica.mariana.restms.common.exception.AppException;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -44,8 +45,8 @@ public class CertificateService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<CertificateDto> findAll() {
-		return certificateRepository.findAllByActiveTrueOrderByIssuedAtDesc().stream().map(this::toDto).toList();
+	public Page<CertificateDto> findAll(Pageable pageable) {
+		return certificateRepository.findAllByActiveTrueOrderByIssuedAtDesc(pageable).map(this::toDto);
 	}
 
 	@Transactional(readOnly = true)
