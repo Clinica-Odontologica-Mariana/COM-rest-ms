@@ -2,6 +2,7 @@ package com.clinica.mariana.restms.clinic.integration;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -31,6 +32,7 @@ class ClinicSecurityTest {
 
 	private static final String CONTEXT_PATH = "/api/v1";
 	private static final String BASE = "/api/v1/clinics";
+	private static final String PUBLIC_BASE = "/api/v1/clinics/public";
 	private static final UUID RANDOM_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
 	@Autowired
@@ -40,9 +42,15 @@ class ClinicSecurityTest {
 	@DisplayName("Given an unauthenticated request")
 	class UnauthenticatedRequest {
 
+		@Test
+		@DisplayName("When listing public clinics, then 200 is returned")
+		void shouldAllowPublicActiveClinicListing() throws Exception {
+			mockMvc.perform(get(PUBLIC_BASE).contextPath(CONTEXT_PATH)).andExpect(status().isOk());
+		}
+
 		@ParameterizedTest(name = "{0}")
 		@MethodSource("protectedEndpoints")
-		@DisplayName("When accessing any endpoint, then 401 is returned")
+		@DisplayName("When accessing protected endpoints, then 401 is returned")
 		void shouldReturn401(String label, MockHttpServletRequestBuilder request) throws Exception {
 			mockMvc.perform(request.contextPath(CONTEXT_PATH)).andExpect(status().isUnauthorized());
 		}
