@@ -6,6 +6,9 @@ import com.clinica.mariana.restms.certificate.dto.CertificateUpdateDto;
 import com.clinica.mariana.restms.certificate.service.CertificateService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -37,16 +39,16 @@ public class CertificateController {
 		return service.create(request);
 	}
 
+	@GetMapping
+	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
+	public Page<CertificateDto> findAll(@PageableDefault(size = 20) Pageable pageable) {
+		return service.findAll(pageable);
+	}
+
 	@GetMapping("/{id}")
 	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	public CertificateDto findById(@PathVariable UUID id) {
 		return service.findById(id);
-	}
-
-	@GetMapping("/by-patient/{patientId}")
-	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
-	public List<CertificateDto> findByPatient(@PathVariable UUID patientId) {
-		return service.findByPatient(patientId);
 	}
 
 	@PutMapping("/{id}")

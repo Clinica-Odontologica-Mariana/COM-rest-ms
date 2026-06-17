@@ -5,6 +5,8 @@ import com.clinica.mariana.restms.medicalrecord.entity.MedicalRecordEntity;
 import com.clinica.mariana.restms.medicalrecord.repository.MedicalRecordRepository;
 import com.clinica.mariana.restms.patient.repository.PatientRepository;
 import com.clinica.mariana.restms.professional.repository.ProfessionalRepository;
+import com.clinica.mariana.restms.treatment.dto.MaterialItemCreateDto;
+import com.clinica.mariana.restms.treatment.dto.MaterialItemDto;
 import com.clinica.mariana.restms.treatment.dto.TreatmentPlanCreateDto;
 import com.clinica.mariana.restms.treatment.dto.TreatmentPlanDto;
 import com.clinica.mariana.restms.treatment.dto.TreatmentPlanItemCreateDto;
@@ -13,6 +15,8 @@ import com.clinica.mariana.restms.treatment.dto.TreatmentPlanItemUpdateDto;
 import com.clinica.mariana.restms.treatment.dto.TreatmentPlanUpdateDto;
 import com.clinica.mariana.restms.treatment.entity.TreatmentPlanEntity;
 import com.clinica.mariana.restms.treatment.entity.TreatmentPlanItemEntity;
+import com.clinica.mariana.restms.treatment.entity.TreatmentPlanItemMaterialEntity;
+import com.clinica.mariana.restms.treatment.repository.TreatmentPlanItemMaterialRepository;
 import com.clinica.mariana.restms.treatment.repository.TreatmentPlanItemRepository;
 import com.clinica.mariana.restms.treatment.repository.TreatmentPlanRepository;
 import org.springframework.http.HttpStatus;
@@ -21,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.clinica.mariana.restms.common.exception.AppException;
 
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,16 +37,19 @@ public class TreatmentPlanService {
 
 	private final TreatmentPlanRepository planRepository;
 	private final TreatmentPlanItemRepository itemRepository;
+	private final TreatmentPlanItemMaterialRepository materialRepository;
 	private final PatientRepository patientRepository;
 	private final MedicalRecordRepository medicalRecordRepository;
 	private final ProfessionalRepository professionalRepository;
 	private final ClinicalProcedureRepository procedureRepository;
 
 	public TreatmentPlanService(TreatmentPlanRepository planRepository, TreatmentPlanItemRepository itemRepository,
-			PatientRepository patientRepository, MedicalRecordRepository medicalRecordRepository,
-			ProfessionalRepository professionalRepository, ClinicalProcedureRepository procedureRepository) {
+			TreatmentPlanItemMaterialRepository materialRepository, PatientRepository patientRepository,
+			MedicalRecordRepository medicalRecordRepository, ProfessionalRepository professionalRepository,
+			ClinicalProcedureRepository procedureRepository) {
 		this.planRepository = planRepository;
 		this.itemRepository = itemRepository;
+		this.materialRepository = materialRepository;
 		this.patientRepository = patientRepository;
 		this.medicalRecordRepository = medicalRecordRepository;
 		this.professionalRepository = professionalRepository;
@@ -102,16 +110,18 @@ public class TreatmentPlanService {
 		validateTooth(request.toothNumber());
 		TreatmentPlanItemEntity entity = new TreatmentPlanItemEntity();
 		entity.setTreatmentPlanId(planId);
-		applyItem(entity, request.procedureId(), request.toothNumber(), request.description(), request.estimatedPrice(),
-				defaultIfBlank(request.status(), "PENDING"), request.sortOrder());
-		return toDto(itemRepository.save(entity));
+		applyItem(entity, request.procedureId(), request.toothNumber(), request.description(), request.category(),
+				request.estimatedPrice(), defaultIfBlank(request.status(), "PENDING"), request.sortOrder());
+		TreatmentPlanItemEntity saved = itemRepository.save(entity);
+		List<TreatmentPlanItemMaterialEntity> materials = saveMaterials(saved.getId(), request.materials());
+		return toDto(saved, materials);
 	}
 
 	@Transactional(readOnly = true)
 	public List<TreatmentPlanItemDto> findItems(UUID planId) {
 		findPlan(planId);
-		return itemRepository.findAllByTreatmentPlanIdOrderBySortOrderAscCreatedAtAsc(planId).stream().map(this::toDto)
-				.toList();
+		return itemRepository.findAllByTreatmentPlanIdOrderBySortOrderAscCreatedAtAsc(planId).stream()
+				.map(item -> toDto(item, materialRepository.findAllByItemId(item.getId()))).toList();
 	}
 
 	@Transactional
@@ -119,17 +129,23 @@ public class TreatmentPlanService {
 		TreatmentPlanItemEntity entity = findItem(itemId);
 		validateProcedure(request.procedureId());
 		validateTooth(request.toothNumber());
-		applyItem(entity, request.procedureId(), request.toothNumber(), request.description(), request.estimatedPrice(),
-				defaultIfBlank(request.status(), entity.getStatus()), request.sortOrder());
-		return toDto(itemRepository.save(entity));
+		applyItem(entity, request.procedureId(), request.toothNumber(), request.description(), request.category(),
+				request.estimatedPrice(), defaultIfBlank(request.status(), entity.getStatus()), request.sortOrder());
+		TreatmentPlanItemEntity saved = itemRepository.save(entity);
+		materialRepository.deleteAllByItemId(itemId);
+		List<TreatmentPlanItemMaterialEntity> materials = saveMaterials(itemId, request.materials());
+		return toDto(saved, materials);
 	}
 
 	@Transactional
 	public TreatmentPlanItemDto completeItem(UUID itemId) {
 		TreatmentPlanItemEntity entity = findItem(itemId);
+		if ("DONE".equals(entity.getStatus())) {
+			return toDto(entity, materialRepository.findAllByItemId(itemId));
+		}
 		entity.setStatus("DONE");
 		entity.setCompletedAt(OffsetDateTime.now());
-		return toDto(itemRepository.save(entity));
+		return toDto(itemRepository.save(entity), materialRepository.findAllByItemId(itemId));
 	}
 
 	@Transactional
@@ -137,6 +153,21 @@ public class TreatmentPlanService {
 		TreatmentPlanItemEntity entity = findItem(itemId);
 		entity.setStatus("CANCELLED");
 		itemRepository.save(entity);
+	}
+
+	private List<TreatmentPlanItemMaterialEntity> saveMaterials(UUID itemId, List<MaterialItemCreateDto> materials) {
+		if (materials == null || materials.isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<TreatmentPlanItemMaterialEntity> entities = materials.stream().map(m -> {
+			TreatmentPlanItemMaterialEntity e = new TreatmentPlanItemMaterialEntity();
+			e.setItemId(itemId);
+			e.setName(m.name());
+			e.setCategory(m.category());
+			e.setQuantity(m.quantity() == null ? 1 : m.quantity());
+			return e;
+		}).toList();
+		return materialRepository.saveAll(entities);
 	}
 
 	private TreatmentPlanEntity findPlan(UUID id) {
@@ -187,10 +218,11 @@ public class TreatmentPlanService {
 	}
 
 	private void applyItem(TreatmentPlanItemEntity entity, UUID procedureId, Integer toothNumber, String description,
-			java.math.BigDecimal estimatedPrice, String status, Integer sortOrder) {
+			String category, java.math.BigDecimal estimatedPrice, String status, Integer sortOrder) {
 		entity.setProcedureId(procedureId);
 		entity.setToothNumber(toothNumber);
 		entity.setDescription(description);
+		entity.setCategory(category);
 		entity.setEstimatedPrice(estimatedPrice);
 		entity.setStatus(status);
 		entity.setSortOrder(sortOrder == null ? 1 : sortOrder);
@@ -206,9 +238,13 @@ public class TreatmentPlanService {
 				entity.getTotalAmount(), entity.getCreatedByUserId(), entity.getCreatedAt(), entity.getUpdatedAt());
 	}
 
-	private TreatmentPlanItemDto toDto(TreatmentPlanItemEntity entity) {
+	private TreatmentPlanItemDto toDto(TreatmentPlanItemEntity entity,
+			List<TreatmentPlanItemMaterialEntity> materials) {
+		List<MaterialItemDto> materialDtos = materials.stream()
+				.map(m -> new MaterialItemDto(m.getId(), m.getName(), m.getCategory(), m.getQuantity())).toList();
 		return new TreatmentPlanItemDto(entity.getId(), entity.getTreatmentPlanId(), entity.getProcedureId(),
-				entity.getToothNumber(), entity.getDescription(), entity.getEstimatedPrice(), entity.getStatus(),
-				entity.getSortOrder(), entity.getCompletedAt(), entity.getCreatedAt());
+				entity.getToothNumber(), entity.getDescription(), entity.getCategory(), entity.getEstimatedPrice(),
+				entity.getStatus(), entity.getSortOrder(), entity.getCompletedAt(), entity.getCreatedAt(),
+				materialDtos);
 	}
 }
