@@ -38,6 +38,9 @@ public class TreatmentPlanItemEntity {
 	@Column(name = "description", nullable = false)
 	private String description;
 
+	@Column(name = "category", length = 100)
+	private String category;
+
 	@Column(name = "estimated_price")
 	private BigDecimal estimatedPrice;
 
