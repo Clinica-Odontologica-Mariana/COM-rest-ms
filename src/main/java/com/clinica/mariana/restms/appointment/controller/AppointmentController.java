@@ -14,10 +14,8 @@ import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,7 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-
 import java.util.UUID;
 
 @RestController
@@ -78,8 +75,8 @@ public class AppointmentController {
 			@ApiResponse(responseCode = "401", description = "Não autenticado"),
 			@ApiResponse(responseCode = "403", description = "Sem permissão")})
 	public Page<AppointmentDto> findByPeriod(@PageableDefault(size = 20) Pageable pageable,
-			@Parameter(description = "Data/hora de início (ISO 8601)", example = "2026-06-01T08:00:00") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-			@Parameter(description = "Data/hora de fim (ISO 8601)", example = "2026-06-30T18:00:00") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
 		return appointmentService.findByPeriod(start.atOffset(ZoneOffset.UTC), end.atOffset(ZoneOffset.UTC), pageable);
 	}
 
