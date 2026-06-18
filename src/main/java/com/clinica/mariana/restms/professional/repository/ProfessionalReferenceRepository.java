@@ -18,6 +18,11 @@ public class ProfessionalReferenceRepository {
 		return existsById("app_user", id);
 	}
 
+	public String findUserFullName(UUID userId) {
+		return (String) entityManager.createNativeQuery("select full_name from app_user where id = :id")
+				.setParameter("id", userId).getResultStream().findFirst().orElse(null);
+	}
+
 	public boolean clinicExists(UUID id) {
 		return existsById("clinic", id);
 	}

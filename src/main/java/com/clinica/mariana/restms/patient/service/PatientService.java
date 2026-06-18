@@ -1,5 +1,8 @@
 package com.clinica.mariana.restms.patient.service;
 
+import com.clinica.mariana.restms.address.dto.AddressDto;
+import com.clinica.mariana.restms.address.entity.AddressEntity;
+import com.clinica.mariana.restms.address.repository.AddressRepository;
 import com.clinica.mariana.restms.medicalrecord.service.MedicalRecordService;
 import com.clinica.mariana.restms.patient.dto.PatientCreateDto;
 import com.clinica.mariana.restms.patient.dto.PatientDto;
@@ -23,22 +26,26 @@ public class PatientService {
 
 	private final PatientRepository patientRepository;
 	private final MedicalRecordService medicalRecordService;
+	private final AddressRepository addressRepository;
 
-	public PatientService(PatientRepository patientRepository, MedicalRecordService medicalRecordService) {
+	public PatientService(PatientRepository patientRepository, MedicalRecordService medicalRecordService,
+			AddressRepository addressRepository) {
 		this.patientRepository = patientRepository;
 		this.medicalRecordService = medicalRecordService;
+		this.addressRepository = addressRepository;
 	}
 
 	@Transactional
 	public PatientDto create(PatientCreateDto request) {
-		if (patientRepository.existsByCpf(request.cpf())) {
+		String cpf = normalizeCpf(request.cpf());
+		if (patientRepository.existsByCpf(cpf)) {
 			throw new AppException(HttpStatus.CONFLICT, "CPF_ALREADY_EXISTS", "Patient cpf already exists");
 		}
 
 		PatientEntity entity = new PatientEntity();
 		entity.setAddressId(request.addressId());
 		entity.setFullName(request.fullName());
-		entity.setCpf(request.cpf());
+		entity.setCpf(cpf);
 		entity.setPhone(request.phone());
 		entity.setEmail(request.email());
 		entity.setBirthDate(request.birthDate());
@@ -80,19 +87,30 @@ public class PatientService {
 		PatientEntity entity = patientRepository.findById(id)
 				.orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "PATIENT_NOT_FOUND", PATIENT_NOT_FOUND));
 
-		if (patientRepository.existsByCpfAndIdNot(request.cpf(), id)) {
+		String cpf = normalizeCpf(request.cpf());
+		if (patientRepository.existsByCpfAndIdNot(cpf, id)) {
 			throw new AppException(HttpStatus.CONFLICT, "CPF_ALREADY_EXISTS", "Patient cpf already exists");
 		}
 
 		entity.setAddressId(request.addressId());
 		entity.setFullName(request.fullName());
-		entity.setCpf(request.cpf());
+		entity.setCpf(cpf);
 		entity.setPhone(request.phone());
 		entity.setEmail(request.email());
 		entity.setBirthDate(request.birthDate());
 		entity.setEmergencyContactName(request.emergencyContactName());
 		entity.setEmergencyContactPhone(request.emergencyContactPhone());
 		entity.setNotes(request.notes());
+
+		boolean becomingInactive = !request.active() && entity.isActive();
+		boolean becomingActive = request.active() && !entity.isActive();
+		entity.setActive(request.active());
+		if (becomingInactive) {
+			entity.setInactivatedAt(OffsetDateTime.now());
+		}
+		if (becomingActive) {
+			entity.setInactivatedAt(null);
+		}
 
 		return toDto(patientRepository.save(entity));
 	}
@@ -111,10 +129,23 @@ public class PatientService {
 		patientRepository.save(entity);
 	}
 
+	private String normalizeCpf(String cpf) {
+		return cpf.replaceAll("[^0-9]", "");
+	}
+
 	private PatientDto toDto(PatientEntity entity) {
-		return new PatientDto(entity.getId(), entity.getAddressId(), entity.getCreatedByUserId(), entity.getFullName(),
-				entity.getCpf(), entity.getPhone(), entity.getEmail(), entity.getBirthDate(),
+		AddressDto address = null;
+		if (entity.getAddressId() != null) {
+			address = addressRepository.findById(entity.getAddressId()).map(this::toAddressDto).orElse(null);
+		}
+		return new PatientDto(entity.getId(), entity.getAddressId(), address, entity.getCreatedByUserId(),
+				entity.getFullName(), entity.getCpf(), entity.getPhone(), entity.getEmail(), entity.getBirthDate(),
 				entity.getEmergencyContactName(), entity.getEmergencyContactPhone(), entity.getNotes(),
 				entity.isActive());
+	}
+
+	private AddressDto toAddressDto(AddressEntity a) {
+		return new AddressDto(a.getId(), a.getStreet(), a.getNumber(), a.getComplement(), a.getNeighborhood(),
+				a.getCity(), a.getState(), a.getZipCode());
 	}
 }
