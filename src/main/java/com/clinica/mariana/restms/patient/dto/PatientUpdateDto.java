@@ -15,7 +15,7 @@ public record PatientUpdateDto(UUID addressId,
 
 		@NotBlank(message = "fullName is required") @Size(max = 150, message = "fullName must have at most 150 characters") @Schema(example = "Mariana Alves Atualizada") String fullName,
 
-		@NotBlank(message = "cpf is required") @Pattern(regexp = "^[0-9]{11}$", message = "cpf must contain exactly 11 digits") @Schema(example = "12345678901") String cpf,
+		@NotBlank(message = "cpf is required") @Pattern(regexp = "^(\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}|\\d{11})$", message = "cpf must contain exactly 11 digits") @Schema(example = "12345678901") String cpf,
 
 		@NotBlank(message = "phone is required") @Size(max = 20, message = "phone must have at most 20 characters") @Schema(example = "61988887777") String phone,
 
@@ -27,5 +27,7 @@ public record PatientUpdateDto(UUID addressId,
 
 		@Size(max = 20, message = "emergencyContactPhone must have at most 20 characters") String emergencyContactPhone,
 
-		String notes) {
+		String notes,
+
+		@NotNull(message = "active is required") Boolean active) {
 }

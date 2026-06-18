@@ -313,19 +313,23 @@ class ProfessionalControllerIntegrationTest {
 	}
 
 	private void ensureReferenceTables() {
-		jdbcTemplate.execute("create table if not exists app_user (id uuid primary key)");
+		jdbcTemplate.execute("create table if not exists app_user (id uuid primary key, full_name varchar(150))");
 		jdbcTemplate.execute("create table if not exists clinic (id uuid primary key)");
 		jdbcTemplate.execute("create table if not exists specialty (id uuid primary key)");
 	}
 
 	private void seedReferenceData() {
-		insertReference("app_user", VALID_USER_ID);
-		insertReference("app_user", OTHER_USER_ID);
-		insertReference("app_user", THIRD_USER_ID);
-		insertReference("app_user", FOURTH_USER_ID);
+		insertUser(VALID_USER_ID, "Profissional Um");
+		insertUser(OTHER_USER_ID, "Profissional Dois");
+		insertUser(THIRD_USER_ID, "Profissional Tres");
+		insertUser(FOURTH_USER_ID, "Profissional Quatro");
 		insertClinic(CLINIC_ID, "Clinica Principal");
 		insertClinic(OTHER_CLINIC_ID, "Clinica Secundaria");
 		insertReference("specialty", SPECIALTY_ID);
+	}
+
+	private void insertUser(UUID id, String fullName) {
+		jdbcTemplate.update("merge into app_user (id, full_name) key(id) values (?, ?)", id, fullName);
 	}
 
 	private void insertReference(String tableName, UUID id) {

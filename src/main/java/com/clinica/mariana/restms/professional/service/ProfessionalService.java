@@ -126,7 +126,8 @@ public class ProfessionalService {
 	}
 
 	private ProfessionalDto toDto(ProfessionalEntity entity) {
-		return new ProfessionalDto(entity.getId(), entity.getUserId(), entity.getClinicId(), entity.getSpecialtyId(),
-				entity.getLicenseNumber(), entity.isActive());
+		String fullName = referenceRepository.findUserFullName(entity.getUserId());
+		return new ProfessionalDto(entity.getId(), entity.getUserId(), fullName, entity.getClinicId(),
+				entity.getSpecialtyId(), entity.getLicenseNumber(), entity.isActive());
 	}
 }
