@@ -53,8 +53,9 @@ public class UserService {
 	public List<UserSummaryDto> listUsers() {
 		String adminAccessToken = requestAdminToken();
 		List<Map<String, Object>> payload = fetchUsers(adminAccessToken);
+		Map<String, String> roleByUserId = fetchAppRoleByUserId(adminAccessToken);
 
-		return payload.stream().map(this::toUserSummary).toList();
+		return payload.stream().map(user -> toUserSummary(user, roleByUserId)).toList();
 	}
 
 	public UserProfileDto getCurrentUser(String userId, String username, Collection<String> roles) {
@@ -84,6 +85,7 @@ public class UserService {
 	}
 
 	public void changePassword(String userId, String username, ChangePasswordDto request) {
+		ensureNotServiceAccount(username);
 		if (!passwordMatches(username, request.currentPassword())) {
 			throw new AppException(HttpStatus.BAD_REQUEST, "INVALID_CURRENT_PASSWORD", "Senha atual incorreta");
 		}
@@ -112,6 +114,28 @@ public class UserService {
 
 	public void setUserStatus(String userId, boolean enabled) {
 		updateKeycloakUser(requestAdminToken(), userId, Map.of("enabled", enabled));
+	}
+
+	private void ensureNotServiceAccount(String username) {
+		if (username != null && username.equalsIgnoreCase(keycloakProperties.adminUsername())) {
+			throw new AppException(HttpStatus.FORBIDDEN, "PROTECTED_SERVICE_ACCOUNT",
+					"A conta de serviço do sistema não pode ser alterada nem removida.");
+		}
+	}
+
+	public void deleteUser(String userId) {
+		String adminAccessToken = requestAdminToken();
+		ensureNotServiceAccount(readString(fetchUser(adminAccessToken, userId), "username"));
+		try {
+			restClient.delete().uri("/admin/realms/{realm}/users/{userId}", keycloakProperties.realm(), userId)
+					.headers(headers -> headers.setBearerAuth(adminAccessToken)).retrieve().toBodilessEntity();
+		} catch (RestClientResponseException ex) {
+			if (ex.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
+				throw new AppException(HttpStatus.NOT_FOUND, USER_NOT_FOUND_CODE, USER_NOT_FOUND_MESSAGE);
+			}
+			throw new AppException(HttpStatus.BAD_GATEWAY, "KEYCLOAK_DELETE_USER_FAILED",
+					"Failed to delete user in Keycloak", List.of(STATUS_PREFIX + ex.getStatusCode().value()));
+		}
 	}
 
 	private String requestAdminToken() {
@@ -364,10 +388,42 @@ public class UserService {
 		return createdTimestamp instanceof Number number ? Instant.ofEpochMilli(number.longValue()).toString() : null;
 	}
 
-	private UserSummaryDto toUserSummary(Map<String, Object> payload) {
-		return new UserSummaryDto(readString(payload, "id"), readString(payload, "username"),
-				readString(payload, "email"), readBoolean(payload, "enabled"), readString(payload, "firstName"),
-				readString(payload, "lastName"));
+	private UserSummaryDto toUserSummary(Map<String, Object> payload, Map<String, String> roleByUserId) {
+		String id = readString(payload, "id");
+		return new UserSummaryDto(id, readString(payload, "username"), readString(payload, "email"),
+				readBoolean(payload, "enabled"), readString(payload, "firstName"), readString(payload, "lastName"),
+				id == null ? null : roleByUserId.get(id));
+	}
+
+	private Map<String, String> fetchAppRoleByUserId(String adminAccessToken) {
+		Map<String, String> roleByUserId = new LinkedHashMap<>();
+		for (String role : APP_ROLES) {
+			try {
+				for (Map<String, Object> user : fetchUsersInRole(adminAccessToken, role)) {
+					String userId = readString(user, "id");
+					if (userId != null) {
+						roleByUserId.put(userId, role);
+					}
+				}
+			} catch (AppException ex) {
+				// Role enrichment is best-effort; a failure for one role must not break the
+				// listing.
+			}
+		}
+		return roleByUserId;
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<Map<String, Object>> fetchUsersInRole(String adminAccessToken, String roleName) {
+		try {
+			List<?> response = restClient.get()
+					.uri("/admin/realms/{realm}/roles/{roleName}/users", keycloakProperties.realm(), roleName)
+					.headers(headers -> headers.setBearerAuth(adminAccessToken)).retrieve().body(List.class);
+			return response == null ? List.of() : (List<Map<String, Object>>) (List<?>) response;
+		} catch (RestClientResponseException ex) {
+			throw new AppException(HttpStatus.BAD_GATEWAY, "KEYCLOAK_ROLE_USERS_FAILED",
+					"Failed to fetch users in role from Keycloak", List.of(STATUS_PREFIX + ex.getStatusCode().value()));
+		}
 	}
 
 	private String readString(Map<String, Object> payload, String key) {
