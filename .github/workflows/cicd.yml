@@ -144,37 +144,58 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Ensure remote deploy directory exists
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          port: ${{ secrets.VPS_PORT || '22' }}
-          script: mkdir -p /opt/marianadias/backend
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      - name: Upload deploy files to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          port: ${{ secrets.VPS_PORT || '22' }}
-          source: deploy/production/backend/*
-          target: /opt/marianadias/backend
-          strip_components: 3
+      - name: Deploy to VPS with retry
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+          VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
+          VPS_PORT: ${{ secrets.VPS_PORT || '22' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
 
-      - name: Update containers on VPS
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          port: ${{ secrets.VPS_PORT || '22' }}
-          script: |
-            set -eu
-            cd /opt/marianadias/backend
-            test -f .env
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
-            docker compose --env-file .env -f docker-compose.prod.yml pull
-            docker compose --env-file .env -f docker-compose.prod.yml up -d
+          SSH_OPTS=(
+            -o StrictHostKeyChecking=no
+            -o UserKnownHostsFile=/dev/null
+            -o ConnectTimeout=20
+            -p "$VPS_PORT"
+          )
+
+          upload_bundle() {
+            tar -czf - -C deploy/production/backend . | \
+              sshpass -p "$VPS_PASSWORD" ssh "${SSH_OPTS[@]}" "$VPS_USERNAME@$VPS_HOST" \
+                "mkdir -p /opt/marianadias/backend && tar -xzf - -C /opt/marianadias/backend"
+          }
+
+          update_remote() {
+            sshpass -p "$VPS_PASSWORD" ssh "${SSH_OPTS[@]}" "$VPS_USERNAME@$VPS_HOST" "
+              set -eu
+              cd /opt/marianadias/backend
+              test -f .env
+              echo '$GITHUB_TOKEN' | docker login ghcr.io -u '$GITHUB_REPOSITORY_OWNER' --password-stdin
+              docker compose --env-file .env -f docker-compose.prod.yml pull
+              docker compose --env-file .env -f docker-compose.prod.yml up -d
+            "
+          }
+
+          for attempt in 1 2 3 4 5; do
+            echo "Deploy attempt $attempt/5"
+
+            if upload_bundle && update_remote; then
+              echo "Deploy succeeded on attempt $attempt"
+              exit 0
+            fi
+
+            if [ "$attempt" -eq 5 ]; then
+              echo "Deploy failed after 5 attempts"
+              exit 1
+            fi
+
+            sleep_seconds=$((attempt * 10))
+            echo "Deploy attempt $attempt failed. Retrying in ${sleep_seconds}s..."
+            sleep "$sleep_seconds"
+          done
