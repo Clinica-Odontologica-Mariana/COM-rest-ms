@@ -1,9 +1,6 @@
 CREATE OR REPLACE FUNCTION fn_create_financial_from_treatment()
 RETURNS TRIGGER AS $$
 DECLARE
-CREATE OR REPLACE FUNCTION fn_create_financial_from_treatment()
-RETURNS TRIGGER AS $$
-DECLARE
 v_clinic_id UUID;
     v_patient_name VARCHAR(150);
 BEGIN
