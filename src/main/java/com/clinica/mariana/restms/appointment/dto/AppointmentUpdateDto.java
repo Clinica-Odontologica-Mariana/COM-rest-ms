@@ -9,6 +9,8 @@ public record AppointmentUpdateDto(
 
 		@NotNull(message = "statusId is required") UUID statusId,
 
+		UUID procedureId,
+
 		@NotNull(message = "startDatetime is required") LocalDateTime startDatetime,
 
 		@NotNull(message = "endDatetime is required") LocalDateTime endDatetime,

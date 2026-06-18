@@ -81,7 +81,7 @@ class AppointmentControllerTest {
 		LocalDateTime start = LocalDateTime.now().plusDays(1).withNano(0);
 		LocalDateTime end = start.plusHours(1);
 
-		AppointmentDto created = appointmentService.create(new AppointmentCreateDto(PATIENT_ID, CLINIC_ID, null,
+		AppointmentDto created = appointmentService.create(new AppointmentCreateDto(PATIENT_ID, CLINIC_ID, null, null,
 				PROFESSIONAL_ID, scheduledStatusId, start, end, CONSULTA_DE_ROTINA, true));
 
 		assertThat(created.id()).isNotNull();
@@ -98,7 +98,7 @@ class AppointmentControllerTest {
 		UUID confirmedStatusId = appointmentStatusRepository.findByCode(CONFIRMED).orElseThrow().getId();
 
 		AppointmentDto updated = appointmentService.update(created.id(), new AppointmentUpdateDto(confirmedStatusId,
-				start.plusMinutes(15), end.plusMinutes(15), CONSULTA_CONFIRMADA, true));
+				null, start.plusMinutes(15), end.plusMinutes(15), CONSULTA_CONFIRMADA, true));
 
 		assertThat(updated.statusCode()).isEqualTo(CONFIRMED);
 		assertThat(updated.notes()).isEqualTo(CONSULTA_CONFIRMADA);

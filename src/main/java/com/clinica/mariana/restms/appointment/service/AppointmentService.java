@@ -73,6 +73,7 @@ public class AppointmentService {
 		entity.setPatientId(request.patientId());
 		entity.setClinicId(request.clinicId());
 		entity.setWorkplaceId(request.workplaceId());
+		entity.setProcedureId(request.procedureId());
 		entity.setProfessionalId(request.professionalId());
 		entity.setStatus(status);
 		entity.setCalendarProvider(googleProvider);
@@ -121,6 +122,7 @@ public class AppointmentService {
 						"Appointment status not found"));
 
 		entity.setStatus(status);
+		entity.setProcedureId(request.procedureId());
 		entity.setStartDatetime(toOffsetUtc(request.startDatetime()));
 		entity.setEndDatetime(toOffsetUtc(request.endDatetime()));
 		entity.setNotes(request.notes());
@@ -217,8 +219,9 @@ public class AppointmentService {
 
 	private AppointmentDto toDto(AppointmentEntity entity) {
 		return new AppointmentDto(entity.getId(), entity.getPatientId(), fetchPatientName(entity.getPatientId()),
-				entity.getClinicId(), entity.getWorkplaceId(), entity.getProfessionalId(),
+				entity.getClinicId(), entity.getWorkplaceId(), entity.getProcedureId(), entity.getProfessionalId(),
 				fetchProfessionalName(entity.getProfessionalId()),
+				entity.getStatus() != null ? entity.getStatus().getId() : null,
 				entity.getStatus() != null ? entity.getStatus().getCode() : null,
 				entity.getStatus() != null ? entity.getStatus().getName() : null,
 				entity.getCalendarSyncStatus() != null ? entity.getCalendarSyncStatus().getCode() : null,

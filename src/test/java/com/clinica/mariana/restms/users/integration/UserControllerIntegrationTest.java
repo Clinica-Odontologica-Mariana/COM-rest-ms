@@ -47,8 +47,9 @@ class UserControllerIntegrationTest {
 		@DisplayName("When called by ADMIN, then returns users list")
 		void shouldListUsers() throws Exception {
 			doReturn(java.util.List.of(
-					new UserSummaryDto("u-1", "api-admin", "api-admin@rest-ms.local", true, "API", "Admin"),
-					new UserSummaryDto("u-2", "maria.silva", "maria.silva@clinic.local", true, "Maria", "Silva")))
+					new UserSummaryDto("u-1", "api-admin", "api-admin@rest-ms.local", true, "API", "Admin", "ADMIN"),
+					new UserSummaryDto("u-2", "maria.silva", "maria.silva@clinic.local", true, "Maria", "Silva",
+							"DOCTOR")))
 					.when(userService).listUsers();
 
 			mockMvc.perform(get("/api/v1/users").contextPath(CONTEXT_PATH)
@@ -73,8 +74,8 @@ class UserControllerIntegrationTest {
 		@Test
 		@DisplayName("When called by DOCTOR, then returns users list")
 		void shouldListUsersForDoctor() throws Exception {
-			doReturn(java.util.List
-					.of(new UserSummaryDto("u-1", "api-admin", "api-admin@rest-ms.local", true, "API", "Admin")))
+			doReturn(java.util.List.of(
+					new UserSummaryDto("u-1", "api-admin", "api-admin@rest-ms.local", true, "API", "Admin", "ADMIN")))
 					.when(userService).listUsers();
 
 			mockMvc.perform(get("/api/v1/users").contextPath(CONTEXT_PATH)

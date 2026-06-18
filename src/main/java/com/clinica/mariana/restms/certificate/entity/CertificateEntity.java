@@ -49,6 +49,9 @@ public class CertificateEntity {
 	@Column(name = "active", nullable = false)
 	private boolean active = true;
 
+	@Column(name = "featured", nullable = false)
+	private boolean featured = false;
+
 	@Column(name = "revoked_at")
 	private OffsetDateTime revokedAt;
 

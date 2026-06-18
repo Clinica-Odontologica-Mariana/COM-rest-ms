@@ -55,6 +55,15 @@ class UserServiceTest {
 					]
 					""");
 		});
+		server.createContext("/admin/realms/rest-ms/roles/DOCTOR/users", exchange -> writeJson(exchange, 200, """
+				[{"id":"u-1"}]
+				"""));
+		server.createContext("/admin/realms/rest-ms/roles/ADMIN/users", exchange -> writeJson(exchange, 200, """
+				[]
+				"""));
+		server.createContext("/admin/realms/rest-ms/roles/RECEPTIONIST/users", exchange -> writeJson(exchange, 200, """
+				[]
+				"""));
 		server.start();
 
 		UserService service = new UserService(keycloakProperties());
@@ -62,7 +71,7 @@ class UserServiceTest {
 		List<UserSummaryDto> users = service.listUsers();
 
 		assertThat(users).containsExactly(
-				new UserSummaryDto("u-1", "maria.silva", "maria.silva@clinic.local", true, "Maria", "Silva"));
+				new UserSummaryDto("u-1", "maria.silva", "maria.silva@clinic.local", true, "Maria", "Silva", "DOCTOR"));
 	}
 
 	@Test

@@ -43,6 +43,9 @@ public class AppointmentEntity {
 	@Column(name = "workplace_id")
 	private UUID workplaceId;
 
+	@Column(name = "procedure_id")
+	private UUID procedureId;
+
 	@Column(name = "professional_id", nullable = false)
 	private UUID professionalId;
 

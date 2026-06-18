@@ -13,6 +13,8 @@ public record AppointmentCreateDto(
 
 		UUID workplaceId,
 
+		UUID procedureId,
+
 		@NotNull(message = "professionalId is required") UUID professionalId,
 
 		UUID statusId,
