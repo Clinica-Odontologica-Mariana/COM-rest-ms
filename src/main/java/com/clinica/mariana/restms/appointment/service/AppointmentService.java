@@ -219,6 +219,7 @@ public class AppointmentService {
 		return new AppointmentDto(entity.getId(), entity.getPatientId(), fetchPatientName(entity.getPatientId()),
 				entity.getClinicId(), entity.getWorkplaceId(), entity.getProfessionalId(),
 				fetchProfessionalName(entity.getProfessionalId()),
+				entity.getStatus() != null ? entity.getStatus().getId() : null,
 				entity.getStatus() != null ? entity.getStatus().getCode() : null,
 				entity.getStatus() != null ? entity.getStatus().getName() : null,
 				entity.getCalendarSyncStatus() != null ? entity.getCalendarSyncStatus().getCode() : null,

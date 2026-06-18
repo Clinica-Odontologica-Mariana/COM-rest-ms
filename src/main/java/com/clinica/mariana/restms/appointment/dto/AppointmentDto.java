@@ -4,7 +4,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public record AppointmentDto(UUID id, UUID patientId, String patientName, UUID clinicId, UUID workplaceId,
-		UUID professionalId, String professionalName, String statusCode, String statusName,
+		UUID professionalId, String professionalName, UUID statusId, String statusCode, String statusName,
 		String calendarSyncStatusCode, String externalCalendarEventId, OffsetDateTime lastSyncedAt,
 		boolean blocksSchedule, OffsetDateTime startDatetime, OffsetDateTime endDatetime, String notes,
 		String cancellationReason, OffsetDateTime cancelledAt, UUID cancelledByUserId, UUID createdByUserId,
