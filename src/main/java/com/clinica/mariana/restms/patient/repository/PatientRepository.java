@@ -17,4 +17,6 @@ public interface PatientRepository extends JpaRepository<PatientEntity, UUID> {
 	Optional<PatientEntity> findByCpf(String cpf);
 
 	Page<PatientEntity> findAllByActiveTrueOrderByFullNameAsc(Pageable pageable);
+
+	Page<PatientEntity> findAllByOrderByFullNameAsc(Pageable pageable);
 }

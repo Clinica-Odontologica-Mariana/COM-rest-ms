@@ -80,20 +80,20 @@ class PatientControllerIntegrationTest {
 					.andExpect(status().isOk()).andExpect(jsonPath("$.data.id", is(created.id().toString())))
 					.andExpect(jsonPath("$.data.cpf", is("12345678901")));
 
-		mockMvc.perform(put(PATIENT_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH)
-				.with(jwtWithRole(ROLE_ADMIN)).contentType(MediaType.APPLICATION_JSON).content("""
-						{
-						  "fullName": "Maria Silva Atualizada",
-						  "cpf": "12345678901",
-						  "phone": "11888888888",
-						  "email": "maria.atualizada@clinic.com",
-						  "birthDate": "1990-01-10",
-						  "emergencyContactName": "Contato Atualizado",
-						  "emergencyContactPhone": "1144444444",
-						  "notes": "Observacao atualizada",
-						  "active": true
-						}
-						""")).andExpect(status().isOk())
+			mockMvc.perform(put(PATIENT_BY_ID_ENDPOINT, created.id()).contextPath(CONTEXT_PATH)
+					.with(jwtWithRole(ROLE_ADMIN)).contentType(MediaType.APPLICATION_JSON).content("""
+							{
+							  "fullName": "Maria Silva Atualizada",
+							  "cpf": "12345678901",
+							  "phone": "11888888888",
+							  "email": "maria.atualizada@clinic.com",
+							  "birthDate": "1990-01-10",
+							  "emergencyContactName": "Contato Atualizado",
+							  "emergencyContactPhone": "1144444444",
+							  "notes": "Observacao atualizada",
+							  "active": true
+							}
+							""")).andExpect(status().isOk())
 					.andExpect(jsonPath("$.data.fullName", is("Maria Silva Atualizada")))
 					.andExpect(jsonPath("$.data.notes", is("Observacao atualizada")));
 
@@ -108,7 +108,8 @@ class PatientControllerIntegrationTest {
 					.andExpect(status().isOk()).andExpect(jsonPath("$.data.active", is(false)));
 
 			mockMvc.perform(get(PATIENTS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
-					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(0)));
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(1)))
+					.andExpect(jsonPath("$.data.content[0].active", is(false)));
 		}
 	}
 

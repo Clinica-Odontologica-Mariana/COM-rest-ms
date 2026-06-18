@@ -63,7 +63,7 @@ public class PatientService {
 
 	@Transactional(readOnly = true)
 	public Page<PatientDto> findAll(Pageable pageable) {
-		return patientRepository.findAllByActiveTrueOrderByFullNameAsc(pageable).map(this::toDto);
+		return patientRepository.findAllByOrderByFullNameAsc(pageable).map(this::toDto);
 	}
 
 	@Transactional(readOnly = true)

@@ -313,8 +313,7 @@ class ProfessionalControllerIntegrationTest {
 	}
 
 	private void ensureReferenceTables() {
-		jdbcTemplate.execute(
-				"create table if not exists app_user (id uuid primary key, full_name varchar(150))");
+		jdbcTemplate.execute("create table if not exists app_user (id uuid primary key, full_name varchar(150))");
 		jdbcTemplate.execute("create table if not exists clinic (id uuid primary key)");
 		jdbcTemplate.execute("create table if not exists specialty (id uuid primary key)");
 	}
