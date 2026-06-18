@@ -81,8 +81,8 @@ class AppointmentControllerTest {
 		LocalDateTime start = LocalDateTime.now().plusDays(1).withNano(0);
 		LocalDateTime end = start.plusHours(1);
 
-		AppointmentDto created = appointmentService.create(new AppointmentCreateDto(PATIENT_ID, CLINIC_ID, null,
-				null, PROFESSIONAL_ID, scheduledStatusId, start, end, CONSULTA_DE_ROTINA, true));
+		AppointmentDto created = appointmentService.create(new AppointmentCreateDto(PATIENT_ID, CLINIC_ID, null, null,
+				PROFESSIONAL_ID, scheduledStatusId, start, end, CONSULTA_DE_ROTINA, true));
 
 		assertThat(created.id()).isNotNull();
 		assertThat(created.statusCode()).isEqualTo(SCHEDULED);

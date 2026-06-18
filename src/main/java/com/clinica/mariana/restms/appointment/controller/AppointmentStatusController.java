@@ -28,9 +28,7 @@ public class AppointmentStatusController {
 	@RolesAllowed({"ADMIN", "DOCTOR", "RECEPTIONIST"})
 	@Operation(summary = "Listar status de consulta", description = "Retorna todos os status disponíveis para consultas")
 	public List<AppointmentStatusDto> findAll() {
-		return repository.findAll().stream()
-				.map(s -> new AppointmentStatusDto(s.getId(), s.getCode(), s.getName(),
-						s.isBlocksSchedule(), s.isFinalStatus()))
-				.toList();
+		return repository.findAll().stream().map(s -> new AppointmentStatusDto(s.getId(), s.getCode(), s.getName(),
+				s.isBlocksSchedule(), s.isFinalStatus())).toList();
 	}
 }
