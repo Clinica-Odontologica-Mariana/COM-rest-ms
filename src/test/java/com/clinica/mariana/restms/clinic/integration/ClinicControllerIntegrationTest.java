@@ -106,8 +106,7 @@ class ClinicControllerIntegrationTest {
 					.with(jwtWithRole(ROLE_ADMIN))).andExpect(status().isOk());
 
 			mockMvc.perform(get(CLINICS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
-					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(1)))
-					.andExpect(jsonPath("$.data.content[0].active", is(false)));
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(0)));
 		}
 
 		@Test

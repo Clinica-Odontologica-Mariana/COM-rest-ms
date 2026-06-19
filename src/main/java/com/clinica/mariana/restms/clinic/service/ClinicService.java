@@ -69,7 +69,7 @@ public class ClinicService {
 
 	@Transactional(readOnly = true)
 	public Page<ClinicDto> findAll(Pageable pageable) {
-		return clinicRepository.findAll(pageable).map(this::toDto);
+		return clinicRepository.findByActiveTrue(pageable).map(this::toDto);
 	}
 
 	@Transactional(readOnly = true)

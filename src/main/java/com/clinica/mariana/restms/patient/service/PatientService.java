@@ -3,7 +3,11 @@ package com.clinica.mariana.restms.patient.service;
 import com.clinica.mariana.restms.address.dto.AddressDto;
 import com.clinica.mariana.restms.address.entity.AddressEntity;
 import com.clinica.mariana.restms.address.repository.AddressRepository;
+import com.clinica.mariana.restms.appointment.repository.AppointmentRepository;
+import com.clinica.mariana.restms.certificate.repository.CertificateRepository;
+import com.clinica.mariana.restms.medicalrecord.repository.MedicalRecordRepository;
 import com.clinica.mariana.restms.medicalrecord.service.MedicalRecordService;
+import com.clinica.mariana.restms.odontogram.repository.OdontogramFileRepository;
 import com.clinica.mariana.restms.patient.dto.PatientCreateDto;
 import com.clinica.mariana.restms.patient.dto.PatientDto;
 import com.clinica.mariana.restms.patient.dto.PatientUpdateDto;
@@ -16,6 +20,7 @@ import com.clinica.mariana.restms.common.exception.AppException;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -27,12 +32,22 @@ public class PatientService {
 	private final PatientRepository patientRepository;
 	private final MedicalRecordService medicalRecordService;
 	private final AddressRepository addressRepository;
+	private final AppointmentRepository appointmentRepository;
+	private final CertificateRepository certificateRepository;
+	private final MedicalRecordRepository medicalRecordRepository;
+	private final OdontogramFileRepository odontogramFileRepository;
 
 	public PatientService(PatientRepository patientRepository, MedicalRecordService medicalRecordService,
-			AddressRepository addressRepository) {
+			AddressRepository addressRepository, AppointmentRepository appointmentRepository,
+			CertificateRepository certificateRepository, MedicalRecordRepository medicalRecordRepository,
+			OdontogramFileRepository odontogramFileRepository) {
 		this.patientRepository = patientRepository;
 		this.medicalRecordService = medicalRecordService;
 		this.addressRepository = addressRepository;
+		this.appointmentRepository = appointmentRepository;
+		this.certificateRepository = certificateRepository;
+		this.medicalRecordRepository = medicalRecordRepository;
+		this.odontogramFileRepository = odontogramFileRepository;
 	}
 
 	@Transactional
@@ -63,7 +78,7 @@ public class PatientService {
 
 	@Transactional(readOnly = true)
 	public Page<PatientDto> findAll(Pageable pageable) {
-		return patientRepository.findAllByOrderByFullNameAsc(pageable).map(this::toDto);
+		return patientRepository.findAllByActiveTrueOrderByFullNameAsc(pageable).map(this::toDto);
 	}
 
 	@Transactional(readOnly = true)
@@ -127,6 +142,18 @@ public class PatientService {
 		entity.setActive(false);
 		entity.setInactivatedAt(OffsetDateTime.now());
 		patientRepository.save(entity);
+	}
+
+	@Transactional
+	public void hardDelete(UUID id) {
+		if (!patientRepository.existsById(id)) {
+			throw new AppException(HttpStatus.NOT_FOUND, "PATIENT_NOT_FOUND", PATIENT_NOT_FOUND);
+		}
+		odontogramFileRepository.deleteByPatientId(id);
+		appointmentRepository.deleteByPatientId(id);
+		certificateRepository.deleteByPatientId(id);
+		medicalRecordRepository.deleteByPatientId(id);
+		patientRepository.deleteById(id);
 	}
 
 	private String normalizeCpf(String cpf) {

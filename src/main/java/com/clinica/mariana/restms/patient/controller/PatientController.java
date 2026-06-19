@@ -4,6 +4,7 @@ import com.clinica.mariana.restms.patient.dto.PatientCreateDto;
 import com.clinica.mariana.restms.patient.dto.PatientClinicCreateDto;
 import com.clinica.mariana.restms.patient.dto.PatientClinicDto;
 import com.clinica.mariana.restms.patient.dto.PatientDto;
+import com.clinica.mariana.restms.patient.dto.PatientHardDeleteRequest;
 import com.clinica.mariana.restms.patient.dto.PatientUpdateDto;
 import com.clinica.mariana.restms.patient.service.PatientClinicService;
 import com.clinica.mariana.restms.patient.service.PatientService;
@@ -68,6 +69,13 @@ public class PatientController {
 	@RolesAllowed({"ADMIN", "DOCTOR"})
 	public void delete(@PathVariable UUID id) {
 		patientService.delete(id);
+	}
+
+	@DeleteMapping("/hard-delete")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@RolesAllowed({"ADMIN"})
+	public void hardDelete(@RequestBody PatientHardDeleteRequest request) {
+		patientService.hardDelete(request.id());
 	}
 
 	@PostMapping("/{patientId}/clinics")

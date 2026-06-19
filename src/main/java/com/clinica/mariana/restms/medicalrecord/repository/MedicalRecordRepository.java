@@ -15,4 +15,6 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecordEnti
 	Page<MedicalRecordEntity> findAllByOrderByUpdatedAtDesc(Pageable pageable);
 
 	Optional<MedicalRecordEntity> findByPatientId(UUID patientId);
+
+	void deleteByPatientId(UUID patientId);
 }

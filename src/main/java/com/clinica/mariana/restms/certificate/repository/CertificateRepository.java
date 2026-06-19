@@ -18,4 +18,6 @@ public interface CertificateRepository extends JpaRepository<CertificateEntity, 
 	long countByFeaturedTrueAndActiveTrue();
 
 	Optional<CertificateEntity> findByIdAndActiveTrue(UUID id);
+
+	void deleteByPatientId(UUID patientId);
 }

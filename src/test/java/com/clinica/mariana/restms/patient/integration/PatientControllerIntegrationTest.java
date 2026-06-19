@@ -108,8 +108,7 @@ class PatientControllerIntegrationTest {
 					.andExpect(status().isOk()).andExpect(jsonPath("$.data.active", is(false)));
 
 			mockMvc.perform(get(PATIENTS_ENDPOINT).contextPath(CONTEXT_PATH).with(jwtWithRole(ROLE_DOCTOR)))
-					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(1)))
-					.andExpect(jsonPath("$.data.content[0].active", is(false)));
+					.andExpect(status().isOk()).andExpect(jsonPath("$.data.content", hasSize(0)));
 		}
 	}
 

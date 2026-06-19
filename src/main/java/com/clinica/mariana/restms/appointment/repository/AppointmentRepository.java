@@ -14,4 +14,6 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
 
 	Page<AppointmentEntity> findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(OffsetDateTime start,
 			OffsetDateTime end, Pageable pageable);
+
+	void deleteByPatientId(UUID patientId);
 }

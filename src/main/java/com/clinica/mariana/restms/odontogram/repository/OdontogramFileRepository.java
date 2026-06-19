@@ -12,4 +12,6 @@ public interface OdontogramFileRepository extends JpaRepository<OdontogramFileEn
 	List<OdontogramFileEntity> findAllByPatientIdOrderByCreatedAtDesc(UUID patientId);
 
 	Optional<OdontogramFileEntity> findById(UUID id);
+
+	void deleteByPatientId(UUID patientId);
 }
