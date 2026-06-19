@@ -2,6 +2,8 @@ package com.clinica.mariana.restms.appointment.repository;
 
 import com.clinica.mariana.restms.appointment.entity.AppointmentEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,4 +16,6 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
 
 	Page<AppointmentEntity> findByCancelledAtIsNullAndStartDatetimeBetweenOrderByStartDatetimeAsc(OffsetDateTime start,
 			OffsetDateTime end, Pageable pageable);
+
+	void deleteByPatientId(UUID patientId);
 }

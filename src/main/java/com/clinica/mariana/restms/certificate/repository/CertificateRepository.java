@@ -4,6 +4,8 @@ import com.clinica.mariana.restms.certificate.entity.CertificateEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,4 +20,6 @@ public interface CertificateRepository extends JpaRepository<CertificateEntity, 
 	long countByFeaturedTrueAndActiveTrue();
 
 	Optional<CertificateEntity> findByIdAndActiveTrue(UUID id);
+
+	void deleteByPatientId(UUID patientId);
 }
