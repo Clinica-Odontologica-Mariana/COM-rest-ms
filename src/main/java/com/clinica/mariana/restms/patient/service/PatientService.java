@@ -38,9 +38,9 @@ public class PatientService {
 	private final OdontogramFileRepository odontogramFileRepository;
 
 	public PatientService(PatientRepository patientRepository, MedicalRecordService medicalRecordService,
-	                      AddressRepository addressRepository, AppointmentRepository appointmentRepository,
-	                      CertificateRepository certificateRepository, MedicalRecordRepository medicalRecordRepository,
-	                      OdontogramFileRepository odontogramFileRepository) {
+			AddressRepository addressRepository, AppointmentRepository appointmentRepository,
+			CertificateRepository certificateRepository, MedicalRecordRepository medicalRecordRepository,
+			OdontogramFileRepository odontogramFileRepository) {
 		this.patientRepository = patientRepository;
 		this.medicalRecordService = medicalRecordService;
 		this.addressRepository = addressRepository;
